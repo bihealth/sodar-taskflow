@@ -1,0 +1,56 @@
+from .base_flow import BaseLinearFlow
+from apis.irods_utils import get_project_group_name
+from tasks import omics_tasks, irods_tasks
+
+
+class Flow(BaseLinearFlow):
+    """Flow for updating an user's role in project"""
+
+    def validate(self):
+        self.required_fields = [
+            'username',
+            'user_pk',
+            'role_pk']
+        return super(Flow, self).validate()
+
+    def build(self, force_fail=False):
+
+        ########
+        # Setup
+        ########
+
+        project_group = get_project_group_name(
+            self.project_pk)
+
+        ##############
+        # iRODS Tasks
+        ##############
+
+        self.add_task(
+            irods_tasks.CreateUserTask(
+                name='Create user in irods',
+                irods=self.irods,
+                inject={
+                    'user_name': self.flow_data['username'],
+                    'user_type': 'rodsuser'}))
+
+        self.add_task(
+            irods_tasks.AddUserToGroupTask(
+                name='Add user to project user group',
+                irods=self.irods,
+                inject={
+                    'group_name': project_group,
+                    'user_name': self.flow_data['username']}))
+
+        ##########################
+        # Omics Data Access Tasks
+        ##########################
+
+        self.add_task(
+            omics_tasks.SetRoleTask(
+                name='Set user role',
+                omics_api=self.omics_api,
+                project_pk=self.project_pk,
+                inject={
+                    'user_pk': self.flow_data['user_pk'],
+                    'role_pk': self.flow_data['role_pk']}))

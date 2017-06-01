@@ -1,0 +1,53 @@
+version: "3"
+
+services:
+  redis:
+    image: "redis:alpine"
+    container_name: omics_redis
+    expose:
+      - "6379"
+    ports:
+      - "6379:6379"
+    networks:
+      - omics_bridge
+
+  irods:
+    image: "mjstealey/irods-provider-postgres:latest"
+    container_name: omics_irods
+    ports:
+      - "1247:1247"
+    expose:
+      - "1247"
+    environment:
+      - IRODS_ZONE_NAME=omicsZone
+    networks:
+      - omics_bridge
+
+  omics_taskflow:
+    container_name: omics_taskflow_app
+    image: omics_taskflow
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: gunicorn --bind 0.0.0.0:5005 --workers 8 omics_taskflow:app
+    ports:
+      - "5005:5005"
+    expose:
+      - "5005"
+    links:
+      - redis
+      - irods
+    depends_on:
+      - redis
+      - irods
+    environment:
+      - APP=omics_taskflow_app
+      - TASKFLOW_REDIS_HOST=omics_redis
+      - TASKFLOW_OMICS_HOST=172.17.0.1
+      - TASKFLOW_IRODS_HOST=omics_irods
+    networks:
+      - omics_bridge
+
+networks:
+  omics_bridge:
+    driver: bridge
