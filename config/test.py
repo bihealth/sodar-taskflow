@@ -4,4 +4,4 @@ from config.base import *
 DEBUG = False
 
 # Taskflow
-TASKFLOW_LOCK_ENABLED = False
+TASKFLOW_LOCK_ENABLED = True
