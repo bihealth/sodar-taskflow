@@ -53,8 +53,7 @@ The Omics Taskflow component executes taskflows on the iRODS and Omics Data Acce
 
 ## Pushing to CUBI GitLab Container Registry
 
-* **TODO**
-
+Execute `docker_push.sh` to login, build and push the container image to CUBI GitLab.
 
 ## Deployment in Flynn
 
@@ -68,4 +67,6 @@ The Omics Taskflow component executes taskflows on the iRODS and Omics Data Acce
 * More tests
     * Flows
     * Locking
+    * Coverage for tests
+    * Sonarqube integration
 * Integration with Omics Data Access ongoing
