@@ -1,0 +1,25 @@
+image: python:3.5
+
+# TODO: Create a simple alias for irods once GitLab implements this
+# https://docs.gitlab.com/ce/ci/docker/using_docker_images.html#accessing-the-services
+# https://gitlab.com/gitlab-org/gitlab-ci-multi-runner/issues/1466
+services:
+  - redis:latest
+  - mjstealey/irods-provider-postgres:latest
+
+variables:
+  IRODS_ZONE_NAME: omicsZone
+  TASKFLOW_REDIS_HOST: redis
+  TASKFLOW_IRODS_HOST: mjstealey-irods-provider-postgres
+  OMICS_TASKFLOW_SETTINGS: ./config/production.py
+
+before_script:
+  - pip3 install virtualenv
+  - virtualenv env
+  - source env/bin/activate
+  - pip3 install -r ./requirements.txt
+
+all_tests:
+  script:
+    - ./test.sh
+  when: on_success
