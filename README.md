@@ -1,6 +1,6 @@
 # Omics Taskflow
 
-This is the project for the Omics Taskflow component, which executes taskflows on the iRODS and Omics Data Access databases. It also handles project locking and unlocking using tooz.
+The Omics Taskflow component executes taskflows on the iRODS and Omics Data Access databases. It also handles project locking and unlocking using tooz and Redis.
 
 
 ## Requirements
