@@ -1,6 +1,8 @@
 from taskflow import engines
 from taskflow.patterns import linear_flow as lf
 
+from config import settings
+
 
 class BaseLinearFlow:
     """Base class for linear flows used for task queues"""
@@ -50,16 +52,18 @@ class BaseLinearFlow:
             engine.run()
 
         except Exception as ex:
-            ex_str = str(ex)
+            # Do not raise an Exception if we set this to fail on purpose
+            if str(ex) == settings.TASKFLOW_FORCE_FAIL_STRING:
+                return False
 
             if verbose:
                 print('Exception: {}'.format(ex))
 
-            return str(ex)
+            raise ex
 
         result = True if (
             engine.statistics['incomplete'] == 0 and
-            engine.statistics['discarded_failures'] == 0) else ex_str
+            engine.statistics['discarded_failures'] == 0) else False
 
         if verbose:
             print('--- Flow finished: {} ({} completed, {} incomplete, '

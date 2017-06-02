@@ -29,15 +29,17 @@ def submit():
     force_fail = form_data['force_fail'] \
         if 'force_fail' in form_data else False
 
-    try:
-        validate_kwargs(form_data, [
-            'project_pk',
-            'request_mode',
-            'flow_name',
-            'targets'])
+    required_keys = [
+        'project_pk',
+        'request_mode',
+        'flow_name',
+        'targets']
 
-    except TypeError as ex:
-        return Response(str(ex), status=400)  # Bad request
+    for k in required_keys:
+        if k not in form_data or form_data[k] == '':
+            return Response(
+                'Missing or invalid argument: "{}"'.format(k),
+                status=400)  # Bad request
 
     # We don't support async yet
     if form_data['request_mode'] == 'async':
@@ -123,7 +125,7 @@ def submit():
             'Error running flow: {}'.format(ex), 500)
 
     return return_after_lock(
-        int(flow_result), 200)
+        flow_result, 200)
 
 
 @app.route('/cleanup', methods=['GET'])

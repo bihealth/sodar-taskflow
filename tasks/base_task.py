@@ -1,5 +1,6 @@
 from taskflow import task
 
+from config import settings
 
 class BaseTask(task.Task):
     """Common base task"""
@@ -19,7 +20,7 @@ class BaseTask(task.Task):
         # NOTE: This doesn't work if done in pre_execute() or post_execute()
         # TODO: Is there a built-in way in taskflow for doing this?
         if self.force_fail:
-            raise Exception('force_fail=True')
+            raise Exception(settings.TASKFLOW_FORCE_FAIL_STRING)
 
     def post_execute(self, *args, **kwargs):
         if self.verbose:
