@@ -1,6 +1,6 @@
-from omics_taskflow import validate_kwargs
 from taskflow import engines
 from taskflow.patterns import linear_flow as lf
+
 
 class BaseLinearFlow:
     """Base class for linear flows used for task queues"""
@@ -19,7 +19,9 @@ class BaseLinearFlow:
         """Function for validating flow parameters. Returns True/False based on
         validation success. Add required kwargs in the flow implementation and
         call this. Can be extended with further validation."""
-        validate_kwargs(self.flow_data, self.required_fields)
+        for k in self.required_fields:
+            if k not in self.flow_data or self.flow_data[k] == '':
+                raise TypeError('Missing or invalid argument: "{}"'.format(k))
         return True
 
     def add_task(self, task):
