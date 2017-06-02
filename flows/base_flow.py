@@ -1,6 +1,8 @@
 from taskflow import engines
 from taskflow.patterns import linear_flow as lf
 
+from tasks.base_task import ForceFailException
+
 from config import settings
 
 
@@ -51,11 +53,10 @@ class BaseLinearFlow:
         try:
             engine.run()
 
-        except Exception as ex:
-            # Do not raise an Exception if we set this to fail on purpose
-            if str(ex) == settings.TASKFLOW_FORCE_FAIL_STRING:
-                return False
+        except ForceFailException:
+            return False
 
+        except Exception as ex:
             if verbose:
                 print('Exception: {}'.format(ex))
 
