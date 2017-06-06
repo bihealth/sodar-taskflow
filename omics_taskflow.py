@@ -139,7 +139,7 @@ def cleanup():
     except Exception as ex:
         return Response('Error during cleanup: {}'.format(ex), status=500)
 
-    return Response(1, status=200)
+    return Response('OK', status=200)
 
 
 # DEBUG
