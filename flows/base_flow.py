@@ -48,7 +48,6 @@ class BaseLinearFlow:
                 self.flow.name))
 
         engine = engines.load(self.flow, engine='serial')
-        ex_str = 'Unknown exception'
 
         try:
             engine.run()

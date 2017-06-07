@@ -25,7 +25,7 @@ class IrodsBaseTask(BaseTask):
         super(IrodsBaseTask, self).__init__(
             name, force_fail=force_fail, inject=inject, *args, **kwargs)
         self.target = 'irods'
-        self.name = '[iRODS] ' + name
+        self.name = '[iRODS] {} ({})'.format(name, self.__class__.__name__)
         self.irods = kwargs['irods']
 
     # For those cases where the python client does not raise a proper exception

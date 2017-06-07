@@ -1,7 +1,5 @@
 from taskflow import task
 
-from config import settings
-
 
 class ForceFailException(Exception):
     pass
@@ -18,15 +16,13 @@ class BaseTask(task.Task):
         self.force_fail = force_fail
         self.verbose = verbose
         self.data_modified = False
-        self.initial_data = {}   # TODO: Better way to do this?
+        self.initial_data = {}
 
     def execute(self, *args, **kwargs):
         # Raise Exception for testing revert()
         # NOTE: This doesn't work if done in pre_execute() or post_execute()
-        # TODO: Is there a built-in way in taskflow for doing this?
         if self.force_fail:
             raise ForceFailException
-            # raise Exception(settings.TASKFLOW_FORCE_FAIL_STRING)
 
     def post_execute(self, *args, **kwargs):
         if self.verbose:

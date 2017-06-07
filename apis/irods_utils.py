@@ -1,19 +1,11 @@
-from flask import current_app
 from irods.models import UserGroup
 from irods.session import iRODSSession
 
 from config import settings
 
 
-# TODO: Get this from config
-PROJECT_ROOT = '/omicsZone/projects'
-
-# TODO: Get this from config
-PERMANENT_USERS = [
-    'client_user',
-    'rods',
-    'rodsadmin',
-    'public']
+PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
+PERMANENT_USERS = settings.TASKFLOW_TEST_PERMANENT_USERS
 
 
 def init_irods():
@@ -49,18 +41,15 @@ def cleanup_irods(irods, verbose=True):
             irods.user_groups.remove(user_name=g[UserGroup.name])
 
             if verbose:
-                print('Removed user group: {}'.format(g[UserGroup.name]))
+                print('Removed user: {}'.format(g[UserGroup.name]))
 
 
 def get_project_path(project_pk):
     """Return project path"""
-    # TODO: TBD: Naming conventions
-    # TODO: Get from settings/env
     return '{}/project{}'.format(
-        '/omicsZone/projects', project_pk)
+        PROJECT_ROOT, project_pk)
 
 
 def get_project_group_name(project_pk):
     """Return project user group name"""
-    # TODO: TBD: Naming conventions
     return 'omics-project{}'.format(project_pk)

@@ -13,7 +13,7 @@ class OmicsBaseTask(BaseTask):
         super(OmicsBaseTask, self).__init__(
             name, force_fail=force_fail, inject=inject, *args, **kwargs)
         self.target = 'omics'
-        self.name = '[Omics] ' + name
+        self.name = '[Omics] {} ({})'.format(name, self.__class__.__name__)
         self.project_pk = project_pk
         self.omics_api = omics_api
 
