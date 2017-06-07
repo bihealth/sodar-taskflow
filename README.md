@@ -47,7 +47,7 @@ The Omics Taskflow component executes taskflows on the iRODS and Omics Data Acce
     * There is no persistent iRODS storage and only one iRODS server
     * Doing both manual testing/demonstration *and* running the automated unit tests on the same iRODS server can (and probably will) yield unwanted results!
     * To sync content to iRODS, run `./manage.py synctaskflow` in Omics Data Access (works for operations implemented at the time of writing)
-    * Ensure the `TASKFLOW_OMICS_HOST` ENV variable is pointing to the host where you have the Omics Data Access system running
+    * Ensure the `TASKFLOW_OMICS_URL` ENV variable is pointing to where you have the Omics Data Access system running
     * Booting up the iRODS server takes some time (~5-10s on my workstation), so you won't reach it immediately after running the environment.
 
 

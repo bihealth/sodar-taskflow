@@ -11,9 +11,8 @@ class OmicsRequestException(Exception):
 class OmicsAPI:
     """API for accessing the Django Taskflow REST service"""
 
-    def __init__(self, django_host, django_port):
-        self.omics_url = 'http://{}:{}/taskflow'.format(
-            django_host, django_port)
+    def __init__(self, omics_url):
+        self.omics_url = '{}/taskflow'.format(omics_url)
 
     def retrieve(self, obj_type, obj_pk, query_params=None):
         url = self.omics_url + '/{}/{}'.format(obj_type, obj_pk)

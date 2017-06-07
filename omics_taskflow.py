@@ -11,8 +11,6 @@ IRODS_PORT = settings.TASKFLOW_IRODS_PORT
 IRODS_ZONE = settings.TASKFLOW_IRODS_ZONE
 IRODS_USER = settings.TASKFLOW_IRODS_USER
 IRODS_PASS = settings.TASKFLOW_IRODS_PASS
-OMICS_HOST = settings.TASKFLOW_OMICS_HOST
-OMICS_PORT = settings.TASKFLOW_OMICS_PORT
 
 app = Flask(__name__)
 app.config.from_envvar('OMICS_TASKFLOW_SETTINGS')
@@ -82,6 +80,7 @@ def submit():
     #############
     # Init iRODS
     #############
+
     try:
         irods = irods_utils.init_irods()
 
@@ -89,13 +88,23 @@ def submit():
         return return_after_lock(
             'Error initializing iRODS: {}'.format(ex), 500)
 
+    ################
+    # Init Omics API
+    ################
+
+    if 'omics_url' in form_data:
+        omics_url = form_data['omics_url']
+
+    else:
+        omics_url = settings.TASKFLOW_OMICS_URL
+
     ######################
     # Create and run flow
     ######################
 
     flow = flow_cls(
         irods=irods,
-        omics_api=omics_api.OmicsAPI(OMICS_HOST, OMICS_PORT),
+        omics_api=omics_api.OmicsAPI(omics_url),
         project_pk=form_data['project_pk'],
         flow_name=form_data['flow_name'],
         flow_data=form_data['flow_data'],
