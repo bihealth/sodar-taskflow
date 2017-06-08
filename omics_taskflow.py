@@ -159,8 +159,7 @@ def hello():
 
 if __name__ == '__main__':
     print('settings={}'.format(os.getenv('OMICS_TASKFLOW_SETTINGS')))
-    app.run(
-        use_reloader=False)
+    app.run('0.0.0.0', '5005')
 
 
 def validate_kwargs(kwargs_dict, required_keys):
