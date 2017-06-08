@@ -59,7 +59,7 @@ def submit():
     coordinator = lock_api.get_coordinator()
 
     if not coordinator:
-        return Response('Error retrieving lock coordinator', 500)
+        return Response('Error retrieving lock coordinator', 501)
 
     # TODO: TBD: Lock title
     lock_id = 'project{}'.format(project_pk)
@@ -69,7 +69,7 @@ def submit():
         lock_api.acquire(lock)
 
     except Exception as ex:
-        return Response(str(ex), status=500)
+        return Response(str(ex), status=502)
 
     # Release lock, stop coordinator and return
     def return_after_lock(response_body, status):
@@ -86,7 +86,7 @@ def submit():
 
     except Exception as ex:
         return return_after_lock(
-            'Error initializing iRODS: {}'.format(ex), 500)
+            'Error initializing iRODS: {}'.format(ex), 503)
 
     ################
     # Init Omics API
