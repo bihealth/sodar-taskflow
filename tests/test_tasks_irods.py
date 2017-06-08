@@ -1,3 +1,5 @@
+"""Tests for iRODS tasks"""
+
 import os
 import uuid
 
