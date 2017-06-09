@@ -2,6 +2,7 @@
 from unittest import TestCase
 
 import omics_taskflow
+from apis.irods_utils import init_irods, cleanup_irods
 
 
 class AppTestBase(TestCase):
@@ -9,13 +10,13 @@ class AppTestBase(TestCase):
 
     def setUp(self):
         # Init iRODS connection
-        # self.irods = init_irods()
+        self.irods = init_irods()
         self.app = omics_taskflow.app.test_client()
         pass
 
     def tearDown(self):
         # Remove leftover data from iRODS
-        # cleanup_irods(self.irods, verbose=False)
+        cleanup_irods(self.irods, verbose=False)
         pass
 
 

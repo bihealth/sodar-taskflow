@@ -28,11 +28,15 @@ def cleanup_irods(irods, verbose=True):
     """Cleanup data from iRODS. Used in debugging/testing."""
 
     # Remove project folders
-    irods.collections.remove(
-        PROJECT_ROOT, recurse=True)
+    try:
+        irods.collections.remove(
+            PROJECT_ROOT, recurse=True)
 
-    if verbose:
-        print('Removed project root: {}'.format(PROJECT_ROOT))
+        if verbose:
+            print('Removed project root: {}'.format(PROJECT_ROOT))
+
+    except Exception:
+        pass    # This is OK, the root just wasn't there
 
     # Remove created user groups and users
     # NOTE: user_groups.remove does both
