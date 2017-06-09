@@ -71,3 +71,6 @@ target/
 .venv
 venv/
 ENV/
+
+# Other
+*.rdb
