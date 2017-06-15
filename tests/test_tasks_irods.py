@@ -212,6 +212,101 @@ class TestCreateCollectionTask(IRODSTestBase):
         self.assertIsInstance(coll, iRODSCollection)
 
 
+class TestRemoveCollectionTask(IRODSTestBase):
+
+    def test_execute(self):
+        """Test collection removal"""
+        self._add_task(
+            cls=RemoveCollectionTask,
+            name='Remove collection',
+            inject={'path': TEST_COLL})
+
+        # Assert precondition
+        coll = self.irods.collections.get(TEST_COLL)
+        self.assertIsInstance(coll, iRODSCollection)
+
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, True)
+
+        # Assert postcondition
+        self.assertRaises(
+            CollectionDoesNotExist,
+            self.irods.collections.get,
+            TEST_COLL)
+
+    def test_execute_twice(self):
+        """Test collection removal twice"""
+        self._add_task(
+            cls=RemoveCollectionTask,
+            name='Remove collection',
+            inject={'path': TEST_COLL})
+
+        result = self._run_flow()
+
+        # Init and run new flow
+        self.flow = self._init_flow()
+        self._add_task(
+            cls=RemoveCollectionTask,
+            name='Remove collection',
+            inject={'path': TEST_COLL})
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, True)
+
+        # Assert postcondition
+        self.assertRaises(
+            CollectionDoesNotExist,
+            self.irods.collections.get,
+            TEST_COLL)
+
+    def test_revert_removed(self):
+        """Test collection removal reverting after removing"""
+        self._add_task(
+            cls=RemoveCollectionTask,
+            name='Remove collection',
+            inject={'path': TEST_COLL},
+            force_fail=True)    # FAIL
+
+        result = self._run_flow()
+
+        # Assert flow failure
+        self.assertNotEqual(result, True)
+
+        # Assert postcondition
+        coll = self.irods.collections.get(TEST_COLL)
+        self.assertIsInstance(coll, iRODSCollection)
+
+    def test_revert_not_modified(self):
+        """Test collection removal reverting without modification"""
+
+        # Assert precondition
+        self.assertRaises(
+            CollectionDoesNotExist,
+            self.irods.collections.get,
+            TEST_COLL_NEW)
+
+        # Init and run flow
+        self.flow = self._init_flow()
+        self._add_task(
+            cls=RemoveCollectionTask,
+            name='Remove collection',
+            inject={'path': TEST_COLL_NEW},
+            force_fail=True)  # FAIL
+        result = self._run_flow()
+
+        # Assert flow failure
+        self.assertNotEqual(result, True)
+
+        # Assert postcondition
+        self.assertRaises(
+            CollectionDoesNotExist,
+            self.irods.collections.get,
+            TEST_COLL_NEW)
+
+
 class TestSetCollectionMetadataTask(IRODSTestBase):
     def test_execute(self):
         """Test setting metadata"""
@@ -872,7 +967,7 @@ class TestAddUserToGroupTask(IRODSTestBase):
 
 class TestRemoveUserFromGroupTask(IRODSTestBase):
     def test_execute(self):
-        """Test user addition"""
+        """Test user removal"""
         self._add_task(
             cls=RemoveUserFromGroupTask,
             name='Remove user from group',
@@ -894,7 +989,7 @@ class TestRemoveUserFromGroupTask(IRODSTestBase):
         self.assertEqual(group.hasmember(GROUP_USER), False)
 
     def test_execute_twice(self):
-        """Test user addition twice"""
+        """Test user removal twice"""
         self._add_task(
             cls=RemoveUserFromGroupTask,
             name='Remove user from group',
@@ -925,7 +1020,7 @@ class TestRemoveUserFromGroupTask(IRODSTestBase):
         self.assertEqual(group.hasmember(GROUP_USER), False)
 
     def test_revert_modified(self):
-        """Test user addition reverting after modification"""
+        """Test user ramoval reverting after modification"""
         self._add_task(
             cls=RemoveUserFromGroupTask,
             name='Remove user from group',
@@ -943,7 +1038,7 @@ class TestRemoveUserFromGroupTask(IRODSTestBase):
         self.assertEqual(group.hasmember(GROUP_USER), True)
 
     def test_revert_not_modified(self):
-        """Test user addition reverting without modification"""
+        """Test user removal reverting without modification"""
         self._add_task(
             cls=RemoveUserFromGroupTask,
             name='Remove user from group',

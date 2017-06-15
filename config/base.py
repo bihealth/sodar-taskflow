@@ -2,7 +2,6 @@ import os
 
 # Flask
 DEBUG = True
-# SERVER_NAME = '0.0.0.0:5005'
 TESTING = False
 
 # Taskflow

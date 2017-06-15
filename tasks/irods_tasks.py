@@ -1,11 +1,15 @@
 """iRODS tasks for Taskflow"""
 
+import random
+import string
 
 from irods.access import iRODSAccess
 from irods.exception import CollectionDoesNotExist, UserDoesNotExist,\
     UserGroupDoesNotExist, NoResultFound
 from irods.models import Collection
+
 from .base_task import BaseTask
+from apis.irods_utils import get_trash_path
 
 
 # NOTE: Yes, we really need this for the python irods client
@@ -49,6 +53,59 @@ class CreateCollectionTask(IrodsBaseTask):
     def revert(self, path, *args, **kwargs):
         if self.data_modified:
             self.irods.collections.remove(path, recurse=True)
+
+
+# TODO: Refactor this as follows: Before removing, set a random metadata value
+# TODO:     for the collection. If reverting, search for the version of the
+# TODO:     deleted collection with the tag, recover that and remove the tag.
+class RemoveCollectionTask(IrodsBaseTask):
+    """Remove a collection if it exists (irm)"""
+
+    # NOTE: Instead of using irm, move manually to trash with a specific name
+    #       So we can be sure to recover the correct structure on revert
+    #       (if collections with the same path are removed, they are collected
+    #       in trash versioned with a timestamp, which we can't know for sure)
+    def execute(self, path, *args, **kwargs):
+        trash_path = '/' + path.split('/')[1] + '/trash/' + ''.join(
+            random.SystemRandom().choice(
+                string.ascii_lowercase + string.digits) for x in range(16))
+
+        if self.irods.collections.exists(path):
+            self.irods.collections.create(trash_path)   # Must create this 1st
+
+            try:
+                self.irods.collections.move(
+                    src_path=path,
+                    dest_path=trash_path)
+
+            # NOTE: iRODS/client doesn't like to return a proper exception here
+            except Exception as ex:
+                pass
+
+            # ..so let's test success manually just to be sure
+            new_path = trash_path + '/' + path.split('/')[-1]
+
+            if self.irods.collections.exists(new_path):
+                self.data_modified = True
+                self.initial_data['trash_path'] = trash_path
+
+            else:
+                raise Exception('Failed to remove collection')
+
+        super(RemoveCollectionTask, self).execute(*args, **kwargs)
+
+    def revert(self, path, *args, **kwargs):
+        if self.data_modified:
+            src_path = self.initial_data[
+                'trash_path'] + '/' + path.split('/')[-1]
+            dest_path = '/'.join(path.split('/')[:-1])
+
+            self.irods.collections.move(
+                src_path=src_path,
+                dest_path=dest_path)
+
+            # Delete temp trash collection
+            self.irods.collections.remove(self.initial_data['trash_path'])
 
 
 # TODO: Do we need to add several metadata items until the same key? If so,

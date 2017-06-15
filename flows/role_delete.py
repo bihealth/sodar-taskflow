@@ -34,7 +34,7 @@ class Flow(BaseLinearFlow):
                     'group_name': existing_group,
                     'user_name': self.flow_data['username']}))
 
-        # TODO: TBD: Also e.g. remove dropbox directory if created?
+        # TODO: TBD: Also e.g. remove landing zone if created?
 
         ##########################
         # Omics Data Access Tasks

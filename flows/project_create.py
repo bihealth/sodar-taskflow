@@ -50,8 +50,6 @@ class Flow(BaseLinearFlow):
                 inject={
                     'path': project_path}))
 
-        # TODO: TBD: Default subdirectories for each project? dropbox, etc.
-
         self.add_task(
             irods_tasks.SetCollectionMetadataTask(
                 name='Add title metadata to project',

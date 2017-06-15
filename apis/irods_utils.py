@@ -1,3 +1,6 @@
+import random
+import string
+
 from irods.models import UserGroup
 from irods.session import iRODSSession
 
@@ -26,6 +29,9 @@ def init_irods():
 
 def cleanup_irods(irods, verbose=True):
     """Cleanup data from iRODS. Used in debugging/testing."""
+
+    # TODO: Remove stuff from user folders
+    # TODO: Remove stuff from trash
 
     # Remove project folders
     try:
@@ -57,3 +63,18 @@ def get_project_path(project_pk):
 def get_project_group_name(project_pk):
     """Return project user group name"""
     return 'omics-project{}'.format(project_pk)
+
+
+def get_trash_path(path, add_rand=False):
+    """Return base trash path for an object without a versioning suffix. Adds
+    random characters if add_rand is set True (for revert operations)"""
+    # TODO: Refactor maybe? :)
+    trash_path = '/' + path.split('/')[1] + '/trash/' + '/'.join(
+        [x for x in path.split('/')[2:]])
+
+    if add_rand:
+        trash_path += '_' + ''.join(
+            random.SystemRandom().choice(
+                string.ascii_lowercase + string.digits) for x in range(16))
+
+    return trash_path

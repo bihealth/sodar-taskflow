@@ -71,3 +71,6 @@ ENV/
 
 # Dev scripts in project root
 /*.sh
+
+# Utilities
+utility/
