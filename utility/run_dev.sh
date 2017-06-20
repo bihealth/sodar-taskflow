@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-cd ..
-export OMICS_TASKFLOW_SETTINGS=$PWD/config/base.py
-python omics_taskflow.py
+SCRIPT_PATH=$(dirname "$(readlink -f "$0")")
+export OMICS_TASKFLOW_SETTINGS=${SCRIPT_PATH}/../config/base.py
+python ${SCRIPT_PATH}/../omics_taskflow.py

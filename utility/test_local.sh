@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-cd ..
-export OMICS_TASKFLOW_SETTINGS=$PWD/config/test_local.py
-python -m unittest discover -v
+SCRIPT_PATH=$(dirname "$(readlink -f "$0")")
+export OMICS_TASKFLOW_SETTINGS=${SCRIPT_PATH}/../config/test_local.py
+python -m unittest discover -v ${SCRIPT_PATH}/..
