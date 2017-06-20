@@ -68,7 +68,6 @@ def get_project_group_name(project_pk):
 def get_trash_path(path, add_rand=False):
     """Return base trash path for an object without a versioning suffix. Adds
     random characters if add_rand is set True (for revert operations)"""
-    # TODO: Refactor maybe? :)
     trash_path = '/' + path.split('/')[1] + '/trash/' + '/'.join(
         [x for x in path.split('/')[2:]])
 

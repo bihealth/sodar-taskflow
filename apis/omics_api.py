@@ -32,6 +32,15 @@ class OmicsAPI:
 
         return response
 
+    def create(self, obj_type, data):
+        url = self.omics_url + '/{}/create'.format(obj_type)
+        response = requests.post(url, data)
+
+        if response.status_code != 200:
+            raise OmicsRequestException(response.text)
+
+        return response
+
     def update(self, obj_type, obj_pk, data):
         url = self.omics_url + '/{}/{}/update'.format(obj_type, obj_pk)
         response = requests.post(url, data)

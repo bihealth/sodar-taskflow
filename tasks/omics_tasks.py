@@ -1,5 +1,11 @@
 """Omics Data Access Django site tasks for Taskflow"""
 
+# TODO: TBD: Proper way to handle reverting the deletion of objects in Django?
+# TODO: With simple objects we can recreate them easily, but with e.g. sample
+# TODO: sheets it may be difficult. Add some sort of "disabled" tag to soft
+# TODO: delete objects instead?
+
+
 from .base_task import BaseTask
 from apis.omics_api import OmicsRequestException
 
@@ -143,10 +149,10 @@ class SetIrodsDirStatusTask(OmicsBaseTask):
 
     def revert(self, dir_status, *args, **kwargs):
         if self.data_modified is True:
-            self.omics_api.set(
-                'sheet/dirs', self.initial_data)
+            self.omics_api.set('sheet/dirs', self.initial_data)
 
 
+# TODO: Handle revert (see above), before it this must be called last in flow
 class RemoveSampleSheetTask(OmicsBaseTask):
     """Remove sample sheet from a project"""
 
@@ -164,4 +170,45 @@ class RemoveSampleSheetTask(OmicsBaseTask):
         super(RemoveSampleSheetTask, self).execute(*args, **kwargs)
 
     def revert(self, *args, **kwargs):
-        pass    # Nothing to do if this fails
+        pass    # TODO: How to handle this?
+
+
+class CreateLandingZoneTask(OmicsBaseTask):
+    """Create LandingZone for a project and user in the Omics database"""
+
+    def execute(self, zone_title, user_pk, description, *args, **kwargs):
+        create_data = {
+            'project_pk': self.project_pk,
+            'title': zone_title,
+            'user_pk': user_pk,
+            'description': description}
+        self.omics_api.create('zone', create_data)
+        self.data_modified = True
+        super(CreateLandingZoneTask, self).execute(*args, **kwargs)
+
+    def revert(self, zone_title, user_pk, description, *args, **kwargs):
+        if self.data_modified:
+            remove_data = {
+                'project_pk': self.project_pk,
+                'title': zone_title,
+                'user_pk': user_pk,
+                'description': description}
+            self.omics_api.remove('zone', remove_data)
+
+
+# TODO: Handle revert (see above), before it this must be called last in flow
+class RemoveLandingZoneTask(OmicsBaseTask):
+    """Remove LandingZone from a project and user from the Omics database"""
+
+    def execute(self, zone_title, user_pk, *args, **kwargs):
+        remove_data = {
+            'project_pk': self.project_pk,
+            'title': zone_title,
+            'user_pk': user_pk}
+        self.omics_api.remove('zone', remove_data)
+        self.data_modified = True
+        super(RemoveLandingZoneTask, self).execute(*args, **kwargs)
+
+    def revert(self, zone_title, user_pk, *args, **kwargs):
+        if self.data_modified:
+            pass    # TODO: How to handle this?
