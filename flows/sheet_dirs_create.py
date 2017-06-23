@@ -10,7 +10,7 @@ PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
 
 
 class Flow(BaseLinearFlow):
-    """Flow for creating a directory structure for a sample sheet in iRODSr"""
+    """Flow for creating a directory structure for a sample sheet in iRODS"""
 
     def validate(self):
         self.required_fields = [

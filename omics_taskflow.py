@@ -130,8 +130,9 @@ def submit():
         flow_result = flow.run()
 
     except Exception as ex:
-        return return_after_lock(
-            'Error running flow: {}'.format(ex), 500)
+        return return_after_lock((
+            'Error running flow: ' + str(ex) if str(ex) != ''
+            else 'unknown error'), 500)
 
     return return_after_lock(
         flow_result, 200)
