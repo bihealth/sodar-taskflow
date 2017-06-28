@@ -51,6 +51,7 @@
             "core"
           ],
           "re_rulebase_set": [
+            "omics",
             "core"
           ],
           "regexes_for_supported_peps": [
