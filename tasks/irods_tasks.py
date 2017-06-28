@@ -32,27 +32,41 @@ class IrodsBaseTask(BaseTask):
         self.name = '[iRODS] {} ({})'.format(name, self.__class__.__name__)
         self.irods = kwargs['irods']
 
-    # For those cases where the python client does not raise a proper exception
-    def _raise_irods_execption(self):
-        raise Exception('iRODS exception in "{}"'.format(self.name))
+    # For when taskflow won't catch a proper exception from the client
+    def _raise_irods_execption(self, ex):
+        desc = '{} failed: {}'.format(
+            self.__class__.__name__, ex.__class__.__name__)
+
+        if str(ex) != '':
+            desc += ' ({})'.format(ex)
+
+        print(desc)     # DEBUG
+        raise Exception(desc)
 
 
 class CreateCollectionTask(IrodsBaseTask):
-    """Create collection if it doesn't exist (imkdir)"""
+    """Create collection and its parent collections if they doesn't exist
+    (imkdir)"""
 
     def execute(self, path, *args, **kwargs):
-        try:
-            self.irods.collections.get(path)
+        # Create parent collections if they don't exist
+        self.execute_data['created_colls'] = []
 
-        except CollectionDoesNotExist:
-            self.irods.collections.create(path)
-            self.data_modified = True
+        for i in range(2, len(path.split('/')) + 1):
+            sub_path = '/'.join(path.split('/')[:i])
+
+            if not self.irods.collections.exists(sub_path):
+                self.irods.collections.create(sub_path)
+                self.execute_data['created_colls'].append(sub_path)
+                self.data_modified = True
 
         super(CreateCollectionTask, self).execute(*args, **kwargs)
 
     def revert(self, path, *args, **kwargs):
         if self.data_modified:
-            self.irods.collections.remove(path, recurse=True)
+            for coll_path in reversed(self.execute_data['created_colls']):
+                if self.irods.collections.exists(coll_path):
+                    self.irods.collections.remove(coll_path, recurse=True)
 
 
 # TODO: Refactor this as follows: Before removing, set a random metadata value
@@ -87,7 +101,7 @@ class RemoveCollectionTask(IrodsBaseTask):
 
             if self.irods.collections.exists(new_path):
                 self.data_modified = True
-                self.initial_data['trash_path'] = trash_path
+                self.execute_data['trash_path'] = trash_path
 
             else:
                 raise Exception('Failed to remove collection')
@@ -96,7 +110,7 @@ class RemoveCollectionTask(IrodsBaseTask):
 
     def revert(self, path, *args, **kwargs):
         if self.data_modified:
-            src_path = self.initial_data[
+            src_path = self.execute_data[
                 'trash_path'] + '/' + path.split('/')[-1]
             dest_path = '/'.join(path.split('/')[:-1])
 
@@ -105,7 +119,7 @@ class RemoveCollectionTask(IrodsBaseTask):
                 dest_path=dest_path)
 
             # Delete temp trash collection
-            self.irods.collections.remove(self.initial_data['trash_path'])
+            self.irods.collections.remove(self.execute_data['trash_path'])
 
 
 # TODO: Do we need to add several metadata items until the same key? If so,
@@ -125,8 +139,8 @@ class SetCollectionMetadataTask(IrodsBaseTask):
             pass
 
         if meta_item and value != meta_item.value:
-            self.initial_data['value'] = str(meta_item.value)
-            self.initial_data['units'] = str(meta_item.units)\
+            self.execute_data['value'] = str(meta_item.value)
+            self.execute_data['units'] = str(meta_item.units)\
                 if meta_item.units else None
 
             meta_item.value = str(value)
@@ -148,10 +162,10 @@ class SetCollectionMetadataTask(IrodsBaseTask):
         if self.data_modified:
             coll = self.irods.collections.get(path)
 
-            if self.initial_data:
+            if self.execute_data:
                 meta_item = coll.metadata.get_one(name)
-                meta_item.value = str(self.initial_data['value'])
-                meta_item.units = str(self.initial_data['units'])
+                meta_item.value = str(self.execute_data['value'])
+                meta_item.units = str(self.execute_data['units'])
 
                 self.irods.metadata.set(
                     model_cls=Collection,
@@ -194,12 +208,12 @@ class SetAccessTask(IrodsBaseTask):
 
         if (user_access and
                 user_access.access_name != ACCESS_CONVERSION[access_name]):
-            self.initial_data['access_name'] = ACCESS_CONVERSION[
+            self.execute_data['access_name'] = ACCESS_CONVERSION[
                 user_access.access_name]
             self.data_modified = True
 
         elif not user_access:
-            self.initial_data['access_name'] = 'null'
+            self.execute_data['access_name'] = 'null'
             self.data_modified = True
 
         if self.data_modified:
@@ -215,7 +229,7 @@ class SetAccessTask(IrodsBaseTask):
     def revert(self, access_name, path, user_name, *args, **kwargs):
         if self.data_modified:
             acl = iRODSAccess(
-                access_name=self.initial_data['access_name'],
+                access_name=self.execute_data['access_name'],
                 path=path,
                 user_name=user_name,
                 user_zone=self.irods.zone)
@@ -258,8 +272,8 @@ class AddUserToGroupTask(IrodsBaseTask):
                     user_zone=self.irods.zone)
                 self.data_modified = True
 
-        except Exception:
-            self._raise_irods_execption()
+        except Exception as ex:
+            self._raise_irods_execption(ex)
 
         super(AddUserToGroupTask, self).execute(*args, **kwargs)
 
@@ -284,8 +298,8 @@ class RemoveUserFromGroupTask(IrodsBaseTask):
                     user_zone=self.irods.zone)
                 self.data_modified = True
 
-        except Exception:
-            self._raise_irods_execption()
+        except Exception as ex:
+            self._raise_irods_execption(ex)
 
         super(RemoveUserFromGroupTask, self).execute(*args, **kwargs)
 
@@ -295,3 +309,56 @@ class RemoveUserFromGroupTask(IrodsBaseTask):
             group.addmember(
                 user_name=user_name,
                 user_zone=self.irods.zone)
+
+
+# TODO: Improve this to accept both obj/collection for dest_path in revert
+class MoveDataObjectTask(IrodsBaseTask):
+    """Move file to destination collection (imv)"""
+
+    def execute(self, src_path, dest_path, *args, **kwargs):
+        try:
+            self.irods.data_objects.move(
+                src_path=src_path,
+                dest_path=dest_path)
+            self.data_modified = True
+
+        except Exception as ex:
+            self._raise_irods_execption(ex)
+
+        super(MoveDataObjectTask, self).execute(*args, **kwargs)
+
+    def revert(self, src_path, dest_path, *args, **kwargs):
+        if self.data_modified:
+            # TODO: First check if final item in path is obj or coll
+            new_src = dest_path + '/' + src_path.split('/')[-1]
+            new_dest = '/'.join(src_path.split('/')[:-1])
+
+            self.irods.data_objects.move(
+                src_path=new_src,
+                dest_path=new_dest)
+
+
+class ValidateDataObjectChecksumTask(IrodsBaseTask):
+    """Validate data object checksum by accompanying .md5 file"""
+    # NOTE: This is a temporary hack for the demo, real validation will be done
+    #       elsewhere (e.g. directly in iRODS rules)
+    def execute(self, path, *args, **kwargs):
+        try:
+            md5_path = path + '.md5'
+            md5_file = self.irods.data_objects.open(md5_path, mode='r')
+            file_sum = md5_file.read().decode('utf-8').split(' ')[0]
+            file_obj = self.irods.data_objects.get(path)
+
+            if file_sum != file_obj.checksum:
+                print('Checksums do not match for "{}"!'.format(
+                    path.split('/')[-1]))    # DEBUG
+                raise Exception('Checksums do not match for "{}"'.format(
+                    path.split('/')[-1]))
+
+        except Exception as ex:
+            self._raise_irods_execption(ex)
+
+        super(ValidateDataObjectChecksumTask, self).execute(*args, **kwargs)
+
+    def revert(self, path, *args, **kwargs):
+        pass    # Nothing is modified so no need for revert

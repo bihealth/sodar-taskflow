@@ -77,3 +77,17 @@ def get_trash_path(path, add_rand=False):
                 string.ascii_lowercase + string.digits) for x in range(16))
 
     return trash_path
+
+
+def get_subcoll_obj_paths(coll):
+    """Return paths to all files within collection and its subcollections
+    recursively"""
+    ret = []
+
+    for sub_coll in coll.subcollections:
+        ret += get_subcoll_obj_paths(sub_coll)
+
+    for data_obj in coll.data_objects:
+        ret.append(data_obj.path)
+
+    return ret

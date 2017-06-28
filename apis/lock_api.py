@@ -46,6 +46,7 @@ def acquire(
     acquired = lock.acquire(blocking=False)
 
     if acquired:
+        print_status(lock, unlock=False, failed=False)
         return True
 
     if retry_count > 0:
@@ -87,4 +88,4 @@ def print_status(lock, unlock=False, failed=False):
     print('{} {}: {}'.format(
         'Unlock' if unlock else 'Lock',
         'FAILED' if failed else 'OK',
-        lock.name))
+        str(lock.name).split('\'')[3]))

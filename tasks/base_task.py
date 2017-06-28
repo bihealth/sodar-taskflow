@@ -16,7 +16,7 @@ class BaseTask(task.Task):
         self.force_fail = force_fail
         self.verbose = verbose
         self.data_modified = False
-        self.initial_data = {}
+        self.execute_data = {}
 
     def execute(self, *args, **kwargs):
         # Raise Exception for testing revert()

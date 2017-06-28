@@ -43,7 +43,7 @@ class UpdateProjectTask(OmicsBaseTask):
 
     def execute(self, title, description, *args, **kwargs):
         # Get initial data
-        self.initial_data = self.omics_api.send_request(
+        self.execute_data = self.omics_api.send_request(
             'projects/taskflow/project/get',
             {'project_pk': self.project_pk}).json()
 
@@ -60,7 +60,7 @@ class UpdateProjectTask(OmicsBaseTask):
     def revert(self, title, description, *args, **kwargs):
         if kwargs['result'] is True:
             self.omics_api.send_request(
-                'projects/taskflow/project/update', self.initial_data)
+                'projects/taskflow/project/update', self.execute_data)
 
 
 class SetRoleTask(OmicsBaseTask):
@@ -73,11 +73,11 @@ class SetRoleTask(OmicsBaseTask):
             'user_pk': user_pk}
 
         try:
-            self.initial_data = self.omics_api.send_request(
+            self.execute_data = self.omics_api.send_request(
                 'projects/taskflow/role/get', query_data).json()
 
         except Exception as ex:
-            self.initial_data = None
+            self.execute_data = None
 
         set_data = {
             'project_pk': self.project_pk,
@@ -91,9 +91,9 @@ class SetRoleTask(OmicsBaseTask):
 
     def revert(self, user_pk, role_pk, *args, **kwargs):
         if self.data_modified:
-            if self.initial_data:
+            if self.execute_data:
                 self.omics_api.send_request(
-                    'projects/taskflow/role/set', self.initial_data)
+                    'projects/taskflow/role/set', self.execute_data)
             else:
                 remove_data = {
                     'project_pk': self.project_pk,
@@ -107,7 +107,7 @@ class RemoveRoleTask(OmicsBaseTask):
 
     def execute(self, user_pk, role_pk, *args, **kwargs):
         # Get initial data
-        self.initial_data = {
+        self.execute_data = {
             'project_pk': self.project_pk,
             'user_pk': user_pk,
             'role_pk': role_pk}
@@ -129,7 +129,7 @@ class RemoveRoleTask(OmicsBaseTask):
     def revert(self, user_pk, role_pk, *args, **kwargs):
         if self.data_modified:
             self.omics_api.send_request(
-                'projects/taskflow/role/set', self.initial_data)
+                'projects/taskflow/role/set', self.execute_data)
 
 
 class SetIrodsDirStatusTask(OmicsBaseTask):
@@ -139,10 +139,10 @@ class SetIrodsDirStatusTask(OmicsBaseTask):
         # Get initial data
         query_data = {
             'project_pk': self.project_pk}
-        self.initial_data = self.omics_api.send_request(
+        self.execute_data = self.omics_api.send_request(
             'sheets/taskflow/dirstatus/get', query_data).json()
 
-        if self.initial_data['dir_status'] != dir_status:
+        if self.execute_data['dir_status'] != dir_status:
             set_data = {
                 'project_pk': self.project_pk,
                 'dir_status': dir_status}
@@ -155,7 +155,7 @@ class SetIrodsDirStatusTask(OmicsBaseTask):
     def revert(self, dir_status, *args, **kwargs):
         if self.data_modified is True:
             self.omics_api.send_request(
-                'sheets/taskflow/dirstatus/set', self.initial_data)
+                'sheets/taskflow/dirstatus/set', self.execute_data)
 
 
 # TODO: Handle revert (see above), before it this must be called last in flow
@@ -191,7 +191,7 @@ class CreateLandingZoneTask(OmicsBaseTask):
             'description': description}
         response = self.omics_api.send_request(
             'zones/taskflow/zone/create', create_data)
-        self.initial_data = response.json()
+        self.execute_data = response.json()
 
         self.data_modified = True
         super(CreateLandingZoneTask, self).execute(*args, **kwargs)
@@ -199,7 +199,7 @@ class CreateLandingZoneTask(OmicsBaseTask):
     def revert(self, zone_title, user_pk, description, *args, **kwargs):
         if self.data_modified:
             remove_data = {
-                'zone_pk': self.initial_data['zone_pk']}
+                'zone_pk': self.execute_data['zone_pk']}
             self.omics_api.send_request(
                 'zones/taskflow/zone/create', remove_data)
 
@@ -223,25 +223,24 @@ class RemoveLandingZoneTask(OmicsBaseTask):
 class SetLandingZoneStatusTask(OmicsBaseTask):
     """Set LandingZone status"""
 
-    def execute(self, zone_pk, status, status_info, *args, **kwargs):
-        get_data = {
-            'zone_pk': zone_pk}
-        self.initial_data = self.omics_api.send_request(
-            'zones/taskflow/status/get', get_data).json()
-
+    def execute(
+            self, zone_pk, status, status_info, *args, **kwargs):
         set_data = {
             'zone_pk': zone_pk,
             'status': status,
             'status_info': status_info}
         self.omics_api.send_request('zones/taskflow/status/set', set_data)
-
         self.data_modified = True
         super(SetLandingZoneStatusTask, self).execute(*args, **kwargs)
 
-    def revert(self, zone_pk, status, status_info, *args, **kwargs):
+    def revert(
+            self, zone_pk, status, status_info, *args, **kwargs):
+        pass    # Disable for now, Omics will handle errors in prototype
+        '''
         if self.data_modified:
             set_data = {
-                'zone_pk': self.initial_data['zone_pk'],
-                'status': self.initial_data['status'],
-                'status_info': self.initial_data['status_info']}
+                'zone_pk': zone_pk,
+                'status': status_revert,
+                'status_info': status_revert_info}
             self.omics_api.send_request('zones/taskflow/status/set', set_data)
+        '''

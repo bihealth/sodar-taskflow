@@ -1,7 +1,7 @@
 from config import settings
 
 from .base_flow import BaseLinearFlow
-from apis.irods_utils import get_project_path
+from apis.irods_utils import get_project_path, get_subcoll_obj_paths
 from tasks import omics_tasks, irods_tasks
 
 
@@ -28,26 +28,37 @@ class Flow(BaseLinearFlow):
         ########
 
         project_path = get_project_path(self.project_pk)
+        sample_path = project_path + '/bio_samples'
         zone_root = project_path + '/landing_zones'
         user_path = zone_root + '/' + self.flow_data['user_name']
         zone_path = user_path + '/' + self.flow_data['zone_title']
 
-        # TODO: Get collection/file listing from iRODS for iterating
+        # Get landing zone file paths (without .md5 files) from iRODS
+        zone_coll = self.irods.collections.get(zone_path)
+        zone_objects = get_subcoll_obj_paths(zone_coll)
+
+        zone_objects_nomd5 = list(set([
+            p for p in zone_objects if p[p.rfind('.') + 1:].lower() != 'md5']))
+
+        # Get list of collections containing files (ignore empty colls)
+        zone_object_colls = list(set([
+            p[:p.rfind('/')] for p in zone_objects]))
+
+        # Convert these to collections inside bio_samples
+        sample_colls = list(set([
+            sample_path + '/' + '/'.join(p.split('/')[7:]) for
+            p in zone_object_colls]))
+
+        '''
+        print('zone_objects: {}'.format(zone_objects))              # DEBUG
+        print('zone_objects_nomd5: {}'.format(zone_objects_nomd5))  # DEBUG
+        print('zone_object_colls: {}'.format(zone_object_colls))    # DEBUG
+        print('sample_colls: {}'.format(sample_colls))              # DEBUG
+        '''
 
         ########
         # Tasks
         ########
-
-        self.add_task(
-            omics_tasks.SetLandingZoneStatusTask(
-                name='Set landing zone status to VALIDATING',
-                omics_api=self.omics_api,
-                project_pk=self.project_pk,
-                inject={
-                    'zone_pk': self.flow_data['zone_pk'],
-                    'status': 'VALIDATING',
-                    'status_info': 'Validation in progress, write access '
-                                   'disabled'}))    # TODO: Custom info?
 
         self.add_task(
             irods_tasks.SetAccessTask(
@@ -58,9 +69,27 @@ class Flow(BaseLinearFlow):
                     'path': zone_path,
                     'user_name': self.flow_data['user_name']}))
 
-        # TODO: Delete .done file
+        self.add_task(
+            omics_tasks.SetLandingZoneStatusTask(
+                name='Set landing zone status to VALIDATING',
+                omics_api=self.omics_api,
+                project_pk=self.project_pk,
+                inject={
+                    'zone_pk': self.flow_data['zone_pk'],
+                    'status': 'VALIDATING',
+                    'status_info':
+                        'Validating {} files, write access disabled'.format(
+                            len(zone_objects_nomd5))}))
 
-        # TODO: Validate MD5 sum for each file
+        # TODO: Delete .done file (once we use it)
+
+        for obj_path in zone_objects_nomd5:
+            self.add_task(
+                irods_tasks.ValidateDataObjectChecksumTask(
+                    name='Validate MD5 checksum of "{}"'.format(obj_path),
+                    irods=self.irods,
+                    inject={
+                        'path': obj_path}))
 
         self.add_task(
             omics_tasks.SetLandingZoneStatusTask(
@@ -70,12 +99,27 @@ class Flow(BaseLinearFlow):
                 inject={
                     'zone_pk': self.flow_data['zone_pk'],
                     'status': 'MOVING',
-                    'status_info': 'Validation OK, moving files into '
-                                   'bio_samples'}))    # TODO: Custom info?
+                    'status_info':
+                        'Validation OK, moving {} files into '
+                        'bio_samples'.format(len(zone_objects_nomd5))}))
 
-        # TODO: Move files to directories under bio_samples
+        for coll_path in sample_colls:
+            self.add_task(
+                irods_tasks.CreateCollectionTask(
+                    name='Create collection "{}"'.format(coll_path),
+                    irods=self.irods,
+                    inject={
+                        'path': coll_path}))
 
-        # TODO: Set permissions for files (owner, read only for user..)
+        for obj_path in zone_objects:
+            dest_path = sample_path + '/' + '/'.join(obj_path.split('/')[7:-1])
+            self.add_task(
+                irods_tasks.MoveDataObjectTask(
+                    name='Move file "{}"'.format(obj_path),
+                    irods=self.irods,
+                    inject={
+                        'src_path': obj_path,
+                        'dest_path': dest_path}))
 
         self.add_task(
             irods_tasks.RemoveCollectionTask(
@@ -92,5 +136,6 @@ class Flow(BaseLinearFlow):
                 inject={
                     'zone_pk': self.flow_data['zone_pk'],
                     'status': 'MOVED',
-                    'status_info': 'Files moved successfully, landing zone '
-                                   'removed'}))  # TODO: Custom info?
+                    'status_info':
+                        'Successfully moved {} files, landing zone '
+                        'removed'.format(len(zone_objects_nomd5))}))

@@ -4,9 +4,10 @@ import os
 import uuid
 
 from irods.access import iRODSAccess
+from irods.data_object import iRODSDataObject
 from irods.collection import iRODSCollection
 from irods.exception import CollectionDoesNotExist, UserDoesNotExist,\
-    UserGroupDoesNotExist, NoResultFound
+    UserGroupDoesNotExist, NoResultFound, DataObjectDoesNotExist
 from irods.meta import iRODSMeta
 from irods.models import Collection
 from irods.user import iRODSUser, iRODSUserGroup
@@ -43,6 +44,9 @@ TEST_ACCESS_READ_OUT = 'read object'
 TEST_ACCESS_WRITE_IN = 'write'
 TEST_ACCESS_WRITE_OUT = 'modify object'
 TEST_ACCESS_NULL = 'null'
+
+TEST_MOVE_OBJ = TEST_COLL + '/move_obj'
+TEST_MOVE_COLL = TEST_COLL + '/move_coll'
 
 
 class IRODSTestBase(TestCase):
@@ -85,7 +89,6 @@ class IRODSTestBase(TestCase):
         cleanup_irods(self.irods, verbose=False)
 
     def _run_flow(self):
-        # print('\n')  # HACK to fix lack of newline in test output :)
         return self.flow.run(verbose=False)
 
     def _init_flow(self):
@@ -210,6 +213,103 @@ class TestCreateCollectionTask(IRODSTestBase):
         # Assert postcondition
         coll = self.irods.collections.get(TEST_COLL_NEW)
         self.assertIsInstance(coll, iRODSCollection)
+
+    def test_execute_nested(self):
+        """Test collection creation with nested collections"""
+        self._add_task(
+            cls=CreateCollectionTask,
+            name='Create collection',
+            inject={'path': TEST_COLL_NEW + '/subcoll1/subcoll2'})
+
+        # Assert preconditions
+        self.assertRaises(
+            CollectionDoesNotExist,
+            self.irods.collections.get,
+            TEST_COLL_NEW)
+
+        self.assertRaises(
+            CollectionDoesNotExist,
+            self.irods.collections.get,
+            TEST_COLL_NEW + '/subcoll1')
+
+        self.assertRaises(
+            CollectionDoesNotExist,
+            self.irods.collections.get,
+            TEST_COLL_NEW + '/subcoll1/subcoll2')
+
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, True)
+
+        # Assert postconditions
+        coll = self.irods.collections.get(TEST_COLL_NEW)
+        self.assertIsInstance(coll, iRODSCollection)
+
+        coll = self.irods.collections.get(TEST_COLL_NEW + '/subcoll1')
+        self.assertIsInstance(coll, iRODSCollection)
+
+        coll = self.irods.collections.get(TEST_COLL_NEW + '/subcoll1/subcoll2')
+        self.assertIsInstance(coll, iRODSCollection)
+
+    def test_execute_nested_twice(self):
+        """Test collection creation twice with nested collections"""
+        self._add_task(
+            cls=CreateCollectionTask,
+            name='Create collection',
+            inject={'path': TEST_COLL_NEW + '/subcoll1/subcoll2'})
+
+        result = self._run_flow()
+
+        # Init and run new flow
+        self.flow = self._init_flow()
+        self._add_task(
+            cls=CreateCollectionTask,
+            name='Create collection',
+            inject={'path': TEST_COLL_NEW + '/subcoll1/subcoll2'})
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, True)
+
+        # Assert postconditions
+        coll = self.irods.collections.get(TEST_COLL_NEW)
+        self.assertIsInstance(coll, iRODSCollection)
+
+        coll = self.irods.collections.get(TEST_COLL_NEW + '/subcoll1')
+        self.assertIsInstance(coll, iRODSCollection)
+
+        coll = self.irods.collections.get(TEST_COLL_NEW + '/subcoll1/subcoll2')
+        self.assertIsInstance(coll, iRODSCollection)
+
+    def test_revert_created_nested(self):
+        """Test creation reverting with nested collections"""
+        self._add_task(
+            cls=CreateCollectionTask,
+            name='Create collection',
+            inject={'path': TEST_COLL_NEW + '/subcoll1/subcoll2'},
+            force_fail=True)    # FAIL
+
+        result = self._run_flow()
+
+        # Assert flow failure
+        self.assertNotEqual(result, True)
+
+        # Assert postconditions
+        self.assertRaises(
+            CollectionDoesNotExist,
+            self.irods.collections.get,
+            TEST_COLL_NEW)
+
+        self.assertRaises(
+            CollectionDoesNotExist,
+            self.irods.collections.get,
+            TEST_COLL_NEW + '/subcoll1')
+
+        self.assertRaises(
+            CollectionDoesNotExist,
+            self.irods.collections.get,
+            TEST_COLL_NEW + '/subcoll1/subcoll2')
 
 
 class TestRemoveCollectionTask(IRODSTestBase):
@@ -1064,3 +1164,90 @@ class TestRemoveUserFromGroupTask(IRODSTestBase):
         # Assert postcondition
         group = self.irods.user_groups.get(DEFAULT_USER_GROUP)
         self.assertEqual(group.hasmember(GROUP_USER), False)
+
+
+class TestMoveDataObjectTask(IRODSTestBase):
+    def setUp(self):
+        super(TestMoveDataObjectTask, self).setUp()
+
+        # Init object to be copied
+        self.move_obj = self.irods.data_objects.create(TEST_MOVE_OBJ)
+
+        # Init collection for copying
+        self.move_coll = self.irods.collections.create(TEST_MOVE_COLL)
+
+    def test_execute(self):
+        """Test moving a data object"""
+        self._add_task(
+            cls=MoveDataObjectTask,
+            name='Move data object',
+            inject={
+                'src_path': TEST_MOVE_OBJ,
+                'dest_path': TEST_MOVE_COLL})
+
+        # Assert precondition
+        with self.assertRaises(DataObjectDoesNotExist):
+            self.irods.data_objects.get('{}/move_obj'.format(TEST_MOVE_COLL))
+
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, True)
+
+        # Assert object state after move
+        with self.assertRaises(DataObjectDoesNotExist):
+            self.irods.data_objects.get(TEST_MOVE_OBJ)
+
+        move_obj = self.irods.data_objects.get(
+            '{}/move_obj'.format(TEST_MOVE_COLL))
+        self.assertIsInstance(move_obj, iRODSDataObject)
+
+    def test_revert(self):
+        """Test reverting the moving of a data object"""
+        self._add_task(
+            cls=MoveDataObjectTask,
+            name='Move data object',
+            inject={
+                'src_path': TEST_MOVE_OBJ,
+                'dest_path': TEST_MOVE_COLL},
+            force_fail=True)  # FAILS
+
+        result = self._run_flow()
+
+        # Assert flow failure
+        self.assertNotEqual(result, True)
+
+        # Assert object state after move
+        move_obj = self.irods.data_objects.get(TEST_MOVE_OBJ)
+        self.assertIsInstance(move_obj, iRODSDataObject)
+
+        with self.assertRaises(DataObjectDoesNotExist):
+            self.irods.data_objects.get('{}/move_obj'.format(TEST_MOVE_COLL))
+
+    def test_overwrite_failure(self):
+        """Test moving a data object when a similarly named file exists"""
+        new_obj_path = TEST_MOVE_COLL + '/move_obj'
+
+        # Create object already in target
+        new_obj = self.irods.data_objects.create(new_obj_path)
+
+        self._add_task(
+            cls=MoveDataObjectTask,
+            name='Move data object',
+            inject={
+                'src_path': TEST_MOVE_OBJ,
+                'dest_path': TEST_MOVE_COLL})
+
+        with self.assertRaises(Exception):
+            result = self._run_flow()
+
+        # Assert state of both objects after attempted move
+        # TODO: Better way to compare file objects than checksum?
+        # TODO: obj1 != obj2 even if they point to the same thing in iRODS..
+        move_obj2 = self.irods.data_objects.get(TEST_MOVE_OBJ)
+        self.assertEqual(self.move_obj.checksum, move_obj2.checksum)
+
+        new_obj2 = self.irods.data_objects.get(new_obj_path)
+        self.assertEqual(new_obj.checksum, new_obj2.checksum)
+
+# TODO: Test Checksum verifying
