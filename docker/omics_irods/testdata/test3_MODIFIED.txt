@@ -1,2 +1,0 @@
-This file has been MODIFIED since the .md5 checksum file was created, so
-verifying this should thus FAIL!

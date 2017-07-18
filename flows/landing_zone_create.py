@@ -16,7 +16,6 @@ class Flow(BaseLinearFlow):
             'zone_title',
             'user_name',
             'user_pk',
-            'description',
             'dirs']
         return super(Flow, self).validate()
 

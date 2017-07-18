@@ -6,12 +6,6 @@ from config import settings
 import flows
 
 
-IRODS_URL = settings.TASKFLOW_IRODS_HOST
-IRODS_PORT = settings.TASKFLOW_IRODS_PORT
-IRODS_ZONE = settings.TASKFLOW_IRODS_ZONE
-IRODS_USER = settings.TASKFLOW_IRODS_USER
-IRODS_PASS = settings.TASKFLOW_IRODS_PASS
-
 app = Flask(__name__)
 app.config.from_envvar('OMICS_TASKFLOW_SETTINGS')
 
