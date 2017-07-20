@@ -53,6 +53,10 @@ class IRODSTestBase(TestCase):
     """Base test class for iRODS tasks"""
 
     def setUp(self):
+        # Fail if we can't cleanup iRODS
+        if not settings.TASKFLOW_ALLOW_IRODS_CLEANUP:
+            raise Exception('iRODS cleanup not allowed')
+
         # Init iRODS connection
         self.irods = init_irods()
 
@@ -85,8 +89,12 @@ class IRODSTestBase(TestCase):
         self.flow = self._init_flow()
 
     def tearDown(self):
-        # Remove leftover data from iRODS
-        cleanup_irods(self.irods, verbose=False)
+        # Remove leftover data from iRODS (if allowed)
+        if settings.TASKFLOW_ALLOW_IRODS_CLEANUP:
+            cleanup_irods(self.irods, verbose=False)
+
+        else:
+            raise Exception('iRODS cleanup not allowed')
 
     def _run_flow(self):
         return self.flow.run(verbose=False)
