@@ -134,16 +134,19 @@ def submit():
 
 @app.route('/cleanup', methods=['GET'])
 def cleanup():
-    try:
-        print('--- Cleanup started ---')
-        irods = irods_utils.init_irods()
-        irods_utils.cleanup_irods(irods)
-        print('--- Cleanup done ---')
+    if settings.TASKFLOW_ALLOW_IRODS_CLEANUP:
+        try:
+            print('--- Cleanup started ---')
+            irods = irods_utils.init_irods()
+            irods_utils.cleanup_irods(irods)
+            print('--- Cleanup done ---')
 
-    except Exception as ex:
-        return Response('Error during cleanup: {}'.format(ex), status=500)
+        except Exception as ex:
+            return Response('Error during cleanup: {}'.format(ex), status=500)
 
-    return Response('OK', status=200)
+        return Response('OK', status=200)
+
+    return Response('iRODS cleanup not allowed', status=403)
 
 
 # DEBUG
