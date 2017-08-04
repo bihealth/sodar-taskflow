@@ -45,11 +45,10 @@ Redis.
 
 ## Deployment in Flynn
 
-This assumes you have the Omics Data Access app already deployed in Flynn. Note
-that some settings depend on whether you're deploying for staging, development or
-production.
+This assumes you have the Omics Data Access app already deployed in Flynn.
 
-Configure Flynn and Docker CLI if you have not done so already, [see instructions here](https://cubi-gitlab.bihealth.org/CUBI_Operations/Operations_Docs/wikis/Flynn-How-To-Deploy-Docker-Image-As-App)
+Configure Flynn and Docker CLI if you have not done so already,
+[see instructions here](https://cubi-gitlab.bihealth.org/CUBI_Operations/Operations_Docs/wikis/Flynn-How-To-Deploy-Docker-Image-As-App)
 
 ### Taskflow Setup
 
@@ -73,7 +72,18 @@ TASKFLOW_OMICS_URL=http://{omics-app-name}-web.discoverd:8080
 TASKFLOW_REDIS_URL={Redis URL}
 ```
 
-**NOTE:** Only set `TASKFLOW_ALLOW_IRODS_CLEANUP` to `1` if the server is used for developing/debugging!
+**NOTE:** Only set `TASKFLOW_ALLOW_IRODS_CLEANUP` to `1` if the server is used
+for developing/debugging!
+
+Push the image to Flynn:
+
+**NOTE:** Make sure you've first built the latest version locally using `docker_build.sh`.
+```
+flynn -c {cluster-name} -a omics-taskflow docker push omics_taskflow:latest
+```
+
+**NOTE:** This may take some time, even after all layers have been pushed
+according to the CLI. Do
 
 Update the port value in the release config:
 ```
@@ -107,8 +117,8 @@ Finally, synchronize the taskflow data with the following command:
 flynn -c omics-testing -a {omics-app-name} run /app/manage.py synctaskflow
 ```
 
-If this returns OK, the Taskflow backend should now be up and operational. Existing project data has also been synced with iRODS.
-
+If this returns OK, the Taskflow backend should now be up and operational.
+Existing project data has also been synced with iRODS.
 
 ### Updating the App Image
 
