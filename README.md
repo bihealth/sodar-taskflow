@@ -45,7 +45,81 @@ Redis.
 
 ## Deployment in Flynn
 
-* **TODO**
+This assumes you have the Omics Data Access app already deployed in Flynn. Note
+that some settings depend on whether you're deploying for staging, development or
+production.
+
+Configure Flynn and Docker CLI if you have not done so already, [see instructions here](https://cubi-gitlab.bihealth.org/CUBI_Operations/Operations_Docs/wikis/Flynn-How-To-Deploy-Docker-Image-As-App)
+
+### Taskflow Setup
+
+Create the app:
+```
+flynn -c {cluster-name} create --remote "" omics-taskflow
+```
+
+Add a redis resource:
+```
+flynn -c {cluster-name} -a omics-taskflow resource add redis
+```
+
+Set the omics-taskflow app flynn env:
+```
+flynn -c {cluster-name} -a omics-taskflow env set \
+TASKFLOW_ALLOW_IRODS_CLEANUP=0 \
+TASKFLOW_IRODS_HOST={iRODS host} \
+TASKFLOW_IRODS_PORT=1247 \
+TASKFLOW_OMICS_URL=http://{omics-app-name}-web.discoverd:8080
+TASKFLOW_REDIS_URL={Redis URL}
+```
+
+**NOTE:** Only set `TASKFLOW_ALLOW_IRODS_CLEANUP` to `1` if the server is used for developing/debugging!
+
+Update the port value in the release config:
+```
+flynn -c {cluster-name} -a omics-taskflow release show --json > release.json
+```
+Change `processes > app > ports` from `8080` to `5005`.
+
+Update the release:
+```
+flynn -c {cluster-name} -a omics-taskflow release update release.json
+```
+
+Scale the app to start it:
+```
+flynn -c {cluster-name} -a omics-taskflow scale app=1
+```
+
+### Omics Setup
+
+Set the **omics app** flynn env as follows:
+```
+flynn -c {cluster-name} -a {omics-app-name} env set \
+TASKFLOW_BACKEND_HOST=omics-taskflow-web.discoverd \
+TASKFLOW_BACKEND_PORT=5005
+```
+
+In the omics env variable `ENABLED_BACKEND_PLUGINS`, add `taskflow` to the list.
+
+Finally, synchronize the taskflow data with the following command:
+```
+flynn -c omics-testing -a {omics-app-name} run /app/manage.py synctaskflow
+```
+
+If this returns OK, the Taskflow backend should now be up and operational. Existing project data has also been synced with iRODS.
+
+
+### Updating the App Image
+
+Make sure to rebuild the image locally using `docker_build.sh`.
+
+Then push the new image to Flynn:
+```
+flynn -c {cluster-name} -a omics-taskflow docker push omics_taskflow:latest
+```
+
+**NOTE:** Flynn may prompt you to scale the app, but if you already have it running this is not required.
 
 
 ## TODO
