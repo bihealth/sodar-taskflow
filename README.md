@@ -83,7 +83,7 @@ flynn -c {cluster-name} -a omics-taskflow docker push omics_taskflow:latest
 ```
 
 **NOTE:** This may take some time, even after all layers have been pushed
-according to the CLI. Do
+according to the CLI.
 
 Update the port value in the release config:
 ```
