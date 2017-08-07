@@ -104,6 +104,11 @@ Scale the app to start it:
 flynn -c {cluster-name} -a omics-taskflow scale app=1
 ```
 
+Flynn automatically generates an external route for your app. Remove it to
+prevent users from accessing the app directly. This can be done e.g. from the
+Dashboard under "route". This will not affect the internal `*.discoverd`
+routing.
+
 ### Omics Setup
 
 Set the **omics app** flynn env as follows:
