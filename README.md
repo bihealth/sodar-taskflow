@@ -47,8 +47,11 @@ Redis.
 
 This assumes you have the Omics Data Access app already deployed in Flynn.
 
-Configure Flynn and Docker CLI if you have not done so already,
-[see instructions here](https://cubi-gitlab.bihealth.org/CUBI_Operations/Operations_Docs/wikis/Flynn-How-To-Deploy-Docker-Image-As-App)
+## Omics Taskflow
+
+This assumes you have the Omics Data Access app already deployed in Flynn.
+
+Configure Flynn and Docker CLI if you have not done so already, [see instructions here](https://cubi-gitlab.bihealth.org/CUBI_Operations/Operations_Docs/wikis/Flynn-How-To-Deploy-Docker-Image-As-App)
 
 ### Taskflow Setup
 
@@ -106,7 +109,7 @@ flynn -c {cluster-name} -a omics-taskflow scale app=1
 Set the **omics app** flynn env as follows:
 ```
 flynn -c {cluster-name} -a {omics-app-name} env set \
-TASKFLOW_BACKEND_HOST=omics-taskflow-web.discoverd \
+TASKFLOW_BACKEND_HOST=http://omics-taskflow-web.discoverd \
 TASKFLOW_BACKEND_PORT=5005
 ```
 
@@ -129,7 +132,8 @@ Then push the new image to Flynn:
 flynn -c {cluster-name} -a omics-taskflow docker push omics_taskflow:latest
 ```
 
-**NOTE:** Flynn may prompt you to scale the app, but if you already have it running this is not required.
+**NOTE:** Flynn may prompt you to scale the app, but if you already have it
+running this is not required.
 
 
 ## TODO

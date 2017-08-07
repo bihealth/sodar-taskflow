@@ -42,6 +42,14 @@ class Flow(BaseLinearFlow):
                     'path': zone_root}))
 
         self.add_task(
+            irods_tasks.CreateUserTask(
+                name='Create user if it does not exist',
+                irods=self.irods,
+                inject={
+                    'user_name': self.flow_data['user_name'],
+                    'user_type': 'rodsuser'}))
+
+        self.add_task(
             irods_tasks.CreateCollectionTask(
                 name='Create collection for user landing zones in project',
                 irods=self.irods,

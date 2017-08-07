@@ -198,7 +198,7 @@ class CreateUserGroupTask(IrodsBaseTask):
 
 
 class SetAccessTask(IrodsBaseTask):
-    """Set user/group access to target (chmod)"""
+    """Set user/group access to target (ichmod)"""
 
     def execute(self, access_name, path, user_name, *args, **kwargs):
         coll = self.irods.collections.get(path)
@@ -237,7 +237,7 @@ class SetAccessTask(IrodsBaseTask):
 
 
 class CreateUserTask(IrodsBaseTask):
-    """Create user if not existing yet (iadmin mkuser)"""
+    """Create user if it does not exist (iadmin mkuser)"""
     # NOTE: Password not needed as users log in via LDAP
 
     def execute(self, user_name, user_type, *args, **kwargs):
