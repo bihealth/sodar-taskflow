@@ -12,7 +12,7 @@ Redis.
 * Docker
 * Redis
 * iRODS iCAT server
-* (Used by [Omics Data Access](https://gitlab.bihealth.org/cubi/omics_data_access))
+* (Used by [Omics Data Access](https://cubi-gitlab.bihealth.org/CUBI_Engineering/CUBI_Data_Mgmt/omics_data_access))
 
 
 ## Installation
@@ -22,12 +22,12 @@ Redis.
 * Run `pip install -r requirements.txt`
 * Set up required components either by:
     * Running components manually, or
-    * Deploying [omics_docker_env](https://gitlab.bihealth.org/cubi_data_mgmt/omics_docker_env) (recommended, see project for instructions)
+    * Deploying [omics_docker_env](https://cubi-gitlab.bihealth.org/CUBI_Engineering/CUBI_Data_Mgmt/omics_docker_env) (recommended, see project for instructions)
 
 
 ## Local Execution for Development
 
-* **NOTE:** Not recommended for demonstration or quick debugging, use [omics_docker_env](https://gitlab.bihealth.org/cubi_data_mgmt/omics_docker_env) instead
+* **NOTE:** Not recommended for demonstration or quick debugging, use [omics_docker_env](https://cubi-gitlab.bihealth.org/CUBI_Engineering/CUBI_Data_Mgmt/omics_docker_env) instead
 * Execute Redis server with `redis-server`
 * Start up iRODS iCAT servers with Ansible/Vagrant
     * Ensure you have the host for the testing irods set up correctly in config/test.py
@@ -39,7 +39,7 @@ Redis.
 
 ## Pushing to CUBI GitLab Container Registry
 
-* Login to the BIH gitlab with `docker login gitlab.bihealth.org:4567`
+* Login to the BIH gitlab with `docker login cubi-gitlab.bihealth.org:4567`
 * Execute `docker_push.sh` to login, build and push the container image.
 
 
@@ -47,11 +47,8 @@ Redis.
 
 This assumes you have the Omics Data Access app already deployed in Flynn.
 
-## Omics Taskflow
-
-This assumes you have the Omics Data Access app already deployed in Flynn.
-
-Configure Flynn and Docker CLI if you have not done so already, [see instructions here](https://cubi-gitlab.bihealth.org/CUBI_Operations/Operations_Docs/wikis/Flynn-How-To-Deploy-Docker-Image-As-App)
+Configure Flynn and Docker CLI if you have not done so already,
+[see instructions here](https://cubi-gitlab.bihealth.org/CUBI_Operations/Operations_Docs/wikis/Flynn-How-To-Deploy-Docker-Image-As-App)
 
 ### Taskflow Setup
 
@@ -105,9 +102,11 @@ flynn -c {cluster-name} -a omics-taskflow scale app=1
 ```
 
 Flynn automatically generates an external route for your app. Remove it to
-prevent users from accessing the app directly. This can be done e.g. from the
-Dashboard under "route". This will not affect the internal `*.discoverd`
-routing.
+prevent users from accessing the app directly. This will not affect the
+internal `*.discoverd` routing.
+```
+flynn -c {cluster-name} -a omics-taskflow route remove {route-id}
+```
 
 ### Omics Setup
 
@@ -144,7 +143,7 @@ running this is not required.
 ## TODO
 
 * More tasks and flows as use cases need them
-    * [Guidelines](https://gitlab.bihealth.org/cubi/omics_data_access/issues/52#note_3609) (to be moved in proper documentation)
+    * [Guidelines](https://cubi-gitlab.bihealth.org/CUBI_Engineering/CUBI_Data_Mgmt/omics_data_access/issues/52#note_3609) (to be moved in proper documentation)
 * More tests
     * Flows
     * Locking
