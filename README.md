@@ -68,7 +68,7 @@ flynn -c {cluster-name} -a omics-taskflow env set \
 TASKFLOW_ALLOW_IRODS_CLEANUP=0 \
 TASKFLOW_IRODS_HOST={iRODS host} \
 TASKFLOW_IRODS_PORT=1247 \
-TASKFLOW_OMICS_URL=http://{omics-app-name}-web.discoverd:8080
+TASKFLOW_OMICS_URL=http://{omics-app-name}-web.discoverd:8080 \
 TASKFLOW_REDIS_URL={Redis URL}
 ```
 
