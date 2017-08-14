@@ -58,7 +58,7 @@ class Flow(BaseLinearFlow):
 
         self.add_task(
             irods_tasks.SetAccessTask(
-                name='Set user access',
+                name='Set user access for user landing zone collection',
                 irods=self.irods,
                 inject={
                     'access_name': 'write',
@@ -91,6 +91,15 @@ class Flow(BaseLinearFlow):
                     irods=self.irods,
                     inject={
                         'path': dir_path}))
+
+        self.add_task(
+            irods_tasks.SetAccessTask(
+                name='Set user write access for landing zone',
+                irods=self.irods,
+                inject={
+                    'access_name': 'write',
+                    'path': zone_path,
+                    'user_name': self.flow_data['user_name']}))
 
         ##########################
         # Omics Data Access Tasks

@@ -1,7 +1,8 @@
 from config import settings
 
 from .base_flow import BaseLinearFlow
-from apis.irods_utils import get_project_path, get_subcoll_obj_paths
+from apis.irods_utils import get_project_path, get_subcoll_obj_paths,\
+    get_project_group_name
 from tasks import omics_tasks, irods_tasks
 
 
@@ -28,6 +29,7 @@ class Flow(BaseLinearFlow):
         ########
 
         project_path = get_project_path(self.project_pk)
+        project_group = get_project_group_name(self.project_pk)
         sample_path = project_path + '/bio_samples'
         zone_root = project_path + '/landing_zones'
         user_path = zone_root + '/' + self.flow_data['user_name']
@@ -111,8 +113,20 @@ class Flow(BaseLinearFlow):
                     inject={
                         'path': coll_path}))
 
+            self.add_task(
+                irods_tasks.SetAccessTask(
+                    name='Set group read access for collection "{}"'.format(
+                        coll_path),
+                    irods=self.irods,
+                    inject={
+                        'access_name': 'read',
+                        'path': coll_path,
+                        'user_name': project_group}))
+
         for obj_path in zone_objects:
             dest_path = sample_path + '/' + '/'.join(obj_path.split('/')[7:-1])
+            dest_obj = dest_path + '/' + obj_path.split('/')[-1]
+
             self.add_task(
                 irods_tasks.MoveDataObjectTask(
                     name='Move file "{}"'.format(obj_path),
@@ -120,6 +134,17 @@ class Flow(BaseLinearFlow):
                     inject={
                         'src_path': obj_path,
                         'dest_path': dest_path}))
+
+            self.add_task(
+                irods_tasks.SetAccessTask(
+                    name='Set group read access for object "{}"'.format(
+                        dest_obj),
+                    irods=self.irods,
+                    inject={
+                        'access_name': 'read',
+                        'path': dest_obj,
+                        'user_name': project_group,
+                        'obj_target': True}))
 
         self.add_task(
             irods_tasks.RemoveCollectionTask(

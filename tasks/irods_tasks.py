@@ -198,13 +198,23 @@ class CreateUserGroupTask(IrodsBaseTask):
 
 
 class SetAccessTask(IrodsBaseTask):
-    """Set user/group access to target (ichmod)"""
+    """Set user/group access to target (ichmod). If the target is a data object,
+    obj_target must be set True."""
 
-    def execute(self, access_name, path, user_name, *args, **kwargs):
-        coll = self.irods.collections.get(path)
-        coll_access = self.irods.permissions.get(target=coll)
+    def execute(
+            self, access_name, path, user_name, obj_target=False, *args,
+            **kwargs):
+        if obj_target:
+            target = self.irods.data_objects.get(path)
+            recursive = False
+
+        else:
+            target = self.irods.collections.get(path)
+            recursive = True
+
+        target_access = self.irods.permissions.get(target=target)
         user_access = next(
-            (x for x in coll_access if x.user_name == user_name), None)
+            (x for x in target_access if x.user_name == user_name), None)
 
         if (user_access and
                 user_access.access_name != ACCESS_CONVERSION[access_name]):
@@ -222,18 +232,21 @@ class SetAccessTask(IrodsBaseTask):
                 path=path,
                 user_name=user_name,
                 user_zone=self.irods.zone)
-            self.irods.permissions.set(acl, recursive=True)
+            self.irods.permissions.set(acl, recursive=recursive)
 
         super(SetAccessTask, self).execute(*args, **kwargs)
 
-    def revert(self, access_name, path, user_name, *args, **kwargs):
+    def revert(
+            self, access_name, path, user_name, obj_target=False, *args,
+            **kwargs):
         if self.data_modified:
             acl = iRODSAccess(
                 access_name=self.execute_data['access_name'],
                 path=path,
                 user_name=user_name,
                 user_zone=self.irods.zone)
-            self.irods.permissions.set(acl, recursive=True)
+            recursive = False if obj_target else True
+            self.irods.permissions.set(acl, recursive=recursive)
 
 
 class CreateUserTask(IrodsBaseTask):

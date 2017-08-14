@@ -45,7 +45,7 @@ TEST_ACCESS_WRITE_IN = 'write'
 TEST_ACCESS_WRITE_OUT = 'modify object'
 TEST_ACCESS_NULL = 'null'
 
-TEST_MOVE_OBJ = TEST_COLL + '/move_obj'
+TEST_OBJ = TEST_COLL + '/move_obj'
 TEST_MOVE_COLL = TEST_COLL + '/move_coll'
 
 
@@ -121,6 +121,9 @@ class IRODSTestBase(TestCase):
 
     def _get_test_coll(self):
         return self.irods.collections.get(TEST_COLL)
+
+    def _get_test_obj(self):
+        return self.irods.data_objects.get(TEST_OBJ)
 
     def _get_user_access(self, target, user_name):
         target_access = self.irods.permissions.get(target=target)
@@ -677,7 +680,7 @@ class TestCreateUserGroupTask(IRODSTestBase):
         self.assertIsInstance(group, iRODSUserGroup)
 
 
-class TestSetAccessTask(IRODSTestBase):
+class TestSetCollAccessTask(IRODSTestBase):
     def test_execute_read(self):
         """Test access setting for read"""
         self._add_task(
@@ -860,6 +863,208 @@ class TestSetAccessTask(IRODSTestBase):
         # Assert postcondition
         user_access = self._get_user_access(
             target=self._get_test_coll(),
+            user_name=DEFAULT_USER_GROUP)
+        self.assertIsInstance(user_access, iRODSAccess)
+        self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
+
+
+class TestSetDataObjAccessTask(IRODSTestBase):
+    def setUp(self):
+        super(TestSetDataObjAccessTask, self).setUp()
+
+        # Init object to be copied
+        self.access_obj = self.irods.data_objects.create(TEST_OBJ)
+
+    def test_execute_read(self):
+        """Test access setting for read"""
+        self._add_task(
+            cls=SetAccessTask,
+            name='Set access',
+            inject={
+                'access_name': TEST_ACCESS_READ_IN,
+                'path': TEST_OBJ,
+                'user_name': DEFAULT_USER_GROUP,
+                'obj_target': True})
+
+        # Assert precondition
+        user_access = self._get_user_access(
+            target=self._get_test_obj(),
+            user_name=DEFAULT_USER_GROUP)
+        self.assertEqual(user_access, None)
+
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, True)
+
+        # Assert postcondition
+        user_access = self._get_user_access(
+            target=self._get_test_obj(),
+            user_name=DEFAULT_USER_GROUP)
+        self.assertIsInstance(user_access, iRODSAccess)
+        self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
+
+    def test_execute_write(self):
+        """Test access setting for write/modify"""
+        self._add_task(
+            cls=SetAccessTask,
+            name='Set access',
+            inject={
+                'access_name': TEST_ACCESS_WRITE_IN,
+                'path': TEST_OBJ,
+                'user_name': DEFAULT_USER_GROUP,
+                'obj_target': True})
+
+        # Assert precondition
+        user_access = self._get_user_access(
+            target=self._get_test_obj(),
+            user_name=DEFAULT_USER_GROUP)
+        self.assertEqual(user_access, None)
+
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, True)
+
+        # Assert postcondition
+        user_access = self._get_user_access(
+            target=self._get_test_obj(),
+            user_name=DEFAULT_USER_GROUP)
+        self.assertIsInstance(user_access, iRODSAccess)
+        self.assertEqual(user_access.access_name, TEST_ACCESS_WRITE_OUT)
+
+    def test_execute_twice(self):
+        """Test access setting twice"""
+        self._add_task(
+            cls=SetAccessTask,
+            name='Set access',
+            inject={
+                'access_name': TEST_ACCESS_READ_IN,
+                'path': TEST_OBJ,
+                'user_name': DEFAULT_USER_GROUP,
+                'obj_target': True})
+
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, True)
+
+        # Init and run new flow
+        self.flow = self._init_flow()
+        self._add_task(
+            cls=SetAccessTask,
+            name='Set access',
+            inject={
+                'access_name': TEST_ACCESS_READ_IN,
+                'path': TEST_OBJ,
+                'user_name': DEFAULT_USER_GROUP,
+                'obj_target': True})
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, True)
+
+        # Assert postcondition
+        user_access = self._get_user_access(
+            target=self._get_test_obj(),
+            user_name=DEFAULT_USER_GROUP)
+        self.assertIsInstance(user_access, iRODSAccess)
+        self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
+
+    def test_revert_created(self):
+        """Test access setting"""
+        self._add_task(
+            cls=SetAccessTask,
+            name='Set access',
+            inject={
+                'access_name': TEST_ACCESS_READ_IN,
+                'path': TEST_OBJ,
+                'user_name': DEFAULT_USER_GROUP,
+                'obj_target': True},
+            force_fail=True)    # FAIL
+
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertNotEqual(result, True)
+
+        # Assert postcondition
+        user_access = self._get_user_access(
+            target=self._get_test_obj(),
+            user_name=DEFAULT_USER_GROUP)
+        self.assertIsNone(user_access)
+
+    def test_revert_modified(self):
+        """Test access setting reverting after modification"""
+        self._add_task(
+            cls=SetAccessTask,
+            name='Set access',
+            inject={
+                'access_name': TEST_ACCESS_READ_IN,
+                'path': TEST_OBJ,
+                'user_name': DEFAULT_USER_GROUP,
+                'obj_target': True})
+
+        result = self._run_flow()
+
+        # Init and run new flow
+        self.flow = self._init_flow()
+        self._add_task(
+            cls=SetAccessTask,
+            name='Set access',
+            inject={
+                'access_name': TEST_ACCESS_WRITE_IN,
+                'path': TEST_OBJ,
+                'user_name': DEFAULT_USER_GROUP,
+                'obj_target': True},
+            force_fail=True)    # FAIL
+        result = self._run_flow()
+
+        # Assert flow failure
+        self.assertNotEqual(result, True)
+
+        # Assert postcondition
+        user_access = self._get_user_access(
+            target=self._get_test_obj(),
+            user_name=DEFAULT_USER_GROUP)
+        self.assertIsInstance(user_access, iRODSAccess)
+        self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
+
+    def test_revert_not_modified(self):
+        """Test access setting reverting without modification"""
+        self._add_task(
+            cls=SetAccessTask,
+            name='Set access',
+            inject={
+                'access_name': TEST_ACCESS_READ_IN,
+                'path': TEST_OBJ,
+                'user_name': DEFAULT_USER_GROUP,
+                'obj_target': True})
+
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, True)
+
+        # Init and run new flow
+        self.flow = self._init_flow()
+        self._add_task(
+            cls=SetAccessTask,
+            name='Set access',
+            inject={
+                'access_name': TEST_ACCESS_READ_IN,
+                'path': TEST_OBJ,
+                'user_name': DEFAULT_USER_GROUP,
+                'obj_target': True},
+            force_fail=True)  # FAIL
+        result = self._run_flow()
+
+        # Assert flow failure
+        self.assertNotEqual(result, True)
+
+        # Assert postcondition
+        user_access = self._get_user_access(
+            target=self._get_test_obj(),
             user_name=DEFAULT_USER_GROUP)
         self.assertIsInstance(user_access, iRODSAccess)
         self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
@@ -1179,7 +1384,7 @@ class TestMoveDataObjectTask(IRODSTestBase):
         super(TestMoveDataObjectTask, self).setUp()
 
         # Init object to be copied
-        self.move_obj = self.irods.data_objects.create(TEST_MOVE_OBJ)
+        self.move_obj = self.irods.data_objects.create(TEST_OBJ)
 
         # Init collection for copying
         self.move_coll = self.irods.collections.create(TEST_MOVE_COLL)
@@ -1190,7 +1395,7 @@ class TestMoveDataObjectTask(IRODSTestBase):
             cls=MoveDataObjectTask,
             name='Move data object',
             inject={
-                'src_path': TEST_MOVE_OBJ,
+                'src_path': TEST_OBJ,
                 'dest_path': TEST_MOVE_COLL})
 
         # Assert precondition
@@ -1204,7 +1409,7 @@ class TestMoveDataObjectTask(IRODSTestBase):
 
         # Assert object state after move
         with self.assertRaises(DataObjectDoesNotExist):
-            self.irods.data_objects.get(TEST_MOVE_OBJ)
+            self.irods.data_objects.get(TEST_OBJ)
 
         move_obj = self.irods.data_objects.get(
             '{}/move_obj'.format(TEST_MOVE_COLL))
@@ -1216,7 +1421,7 @@ class TestMoveDataObjectTask(IRODSTestBase):
             cls=MoveDataObjectTask,
             name='Move data object',
             inject={
-                'src_path': TEST_MOVE_OBJ,
+                'src_path': TEST_OBJ,
                 'dest_path': TEST_MOVE_COLL},
             force_fail=True)  # FAILS
 
@@ -1226,7 +1431,7 @@ class TestMoveDataObjectTask(IRODSTestBase):
         self.assertNotEqual(result, True)
 
         # Assert object state after move
-        move_obj = self.irods.data_objects.get(TEST_MOVE_OBJ)
+        move_obj = self.irods.data_objects.get(TEST_OBJ)
         self.assertIsInstance(move_obj, iRODSDataObject)
 
         with self.assertRaises(DataObjectDoesNotExist):
@@ -1243,7 +1448,7 @@ class TestMoveDataObjectTask(IRODSTestBase):
             cls=MoveDataObjectTask,
             name='Move data object',
             inject={
-                'src_path': TEST_MOVE_OBJ,
+                'src_path': TEST_OBJ,
                 'dest_path': TEST_MOVE_COLL})
 
         with self.assertRaises(Exception):
@@ -1252,7 +1457,7 @@ class TestMoveDataObjectTask(IRODSTestBase):
         # Assert state of both objects after attempted move
         # TODO: Better way to compare file objects than checksum?
         # TODO: obj1 != obj2 even if they point to the same thing in iRODS..
-        move_obj2 = self.irods.data_objects.get(TEST_MOVE_OBJ)
+        move_obj2 = self.irods.data_objects.get(TEST_OBJ)
         self.assertEqual(self.move_obj.checksum, move_obj2.checksum)
 
         new_obj2 = self.irods.data_objects.get(new_obj_path)
