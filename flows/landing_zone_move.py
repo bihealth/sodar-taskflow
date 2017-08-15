@@ -2,7 +2,7 @@ from config import settings
 
 from .base_flow import BaseLinearFlow
 from apis.irods_utils import get_project_path, get_subcoll_obj_paths,\
-    get_project_group_name
+    get_project_group_name, get_subcoll_paths
 from tasks import omics_tasks, irods_tasks
 
 
@@ -34,6 +34,7 @@ class Flow(BaseLinearFlow):
         zone_root = project_path + '/landing_zones'
         user_path = zone_root + '/' + self.flow_data['user_name']
         zone_path = user_path + '/' + self.flow_data['zone_title']
+        admin_name = settings.TASKFLOW_IRODS_USER
 
         # Get landing zone file paths (without .md5 files) from iRODS
         zone_coll = self.irods.collections.get(zone_path)
@@ -41,6 +42,10 @@ class Flow(BaseLinearFlow):
 
         zone_objects_nomd5 = list(set([
             p for p in zone_objects if p[p.rfind('.') + 1:].lower() != 'md5']))
+
+        # Get all collections with root path
+        zone_all_colls = [zone_path]
+        zone_all_colls += get_subcoll_paths(zone_coll)
 
         # Get list of collections containing files (ignore empty colls)
         zone_object_colls = list(set([
@@ -51,25 +56,15 @@ class Flow(BaseLinearFlow):
             sample_path + '/' + '/'.join(p.split('/')[7:]) for
             p in zone_object_colls]))
 
-        '''
         print('zone_objects: {}'.format(zone_objects))              # DEBUG
         print('zone_objects_nomd5: {}'.format(zone_objects_nomd5))  # DEBUG
+        print('zone_all_colls: {}'.format(zone_all_colls))          # DEBUG
         print('zone_object_colls: {}'.format(zone_object_colls))    # DEBUG
         print('sample_colls: {}'.format(sample_colls))              # DEBUG
-        '''
 
         ########
         # Tasks
         ########
-
-        self.add_task(
-            irods_tasks.SetAccessTask(
-                name='Set user access for landing zone to read only',
-                irods=self.irods,
-                inject={
-                    'access_name': 'read',
-                    'path': zone_path,
-                    'user_name': self.flow_data['user_name']}))
 
         self.add_task(
             omics_tasks.SetLandingZoneStatusTask(
@@ -84,6 +79,52 @@ class Flow(BaseLinearFlow):
                             len(zone_objects_nomd5))}))
 
         # TODO: Delete .done file (once we use it)
+
+        # Set superuser and landing zone user rights for ALL subcolls/objects
+        for obj_path in zone_objects:
+            self.add_task(
+                irods_tasks.SetAccessTask(
+                    name='Set user "{}" owner access for object {}'.format(
+                        admin_name, obj_path),
+                    irods=self.irods,
+                    inject={
+                        'access_name': 'own',
+                        'path': obj_path,
+                        'user_name': admin_name,
+                        'obj_target': True}))
+
+            self.add_task(
+                irods_tasks.SetAccessTask(
+                    name='Set user "{}" read access for object {}'.format(
+                        admin_name, obj_path),
+                    irods=self.irods,
+                    inject={
+                        'access_name': 'read',
+                        'path': obj_path,
+                        'user_name': self.flow_data['user_name'],
+                        'obj_target': True}))
+
+        # NOTE: must use zone_all_colls here so we have perms to delete all
+        for coll_path in zone_all_colls:
+            self.add_task(
+                irods_tasks.SetAccessTask(
+                    name='Set user "{}" owner access for collection {}'.format(
+                        admin_name, coll_path),
+                    irods=self.irods,
+                    inject={
+                        'access_name': 'own',
+                        'path': coll_path,
+                        'user_name': admin_name}))
+
+            self.add_task(
+                irods_tasks.SetAccessTask(
+                    name='Set user "{}" read access for collection {}'.format(
+                        admin_name, coll_path),
+                    irods=self.irods,
+                    inject={
+                        'access_name': 'read',
+                        'path': coll_path,
+                        'user_name': self.flow_data['user_name']}))
 
         for obj_path in zone_objects_nomd5:
             self.add_task(

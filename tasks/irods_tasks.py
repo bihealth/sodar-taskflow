@@ -19,7 +19,9 @@ ACCESS_CONVERSION = {
     'read object': 'read',
     'write': 'modify object',
     'modify object': 'write',
-    'null': 'null'}
+    'null': 'null',
+    'own': 'own'
+}
 
 
 class IrodsBaseTask(BaseTask):
