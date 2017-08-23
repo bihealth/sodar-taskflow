@@ -56,11 +56,11 @@ class Flow(BaseLinearFlow):
             sample_path + '/' + '/'.join(p.split('/')[7:]) for
             p in zone_object_colls]))
 
-        print('zone_objects: {}'.format(zone_objects))              # DEBUG
-        print('zone_objects_nomd5: {}'.format(zone_objects_nomd5))  # DEBUG
-        print('zone_all_colls: {}'.format(zone_all_colls))          # DEBUG
-        print('zone_object_colls: {}'.format(zone_object_colls))    # DEBUG
-        print('sample_colls: {}'.format(sample_colls))              # DEBUG
+        # print('zone_objects: {}'.format(zone_objects))              # DEBUG
+        # print('zone_objects_nomd5: {}'.format(zone_objects_nomd5))  # DEBUG
+        # print('zone_all_colls: {}'.format(zone_all_colls))          # DEBUG
+        # print('zone_object_colls: {}'.format(zone_object_colls))    # DEBUG
+        # print('sample_colls: {}'.format(sample_colls))              # DEBUG
 
         ########
         # Tasks
@@ -78,53 +78,36 @@ class Flow(BaseLinearFlow):
                         'Validating {} files, write access disabled'.format(
                             len(zone_objects_nomd5))}))
 
+        self.add_task(
+            irods_tasks.SetInheritanceTask(
+                name='Set inheritance for landing zone collection {}'.format(
+                    zone_path),
+                irods=self.irods,
+                inject={
+                    'path': zone_path,
+                    'inherit': True}))
+
+        self.add_task(
+            irods_tasks.SetAccessTask(
+                name='Set user "{}" owner access for zone collection {}'.format(
+                    admin_name, zone_path),
+                irods=self.irods,
+                inject={
+                    'access_name': 'own',
+                    'path': zone_path,
+                    'user_name': admin_name}))
+
+        self.add_task(
+            irods_tasks.SetAccessTask(
+                name='Set user "{}" read access for zone collection {}'.format(
+                    self.flow_data['user_name'], zone_path),
+                irods=self.irods,
+                inject={
+                    'access_name': 'own',
+                    'path': zone_path,
+                    'user_name': self.flow_data['user_name']}))
+
         # TODO: Delete .done file (once we use it)
-
-        # Set superuser and landing zone user rights for ALL subcolls/objects
-        for obj_path in zone_objects:
-            self.add_task(
-                irods_tasks.SetAccessTask(
-                    name='Set user "{}" owner access for object {}'.format(
-                        admin_name, obj_path),
-                    irods=self.irods,
-                    inject={
-                        'access_name': 'own',
-                        'path': obj_path,
-                        'user_name': admin_name,
-                        'obj_target': True}))
-
-            self.add_task(
-                irods_tasks.SetAccessTask(
-                    name='Set user "{}" read access for object {}'.format(
-                        admin_name, obj_path),
-                    irods=self.irods,
-                    inject={
-                        'access_name': 'read',
-                        'path': obj_path,
-                        'user_name': self.flow_data['user_name'],
-                        'obj_target': True}))
-
-        # NOTE: must use zone_all_colls here so we have perms to delete all
-        for coll_path in zone_all_colls:
-            self.add_task(
-                irods_tasks.SetAccessTask(
-                    name='Set user "{}" owner access for collection {}'.format(
-                        admin_name, coll_path),
-                    irods=self.irods,
-                    inject={
-                        'access_name': 'own',
-                        'path': coll_path,
-                        'user_name': admin_name}))
-
-            self.add_task(
-                irods_tasks.SetAccessTask(
-                    name='Set user "{}" read access for collection {}'.format(
-                        admin_name, coll_path),
-                    irods=self.irods,
-                    inject={
-                        'access_name': 'read',
-                        'path': coll_path,
-                        'user_name': self.flow_data['user_name']}))
 
         for obj_path in zone_objects_nomd5:
             self.add_task(
@@ -176,6 +159,7 @@ class Flow(BaseLinearFlow):
                         'src_path': obj_path,
                         'dest_path': dest_path}))
 
+            # TODO: Could remove this by making bio_samples inheritance=True
             self.add_task(
                 irods_tasks.SetAccessTask(
                     name='Set group read access for object "{}"'.format(

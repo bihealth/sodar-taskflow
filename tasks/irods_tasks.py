@@ -20,8 +20,11 @@ ACCESS_CONVERSION = {
     'write': 'modify object',
     'modify object': 'write',
     'null': 'null',
-    'own': 'own'
-}
+    'own': 'own'}
+
+INHERIT_STRINGS = {
+    True: 'inherit',
+    False: 'noinherit'}
 
 
 class IrodsBaseTask(BaseTask):
@@ -35,12 +38,13 @@ class IrodsBaseTask(BaseTask):
         self.irods = kwargs['irods']
 
     # For when taskflow won't catch a proper exception from the client
-    def _raise_irods_execption(self, ex):
+    def _raise_irods_execption(self, ex, info=None):
         desc = '{} failed: {}'.format(
-            self.__class__.__name__, ex.__class__.__name__)
+            self.__class__.__name__, (
+                str(ex) if str(ex) != '' else ex.__class__.__name__))
 
-        if str(ex) != '':
-            desc += ' ({})'.format(ex)
+        if info:
+            desc += ' ({})'.format(info)
 
         print(desc)     # DEBUG
         raise Exception(desc)
@@ -199,6 +203,33 @@ class CreateUserGroupTask(IrodsBaseTask):
             self.irods.user_groups.remove(user_name=name)
 
 
+# TODO: Improve this once inherit is properly implemented in python client
+# TODO: Tests
+# See: https://github.com/irods/python-irodsclient/issues/85
+class SetInheritanceTask(IrodsBaseTask):
+    """Set collection inheritance (ichmod inherit)"""
+
+    def execute(self, path, inherit=True, *args, **kwargs):
+        acl = iRODSAccess(
+            access_name=INHERIT_STRINGS[inherit],
+            path=path,
+            user_name='',
+            user_zone=self.irods.zone)
+        self.irods.permissions.set(acl, recursive=True)
+
+    def revert(self, path, inherit=True, *args, **kwargs):
+        # TODO: Add checks for inheritance status prior to execute
+        pass
+        '''
+        acl = iRODSAccess(
+            access_name=INHERIT_STRINGS[!inherit],
+            path=path,
+            user_name='',
+            user_zone=self.irods.zone)
+        self.irods.permissions.set(acl, recursive=True)
+        '''
+
+
 class SetAccessTask(IrodsBaseTask):
     """Set user/group access to target (ichmod). If the target is a data object,
     obj_target must be set True."""
@@ -206,6 +237,8 @@ class SetAccessTask(IrodsBaseTask):
     def execute(
             self, access_name, path, user_name, obj_target=False, *args,
             **kwargs):
+        modifying_data = False
+
         if obj_target:
             target = self.irods.data_objects.get(path)
             recursive = False
@@ -222,19 +255,27 @@ class SetAccessTask(IrodsBaseTask):
                 user_access.access_name != ACCESS_CONVERSION[access_name]):
             self.execute_data['access_name'] = ACCESS_CONVERSION[
                 user_access.access_name]
-            self.data_modified = True
+            modifying_data = True
 
         elif not user_access:
             self.execute_data['access_name'] = 'null'
-            self.data_modified = True
+            modifying_data = True
 
-        if self.data_modified:
+        if modifying_data:
             acl = iRODSAccess(
                 access_name=access_name,
                 path=path,
                 user_name=user_name,
                 user_zone=self.irods.zone)
-            self.irods.permissions.set(acl, recursive=recursive)
+
+            try:
+                self.irods.permissions.set(acl, recursive=recursive)
+
+            except Exception as ex:
+                ex_info = path
+                self._raise_irods_execption(ex, ex_info)
+
+            self.data_modified = True
 
         super(SetAccessTask, self).execute(*args, **kwargs)
 

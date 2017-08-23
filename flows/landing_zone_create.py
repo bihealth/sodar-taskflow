@@ -72,6 +72,24 @@ class Flow(BaseLinearFlow):
                 inject={
                     'path': zone_path}))
 
+        self.add_task(
+            irods_tasks.SetInheritanceTask(
+                name='Set inheritance for landing zone collection {}'.format(
+                    zone_path),
+                irods=self.irods,
+                inject={
+                    'path': zone_path,
+                    'inherit': True}))
+
+        self.add_task(
+            irods_tasks.SetAccessTask(
+                name='Set user write access for landing zone',
+                irods=self.irods,
+                inject={
+                    'access_name': 'write',
+                    'path': zone_path,
+                    'user_name': self.flow_data['user_name']}))
+
         if ('description' in self.flow_data and
                 self.flow_data['description'] != ''):
             self.add_task(
@@ -91,15 +109,6 @@ class Flow(BaseLinearFlow):
                     irods=self.irods,
                     inject={
                         'path': dir_path}))
-
-        self.add_task(
-            irods_tasks.SetAccessTask(
-                name='Set user write access for landing zone',
-                irods=self.irods,
-                inject={
-                    'access_name': 'write',
-                    'path': zone_path,
-                    'user_name': self.flow_data['user_name']}))
 
         ##########################
         # Omics Data Access Tasks
