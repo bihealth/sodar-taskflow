@@ -38,6 +38,25 @@ class Flow(BaseLinearFlow):
                 inject={
                     'path': sample_path}))
 
+        self.add_task(
+            irods_tasks.SetInheritanceTask(
+                name='Set inheritance for sample sheet collection {}'.format(
+                    sample_path),
+                irods=self.irods,
+                inject={
+                    'path': sample_path,
+                    'inherit': True}))
+
+        self.add_task(
+            irods_tasks.SetAccessTask(
+                name='Set project user group read access for sample sheet '
+                     'collection {}'.format(sample_path),
+                irods=self.irods,
+                inject={
+                    'access_name': 'read',
+                    'path': sample_path,
+                    'user_name': project_group}))
+
         for d in self.flow_data['dirs']:
             dir_path = sample_path + '/' + d
             self.add_task(
@@ -46,15 +65,6 @@ class Flow(BaseLinearFlow):
                     irods=self.irods,
                     inject={
                         'path': dir_path}))
-
-        self.add_task(
-            irods_tasks.SetAccessTask(
-                name='Set project user group access',
-                irods=self.irods,
-                inject={
-                    'access_name': 'read',
-                    'path': sample_path,
-                    'user_name': project_group}))
 
         ##########################
         # Omics Data Access Tasks
