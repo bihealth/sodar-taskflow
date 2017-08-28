@@ -78,6 +78,7 @@ class Flow(BaseLinearFlow):
                         'Validating {} files, write access disabled'.format(
                             len(zone_objects_nomd5))}))
 
+        # TODO: Redundant, this should be already set in lz creation
         self.add_task(
             irods_tasks.SetInheritanceTask(
                 name='Set inheritance for landing zone collection {}'.format(
@@ -103,7 +104,7 @@ class Flow(BaseLinearFlow):
                     self.flow_data['user_name'], zone_path),
                 irods=self.irods,
                 inject={
-                    'access_name': 'own',
+                    'access_name': 'read',
                     'path': zone_path,
                     'user_name': self.flow_data['user_name']}))
 
