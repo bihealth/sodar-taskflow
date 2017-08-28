@@ -57,24 +57,6 @@ class Flow(BaseLinearFlow):
                     'path': user_path}))
 
         self.add_task(
-            irods_tasks.SetAccessTask(
-                name='Set user {} owner access for user zones collection',
-                irods=self.irods,
-                inject={
-                    'access_name': 'own',
-                    'path': user_path,
-                    'user_name': self.flow_data['user_name']}))
-
-        self.add_task(
-            irods_tasks.SetInheritanceTask(
-                name='Set inheritance for user zones collection {}'.format(
-                    zone_path),
-                irods=self.irods,
-                inject={
-                    'path': user_path,
-                    'inherit': True}))
-
-        self.add_task(
             irods_tasks.CreateCollectionTask(
                 name='Create collection for landing zone',
                 irods=self.irods,

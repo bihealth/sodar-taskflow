@@ -90,7 +90,7 @@ class Flow(BaseLinearFlow):
 
         self.add_task(
             irods_tasks.SetAccessTask(
-                name='Set user "{}" owner access for zone collection {}'.format(
+                name='Set admin "{}" owner access for zone coll {}'.format(
                     admin_name, zone_path),
                 irods=self.irods,
                 inject={
