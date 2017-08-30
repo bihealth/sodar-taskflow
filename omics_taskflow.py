@@ -1,4 +1,5 @@
 from flask import Flask, request, Response
+from multiprocessing import Process
 import os
 
 from apis import irods_utils, lock_api, omics_api
@@ -33,43 +34,11 @@ def submit():
                 'Missing or invalid argument: "{}"'.format(k),
                 status=400)  # Bad request
 
-    # We don't support async yet
-    if form_data['request_mode'] == 'async':
-        return Response('Async mode not supported yet', status=501)
-
     # Make sure we can support the named flow
     flow_cls = flows.get_flow(form_data['flow_name'])
 
     if not flow_cls:
         return Response('Flow not supported', status=501)  # Not implemented
-
-    project_pk = form_data['project_pk']
-
-    ##############
-    # Set Up lock
-    ##############
-
-    # Get project lock or return failure if we can't
-    coordinator = lock_api.get_coordinator()
-
-    if not coordinator:
-        return Response('Error retrieving lock coordinator', 500)
-
-    # TODO: TBD: Lock title
-    lock_id = 'project{}'.format(project_pk)
-    lock = coordinator.get_lock(bytes(lock_id, encoding='utf-8'))
-
-    try:
-        lock_api.acquire(lock)
-
-    except Exception as ex:
-        return Response(str(ex), status=500)
-
-    # Release lock, stop coordinator and return
-    def return_after_lock(response_body, status):
-        lock_api.release(lock)
-        coordinator.stop()
-        return Response(str(response_body), status)
 
     #############
     # Init iRODS
@@ -79,8 +48,8 @@ def submit():
         irods = irods_utils.init_irods()
 
     except Exception as ex:
-        return return_after_lock(
-            'Error initializing iRODS: {}'.format(ex), 500)
+        return Response(
+            'Error initializing iRODS: {}'.format(ex), status=500)
 
     ################
     # Init Omics API
@@ -92,44 +61,120 @@ def submit():
     else:
         omics_url = settings.TASKFLOW_OMICS_URL
 
-    ######################
-    # Create and run flow
-    ######################
+    omics_tf = omics_api.OmicsAPI(omics_url)
+
+    ##############
+    # Create flow
+    ##############
 
     flow = flow_cls(
         irods=irods,
-        omics_api=omics_api.OmicsAPI(omics_url),
+        omics_api=omics_tf,
         project_pk=form_data['project_pk'],
         flow_name=form_data['flow_name'],
         flow_data=form_data['flow_data'],
-        targets=form_data['targets'])
+        targets=form_data['targets'],
+        request_mode=form_data['request_mode'],
+        timeline_pk=form_data['timeline_pk'])
 
     try:
         flow.validate()
 
     except TypeError as ex:
-        return return_after_lock(
-            'Error validating flow: {}'.format(ex), 400)
+        return Response(
+            'Error validating flow: {}'.format(ex), status=400)
 
     try:
         flow.build(force_fail)
 
     except Exception as ex:
-        return return_after_lock(
-            'Error building flow: {}'.format(ex), 500)
+        return Response(
+            'Error building flow: {}'.format(ex), status=500)
 
-    # TODO: If async, send OK response, store handle, run flow in Process
+    project_pk = form_data['project_pk']
 
-    try:
-        flow_result = flow.run()
+    ###########
+    # Run flow
+    ###########
 
-    except Exception as ex:
-        return return_after_lock((
-            'Error running flow: ' + str(ex) if str(ex) != ''
-            else 'unknown error'), 500)
+    def run_flow(
+            flow, project_pk, timeline_pk, lock_api, omics_api, async=True):
+        flow_result = None
+        ex_str = None
+        response = None
+        lock = None
 
-    return return_after_lock(
-        flow_result, 200)
+        # Acquire lock
+        coordinator = lock_api.get_coordinator()
+
+        if not coordinator:
+            ex_str = 'Error retrieving lock coordinator'
+
+        if not ex_str:
+            lock_id = 'project{}'.format(project_pk)
+            lock = coordinator.get_lock(bytes(lock_id, encoding='utf-8'))
+
+            try:
+                lock_api.acquire(lock)
+
+            except Exception as ex:
+                ex_str = str(ex)
+
+        # Run flow
+        if not ex_str:
+            try:
+                flow_result = flow.run()
+
+            except Exception as ex:
+                ex_str = str(ex)
+
+        # Flow completion
+        if flow_result:
+            if async:
+                omics_api.set_timeline_status(
+                    event_pk=timeline_pk,
+                    status_type='OK',
+                    status_desc='Async submit OK')
+
+            else:
+                response = Response(str(flow_result), status=200)
+
+        # Exception/failure
+        else:
+            if async:
+                omics_api.set_timeline_status(
+                    event_pk=timeline_pk,
+                    status_type='FAILED',
+                    status_desc='Error running async flow: ' +
+                                (ex_str if ex_str else 'unknown error'))
+
+            else:
+                response = Response((
+                    'Error running flow: ' + ex_str if ex_str != ''
+                    else 'unknown error'), status=500)
+
+        # Release lock
+        lock_api.release(lock)
+        coordinator.stop()
+
+        return response
+
+    # Run asynchronously
+    if form_data['request_mode'] == 'async':
+        p = Process(
+            target=run_flow,
+            args=(
+                flow, project_pk, form_data['timeline_pk'], lock_api, omics_tf,
+                True))
+        p.start()
+
+        return Response(str(True), status=200)
+
+    # Run synchronously
+    else:
+        return run_flow(
+            flow, project_pk, form_data['timeline_pk'], lock_api, omics_tf,
+            False)
 
 
 @app.route('/cleanup', methods=['GET'])

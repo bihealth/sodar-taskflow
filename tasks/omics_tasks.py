@@ -235,12 +235,25 @@ class SetLandingZoneStatusTask(OmicsBaseTask):
 
     def revert(
             self, zone_pk, status, status_info, *args, **kwargs):
-        pass    # Disable for now, Omics will handle errors in prototype
-        '''
-        if self.data_modified:
-            set_data = {
-                'zone_pk': zone_pk,
-                'status': status_revert,
-                'status_info': status_revert_info}
-            self.omics_api.send_request('zones/taskflow/status/set', set_data)
-        '''
+        pass    # Disabled, call RevertLandingZoneStatusTask to revert
+
+
+class RevertLandingZoneFailTask(OmicsBaseTask):
+    """Set LandingZone status in case of failure"""
+
+    def execute(self, zone_pk, info_prefix, *args, **kwargs):
+        super(RevertLandingZoneFailTask, self).execute(*args, **kwargs)
+
+    def revert(self, zone_pk, info_prefix, *args, **kwargs):
+        status_info = info_prefix
+
+        for k, v in kwargs['flow_failures'].items():
+            status_info += ': '
+            status_info += str(v.exception) if \
+                v.exception else 'unknown error'
+
+        set_data = {
+            'zone_pk': zone_pk,
+            'status': 'FAILED',
+            'status_info': status_info}
+        self.omics_api.send_request('zones/taskflow/status/set', set_data)

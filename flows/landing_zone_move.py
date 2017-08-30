@@ -16,6 +16,9 @@ class Flow(BaseLinearFlow):
     # NOTE: Prototype implementation, will be done differently in final system
 
     def validate(self):
+        self.supported_modes = [
+            'sync',
+            'async']
         self.required_fields = [
             'zone_title',
             'zone_pk',
@@ -65,6 +68,17 @@ class Flow(BaseLinearFlow):
         ########
         # Tasks
         ########
+
+        # If async, set up task to set landing zone status to failed
+        if self.request_mode == 'async':
+            self.add_task(
+                omics_tasks.RevertLandingZoneFailTask(
+                    name='Set landing zone status to FAILED on revert',
+                    omics_api=self.omics_api,
+                    project_pk=self.project_pk,
+                    inject={
+                        'zone_pk': self.flow_data['zone_pk'],
+                        'info_prefix': 'Running asynchronous job failed'}))
 
         self.add_task(
             omics_tasks.SetLandingZoneStatusTask(
