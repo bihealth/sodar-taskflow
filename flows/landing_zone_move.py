@@ -164,6 +164,17 @@ class Flow(BaseLinearFlow):
                         'src_path': obj_path,
                         'dest_path': dest_path}))
 
+            self.add_task(
+                irods_tasks.SetAccessTask(
+                    name='Set project group read access for file "{}"'.format(
+                        dest_obj),
+                    irods=self.irods,
+                    inject={
+                        'access_name': 'read',
+                        'path': dest_obj,
+                        'user_name': project_group,
+                        'obj_target': True}))
+
         self.add_task(
             irods_tasks.RemoveCollectionTask(
                 name='Remove the landing zone collection',
