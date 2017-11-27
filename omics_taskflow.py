@@ -103,19 +103,25 @@ def submit():
             flow.build(force_fail)
 
         except Exception as ex:
-            msg = 'Error building flow:'
+            msg = 'Error building flow'
 
             if async:
                 # Set zone status in the Django site
                 set_data = {
                     'zone_pk': flow.flow_data['zone_pk'],
                     'status': 'FAILED',
-                    'status_info': '{} {}'.format(msg, ex)}
+                    'status_info': '{}: {}'.format(msg, ex)}
                 omics_api.send_request('zones/taskflow/status/set', set_data)
+
+                # Set timeline status
+                omics_api.set_timeline_status(
+                    event_pk=timeline_pk,
+                    status_type='FAILED',
+                    status_desc=msg)
 
             else:
                 response = Response(
-                    '{} {}'.format(msg, ex), status=500)
+                    '{}: {}'.format(msg, ex), status=500)
 
         # Acquire lock
         coordinator = lock_api.get_coordinator()
