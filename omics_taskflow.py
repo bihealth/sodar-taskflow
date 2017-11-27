@@ -84,25 +84,38 @@ def submit():
         return Response(
             'Error validating flow: {}'.format(ex), status=400)
 
-    try:
-        flow.build(force_fail)
-
-    except Exception as ex:
-        return Response(
-            'Error building flow: {}'.format(ex), status=500)
-
     project_pk = form_data['project_pk']
 
-    ###########
-    # Run flow
-    ###########
+    #####################
+    # Build and run flow
+    #####################
 
     def run_flow(
-            flow, project_pk, timeline_pk, lock_api, omics_api, async=True):
+            flow, project_pk, timeline_pk, lock_api, omics_api, force_fail,
+            async=True):
         flow_result = None
         ex_str = None
         response = None
         lock = None
+
+        # Build flow
+        try:
+            flow.build(force_fail)
+
+        except Exception as ex:
+            msg = 'Error building flow:'
+
+            if async:
+                # Set zone status in the Django site
+                set_data = {
+                    'zone_pk': flow.flow_data['zone_pk'],
+                    'status': 'FAILED',
+                    'status_info': '{} {}'.format(msg, ex)}
+                omics_api.send_request('zones/taskflow/status/set', set_data)
+
+            else:
+                response = Response(
+                    '{} {}'.format(msg, ex), status=500)
 
         # Acquire lock
         coordinator = lock_api.get_coordinator()
@@ -165,7 +178,7 @@ def submit():
             target=run_flow,
             args=(
                 flow, project_pk, form_data['timeline_pk'], lock_api, omics_tf,
-                True))
+                force_fail, True))
         p.start()
 
         return Response(str(True), status=200)
@@ -174,7 +187,7 @@ def submit():
     else:
         return run_flow(
             flow, project_pk, form_data['timeline_pk'], lock_api, omics_tf,
-            False)
+            force_fail, False)
 
 
 @app.route('/cleanup', methods=['GET'])
