@@ -98,6 +98,13 @@ def submit():
         response = None
         lock = None
 
+        # Set zone status in the Django site
+        set_data = {
+            'zone_pk': flow.flow_data['zone_pk'],
+            'status': 'PREPARING',
+            'status_info': 'Preparing transaction for validation and moving'}
+        omics_api.send_request('zones/taskflow/status/set', set_data)
+
         # Build flow
         print('--- Building flow "{}" ---'.format(flow.flow_name))
 
