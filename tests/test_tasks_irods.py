@@ -1,5 +1,7 @@
 """Tests for iRODS tasks"""
 
+# TODO: Add tests for batch tasks
+
 import os
 import uuid
 

@@ -4,6 +4,6 @@ gunicorn==19.7.1
 redis==2.10.5
 requests==2.11.1 # 2.16.5 conflicts with docker-compose
 tooz==1.52.0
-taskflow==2.10.0
+taskflow==2.17.0    # Previously: 2.10.0
 python-irodsclient==0.6.0
 # -e git://github.com/irods/python-irodsclient@dc10d1e486f2b606702a82cd521584daa80483ac#egg=python-irodsclient

@@ -99,6 +99,8 @@ def submit():
         lock = None
 
         # Build flow
+        print('--- Building flow "{}" ---'.format(flow.flow_name))
+
         try:
             flow.build(force_fail)
 
@@ -119,11 +121,18 @@ def submit():
                     status_type='FAILED',
                     status_desc=msg)
 
+                # Print out for logs
+                print('{}: {}'.format(msg, ex))
+
             else:
                 response = Response(
                     '{}: {}'.format(msg, ex), status=500)
 
+        print('--- Building flow OK ---')
+
         # Acquire lock
+        # TODO: Change timeout and re-enable
+        '''
         coordinator = lock_api.get_coordinator()
 
         if not coordinator:
@@ -138,6 +147,7 @@ def submit():
 
             except Exception as ex:
                 ex_str = str(ex)
+        '''
 
         # Run flow
         if not ex_str:
@@ -173,8 +183,11 @@ def submit():
                     else 'unknown error'), status=500)
 
         # Release lock
+        # TODO: Change timeout and re-enable
+        '''
         lock_api.release(lock)
         coordinator.stop()
+        '''
 
         return response
 
