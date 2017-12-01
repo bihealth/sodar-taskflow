@@ -1,6 +1,5 @@
-# TODO: Cleanup/simplify
-
 """Project locking API"""
+
 import time
 from tooz import coordination
 import uuid
@@ -17,8 +16,11 @@ REDIS_URL = settings.TASKFLOW_REDIS_URL
 def get_coordinator():
     """Return a Tooz coordinator object"""
     host_id = 'omics_taskflow_{}'.format(uuid.uuid4())
+
     coordinator = coordination.get_coordinator(
-        REDIS_URL, bytes(host_id, encoding='utf-8'))
+        backend_url=REDIS_URL,
+        member_id=bytes(host_id, encoding='utf-8'),
+        socket_keepalive=True)
 
     if coordinator:
         coordinator.start(start_heart=True)

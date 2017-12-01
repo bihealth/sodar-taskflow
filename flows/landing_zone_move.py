@@ -27,6 +27,13 @@ class Flow(BaseLinearFlow):
 
     def build(self, force_fail=False):
 
+        # Set zone status in the Django site
+        set_data = {
+            'zone_pk': self.flow_data['zone_pk'],
+            'status': 'PREPARING',
+            'status_info': 'Preparing transaction for validation and moving'}
+        self.omics_api.send_request('zones/taskflow/status/set', set_data)
+
         ########
         # Setup
         ########

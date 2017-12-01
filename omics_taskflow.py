@@ -98,13 +98,6 @@ def submit():
         response = None
         lock = None
 
-        # Set zone status in the Django site
-        set_data = {
-            'zone_pk': flow.flow_data['zone_pk'],
-            'status': 'PREPARING',
-            'status_info': 'Preparing transaction for validation and moving'}
-        omics_api.send_request('zones/taskflow/status/set', set_data)
-
         # Build flow
         print('--- Building flow "{}" ---'.format(flow.flow_name))
 
@@ -138,8 +131,6 @@ def submit():
         print('--- Building flow OK ---')
 
         # Acquire lock
-        # TODO: Change timeout and re-enable
-        '''
         coordinator = lock_api.get_coordinator()
 
         if not coordinator:
@@ -154,7 +145,6 @@ def submit():
 
             except Exception as ex:
                 ex_str = str(ex)
-        '''
 
         # Run flow
         if not ex_str:
@@ -190,11 +180,8 @@ def submit():
                     else 'unknown error'), status=500)
 
         # Release lock
-        # TODO: Change timeout and re-enable
-        '''
         lock_api.release(lock)
         coordinator.stop()
-        '''
 
         return response
 

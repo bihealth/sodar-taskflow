@@ -452,7 +452,7 @@ class BatchValidateChecksumsTask(IrodsBaseTask):
                     raise Exception('Checksums do not match for "{}"'.format(
                         path.split('/')[-1]))
 
-                print('Checksum OK for "{}"'.format(path))
+                # print('Checksum OK for "{}"'.format(path))  # DEBUG
 
             except Exception as ex:
                 self._raise_irods_execption(ex)
