@@ -36,7 +36,7 @@ def cleanup_irods(irods, verbose=True):
     # Remove project folders
     try:
         irods.collections.remove(
-            PROJECT_ROOT, recurse=True)
+            PROJECT_ROOT, recurse=True, force=True)
 
         if verbose:
             print('Removed project root: {}'.format(PROJECT_ROOT))
