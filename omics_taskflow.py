@@ -98,6 +98,22 @@ def submit():
         response = None
         lock = None
 
+        # Acquire lock
+        coordinator = lock_api.get_coordinator()
+
+        if not coordinator:
+            ex_str = 'Error retrieving lock coordinator'
+
+        if not ex_str:
+            lock_id = 'project{}'.format(project_pk)
+            lock = coordinator.get_lock(bytes(lock_id, encoding='utf-8'))
+
+            try:
+                lock_api.acquire(lock)
+
+            except Exception as ex:
+                ex_str = str(ex)
+
         # Build flow
         print('--- Building flow "{}" ---'.format(flow.flow_name))
 
@@ -129,22 +145,6 @@ def submit():
                     '{}: {}'.format(msg, ex), status=500)
 
         print('--- Building flow OK ---')
-
-        # Acquire lock
-        coordinator = lock_api.get_coordinator()
-
-        if not coordinator:
-            ex_str = 'Error retrieving lock coordinator'
-
-        if not ex_str:
-            lock_id = 'project{}'.format(project_pk)
-            lock = coordinator.get_lock(bytes(lock_id, encoding='utf-8'))
-
-            try:
-                lock_api.acquire(lock)
-
-            except Exception as ex:
-                ex_str = str(ex)
 
         # Run flow
         if not ex_str:

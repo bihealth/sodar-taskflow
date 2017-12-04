@@ -44,6 +44,7 @@ class Flow(BaseLinearFlow):
         zone_root = project_path + '/landing_zones'
         user_path = zone_root + '/' + self.flow_data['user_name']
         zone_path = user_path + '/' + self.flow_data['zone_title']
+        zone_depth = len(zone_path.split('/'))
         admin_name = settings.TASKFLOW_IRODS_USER
 
         # Get landing zone file paths (without .md5 files) from iRODS
@@ -63,8 +64,7 @@ class Flow(BaseLinearFlow):
 
         # Convert these to collections inside bio_samples
         sample_colls = list(set([
-            sample_path + '/' + '/'.join(
-                p.split('/')[len(zone_path.split('/')):]) for
+            sample_path + '/' + '/'.join(p.split('/')[zone_depth:]) for
             p in zone_object_colls]))
 
         # print('zone_objects: {}'.format(zone_objects))              # DEBUG
