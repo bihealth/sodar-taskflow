@@ -63,7 +63,8 @@ class Flow(BaseLinearFlow):
 
         # Convert these to collections inside bio_samples
         sample_colls = list(set([
-            sample_path + '/' + '/'.join(p.split('/')[zone_depth:]) for
+            sample_path + '/' + '/'.join(
+                p.split('/')[len(zone_path.split('/')):]) for
             p in zone_object_colls]))
 
         # print('zone_objects: {}'.format(zone_objects))              # DEBUG
