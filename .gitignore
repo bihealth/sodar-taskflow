@@ -74,3 +74,6 @@ ENV/
 
 # Other
 *.rdb
+
+# Logs
+*.log

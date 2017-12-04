@@ -27,6 +27,13 @@ class Flow(BaseLinearFlow):
 
     def build(self, force_fail=False):
 
+        # Set zone status in the Django site
+        set_data = {
+            'zone_pk': self.flow_data['zone_pk'],
+            'status': 'PREPARING',
+            'status_info': 'Preparing transaction for validation and moving'}
+        self.omics_api.send_request('zones/taskflow/status/set', set_data)
+
         ########
         # Setup
         ########
@@ -37,6 +44,7 @@ class Flow(BaseLinearFlow):
         zone_root = project_path + '/landing_zones'
         user_path = zone_root + '/' + self.flow_data['user_name']
         zone_path = user_path + '/' + self.flow_data['zone_title']
+        zone_depth = len(zone_path.split('/'))
         admin_name = settings.TASKFLOW_IRODS_USER
 
         # Get landing zone file paths (without .md5 files) from iRODS
@@ -56,7 +64,7 @@ class Flow(BaseLinearFlow):
 
         # Convert these to collections inside bio_samples
         sample_colls = list(set([
-            sample_path + '/' + '/'.join(p.split('/')[7:]) for
+            sample_path + '/' + '/'.join(p.split('/')[zone_depth:]) for
             p in zone_object_colls]))
 
         # print('zone_objects: {}'.format(zone_objects))              # DEBUG
@@ -92,7 +100,6 @@ class Flow(BaseLinearFlow):
                         'Validating {} files, write access disabled'.format(
                             len(zone_objects_nomd5))}))
 
-        # TODO: Redundant, this should be already set in lz creation
         self.add_task(
             irods_tasks.SetInheritanceTask(
                 name='Set inheritance for landing zone collection {}'.format(
@@ -122,15 +129,13 @@ class Flow(BaseLinearFlow):
                     'path': zone_path,
                     'user_name': self.flow_data['user_name']}))
 
-        # TODO: Delete .done file (once we use it)
-
-        for obj_path in zone_objects_nomd5:
-            self.add_task(
-                irods_tasks.ValidateDataObjectChecksumTask(
-                    name='Validate MD5 checksum of "{}"'.format(obj_path),
-                    irods=self.irods,
-                    inject={
-                        'path': obj_path}))
+        self.add_task(
+            irods_tasks.BatchValidateChecksumsTask(
+                name='Batch validate MD5 checksums of {} data objects'.format(
+                    len(zone_objects_nomd5)),
+                irods=self.irods,
+                inject={
+                    'paths': zone_objects_nomd5}))
 
         self.add_task(
             omics_tasks.SetLandingZoneStatusTask(
@@ -144,36 +149,24 @@ class Flow(BaseLinearFlow):
                         'Validation OK, moving {} files into '
                         'bio_samples'.format(len(zone_objects_nomd5))}))
 
-        for coll_path in sample_colls:
-            self.add_task(
-                irods_tasks.CreateCollectionTask(
-                    name='Create collection "{}"'.format(coll_path),
-                    irods=self.irods,
-                    inject={
-                        'path': coll_path}))
+        self.add_task(
+            irods_tasks.BatchCreateCollectionsTask(
+                name='Create collections in bio_samples',
+                irods=self.irods,
+                inject={
+                    'paths': sample_colls}))
 
-        for obj_path in zone_objects:
-            dest_path = sample_path + '/' + '/'.join(obj_path.split('/')[7:-1])
-            dest_obj = dest_path + '/' + obj_path.split('/')[-1]
-
-            self.add_task(
-                irods_tasks.MoveDataObjectTask(
-                    name='Move file "{}"'.format(obj_path),
-                    irods=self.irods,
-                    inject={
-                        'src_path': obj_path,
-                        'dest_path': dest_path}))
-
-            self.add_task(
-                irods_tasks.SetAccessTask(
-                    name='Set project group read access for file "{}"'.format(
-                        dest_obj),
-                    irods=self.irods,
-                    inject={
-                        'access_name': 'read',
-                        'path': dest_obj,
-                        'user_name': project_group,
-                        'obj_target': True}))
+        self.add_task(
+            irods_tasks.BatchMoveDataObjectsTask(
+                name='Move {} files and set project group '
+                     'read access'.format(len(zone_objects)),
+                irods=self.irods,
+                inject={
+                    'src_root': zone_path,
+                    'dest_root': sample_path,
+                    'src_paths': zone_objects,
+                    'access_name': 'read',
+                    'user_name': project_group}))
 
         self.add_task(
             irods_tasks.RemoveCollectionTask(
