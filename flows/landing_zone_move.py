@@ -63,7 +63,7 @@ class Flow(BaseLinearFlow):
 
         # Convert these to collections inside bio_samples
         sample_colls = list(set([
-            sample_path + '/' + '/'.join(p.split('/')[7:]) for
+            sample_path + '/' + '/'.join(p.split('/')[zone_depth:]) for
             p in zone_object_colls]))
 
         # print('zone_objects: {}'.format(zone_objects))              # DEBUG
@@ -161,7 +161,8 @@ class Flow(BaseLinearFlow):
                      'read access'.format(len(zone_objects)),
                 irods=self.irods,
                 inject={
-                    'sample_path': sample_path,
+                    'src_root': zone_path,
+                    'dest_root': sample_path,
                     'src_paths': zone_objects,
                     'access_name': 'read',
                     'user_name': project_group}))

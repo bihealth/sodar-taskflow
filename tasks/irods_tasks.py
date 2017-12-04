@@ -452,8 +452,6 @@ class BatchValidateChecksumsTask(IrodsBaseTask):
                     raise Exception('Checksums do not match for "{}"'.format(
                         path.split('/')[-1]))
 
-                # print('Checksum OK for "{}"'.format(path))  # DEBUG
-
             except Exception as ex:
                 self._raise_irods_execption(ex)
 
@@ -478,7 +476,6 @@ class BatchCreateCollectionsTask(IrodsBaseTask):
                     self.irods.collections.create(sub_path)
                     self.execute_data['created_colls'].append(sub_path)
                     self.data_modified = True
-                    # print('Created collection "{}"'.format(sub_path))  # DEBUG
 
         super(BatchCreateCollectionsTask, self).execute(*args, **kwargs)
 
@@ -493,35 +490,35 @@ class BatchMoveDataObjectsTask(IrodsBaseTask):
     """Batch move files (imv) and set access to user group (ichmod)"""
 
     @staticmethod
-    def get_dest_path(src_path, sample_path):
-        return sample_path + '/' + '/'.join(src_path.split('/')[7:-1])
+    def get_dest_coll_path(src_path, src_root, dest_root):
+        src_depth = len(src_root.split('/'))
+        return dest_root + '/' + '/'.join(src_path.split('/')[src_depth:-1])
 
     @staticmethod
-    def get_dest_obj(src_path, dest_path):
-        return dest_path + '/' + src_path.split('/')[-1]
+    def get_dest_obj_path(src_path, dest_path):
+        return dest_path + ('/' if dest_path[-1] != '/' else '') + \
+               src_path.split('/')[-1]
 
     def execute(
-            self, sample_path, src_paths, access_name, user_name,
+            self, src_root, dest_root, src_paths, access_name, user_name,
             *args, **kwargs):
         self.execute_data['moved_objects'] = []
 
         for src_path in src_paths:
-            dest_path = self.get_dest_path(src_path, sample_path)
-            dest_obj = self.get_dest_obj(src_path, dest_path)
+            dest_coll_path = self.get_dest_coll_path(
+                src_path, src_root, dest_root)
+            dest_obj_path = self.get_dest_obj_path(src_path, dest_coll_path)
 
             try:
                 self.irods.data_objects.move(
                     src_path=src_path,
-                    dest_path=dest_path)
-                self.data_modified = True
-                self.execute_data['moved_objects'].append((src_paths, None))
-                # print('Moved object to "{}"'.format(dest_obj))  # DEBUG
+                    dest_path=dest_obj_path)
 
             except Exception as ex:
                 self._raise_irods_execption(ex)
 
             modifying_access = False
-            target = self.irods.data_objects.get(dest_obj)
+            target = self.irods.data_objects.get(dest_obj_path)
             target_access = self.irods.permissions.get(target=target)
             user_access = next(
                 (x for x in target_access if x.user_name == user_name), None)
@@ -537,48 +534,46 @@ class BatchMoveDataObjectsTask(IrodsBaseTask):
                 prev_access = 'null'
                 modifying_access = True
 
+            self.execute_data['moved_objects'].append((src_path, prev_access))
+
             if modifying_access:
                 acl = iRODSAccess(
                     access_name=access_name,
-                    path=dest_obj,
+                    path=dest_obj_path,
                     user_name=user_name,
                     user_zone=self.irods.zone)
 
                 try:
                     self.irods.permissions.set(acl, recursive=False)
-                    i = len(self.execute_data['moved_objects']) - 1
-                    obj_info = (
-                        self.execute_data['moved_objects'][i][0], prev_access)
-                    self.execute_data['moved_objects'][i] = obj_info
-                    # print('Set user group read access for "{}"'.format(
-                    #     dest_obj))  # DEBUG
 
                 except Exception as ex:
-                    ex_info = dest_path
+                    ex_info = dest_coll_path
                     self._raise_irods_execption(ex, ex_info)
 
         super(BatchMoveDataObjectsTask, self).execute(*args, **kwargs)
 
     def revert(
-            self, sample_path, src_paths, access_name, user_name,
+            self, src_root, dest_root, access_name, user_name,
             *args, **kwargs):
-        if self.data_modified:
-            for moved_object in self.execute_data['moved_objects']:
-                src_path = moved_object[0]
-                prev_access = moved_object[1]
-                dest_path = self.get_dest_path(src_path, sample_path)
+        for moved_object in self.execute_data['moved_objects']:
+            src_path = moved_object[0]
+            prev_access = moved_object[1]
 
-                new_src = dest_path + '/' + src_path.split('/')[-1]
-                new_dest = '/'.join(src_path.split('/')[:-1])
+            dest_path = self.get_dest_coll_path(
+                src_path, src_root, dest_root)
 
-                self.irods.data_objects.move(
-                    src_path=new_src,
-                    dest_path=new_dest)
+            new_src = dest_path + ('/' if dest_path[-1] != '/' else '') + \
+                src_path.split('/')[-1]
+            new_dest = '/'.join(src_path.split('/')[:-1])
+            new_dest_obj = new_dest + '/' + src_path.split('/')[-1]
 
-                if prev_access:
-                    acl = iRODSAccess(
-                        access_name=prev_access,
-                        path=new_dest,
-                        user_name=user_name,
-                        user_zone=self.irods.zone)
-                    self.irods.permissions.set(acl, recursive=False)
+            self.irods.data_objects.move(
+                src_path=new_src,
+                dest_path=new_dest)
+
+            acl = iRODSAccess(
+                access_name=prev_access,
+                path=new_dest_obj,
+                user_name=user_name,
+                user_zone=self.irods.zone)
+            self.irods.permissions.set(acl, recursive=False)
