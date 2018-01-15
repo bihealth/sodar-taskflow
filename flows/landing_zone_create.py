@@ -1,7 +1,7 @@
 from config import settings
 
 from .base_flow import BaseLinearFlow
-from apis.irods_utils import get_project_path
+from apis.irods_utils import get_project_path, get_project_group_name
 from tasks import omics_tasks, irods_tasks
 
 
@@ -26,6 +26,7 @@ class Flow(BaseLinearFlow):
         ########
 
         project_path = get_project_path(self.project_pk)
+        project_group = get_project_group_name(self.project_pk)
         zone_root = project_path + '/landing_zones'
         user_path = zone_root + '/' + self.flow_data['user_name']
         zone_path = user_path + '/' + self.flow_data['zone_title']
@@ -42,6 +43,17 @@ class Flow(BaseLinearFlow):
                     'path': zone_root}))
 
         self.add_task(
+            irods_tasks.SetAccessTask(
+                name='Set project group read access for project landing zones '
+                     'root collection',
+                irods=self.irods,
+                inject={
+                    'access_name': 'read',
+                    'path': zone_root,
+                    'user_name': project_group,
+                    'recursive': False}))
+
+        self.add_task(
             irods_tasks.CreateUserTask(
                 name='Create user if it does not exist',
                 irods=self.irods,
@@ -55,6 +67,17 @@ class Flow(BaseLinearFlow):
                 irods=self.irods,
                 inject={
                     'path': user_path}))
+
+        self.add_task(
+            irods_tasks.SetAccessTask(
+                name='Set user read access for user collection inside project '
+                     'landing zones',
+                irods=self.irods,
+                inject={
+                    'access_name': 'read',
+                    'path': user_path,
+                    'user_name': self.flow_data['user_name'],
+                    'recursive': False}))
 
         self.add_task(
             irods_tasks.CreateCollectionTask(

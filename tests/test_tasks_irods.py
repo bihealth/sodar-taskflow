@@ -33,6 +33,7 @@ ROOT_COLL = '/{}/projects'.format(IRODS_ZONE)
 TEST_COLL = '{}/test'.format(ROOT_COLL)
 TEST_COLL_NEW = '{}/test_new'.format(ROOT_COLL)
 TEST_COLL_NEW2 = '{}/test_new2'.format(ROOT_COLL)
+TEST_COLL_SUB = '{}/sub'.format(TEST_COLL)
 
 TEST_USER = USER_PREFIX + 'user3'
 TEST_USER_TYPE = 'rodsuser'
@@ -877,6 +878,103 @@ class TestSetCollAccessTask(IRODSTestBase):
             user_name=DEFAULT_USER_GROUP)
         self.assertIsInstance(user_access, iRODSAccess)
         self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
+
+    def test_execute_no_recursion(self):
+        """Test access setting for a collection with recursive=False"""
+
+        # Set up subcollection and test user
+        sub_coll = self.irods.collections.create(TEST_COLL_SUB)
+        test_user = self.irods.users.create(
+            user_name=TEST_USER,
+            user_type=TEST_USER_TYPE,
+            user_zone=self.irods.zone)
+
+        self._add_task(
+            cls=SetAccessTask,
+            name='Set access',
+            inject={
+                'access_name': TEST_ACCESS_READ_IN,
+                'path': TEST_COLL,
+                'user_name': TEST_USER,
+                'recursive': False})
+
+        # Assert preconditions
+        user_access = self._get_user_access(
+            target=self._get_test_coll(),
+            user_name=TEST_USER)
+        self.assertEqual(user_access, None)
+
+        user_access = self._get_user_access(
+            target=sub_coll,
+            user_name=TEST_USER)
+        self.assertEqual(user_access, None)
+
+        # Run flow
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, True)
+
+        # Assert postconditions
+        user_access = self._get_user_access(
+            target=self._get_test_coll(),
+            user_name=TEST_USER)
+        self.assertIsInstance(user_access, iRODSAccess)
+        self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
+
+        user_access = self._get_user_access(
+            target=sub_coll,
+            user_name=TEST_USER)
+        self.assertEqual(user_access, None)
+
+    def test_revert_no_recursion(self):
+        """Test access setting reverting for a collection with recursive=False"""
+
+        # Set up subcollection and test user
+        sub_coll = self.irods.collections.create(TEST_COLL_SUB)
+        test_user = self.irods.users.create(
+            user_name=TEST_USER,
+            user_type=TEST_USER_TYPE,
+            user_zone=self.irods.zone)
+
+        self._add_task(
+            cls=SetAccessTask,
+            name='Set access',
+            inject={
+                'access_name': TEST_ACCESS_READ_IN,
+                'path': TEST_COLL,
+                'user_name': TEST_USER,
+                'recursive': False},
+
+            force_fail = True)  # FAIL
+
+        # Assert preconditions
+        user_access = self._get_user_access(
+            target=self._get_test_coll(),
+            user_name=TEST_USER)
+        self.assertEqual(user_access, None)
+
+        user_access = self._get_user_access(
+            target=sub_coll,
+            user_name=TEST_USER)
+        self.assertEqual(user_access, None)
+
+        # Run flow
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, False)
+
+        # Assert postconditions
+        user_access = self._get_user_access(
+            target=self._get_test_coll(),
+            user_name=TEST_USER)
+        self.assertEqual(user_access, None)
+
+        user_access = self._get_user_access(
+            target=sub_coll,
+            user_name=TEST_USER)
+        self.assertEqual(user_access, None)
 
 
 class TestSetDataObjAccessTask(IRODSTestBase):

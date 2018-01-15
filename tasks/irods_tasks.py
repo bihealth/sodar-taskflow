@@ -231,12 +231,12 @@ class SetInheritanceTask(IrodsBaseTask):
 
 
 class SetAccessTask(IrodsBaseTask):
-    """Set user/group access to target (ichmod). If the target is a data object,
-    obj_target must be set True."""
+    """Set user/group access to target (ichmod). If the target is a data object
+    (obj_target=True), the recursive argument will be ignored."""
 
     def execute(
-            self, access_name, path, user_name, obj_target=False, *args,
-            **kwargs):
+            self, access_name, path, user_name, obj_target=False,
+            recursive=True, *args, **kwargs):
         modifying_data = False
 
         if obj_target:
@@ -245,7 +245,7 @@ class SetAccessTask(IrodsBaseTask):
 
         else:
             target = self.irods.collections.get(path)
-            recursive = True
+            recursive = recursive
 
         target_access = self.irods.permissions.get(target=target)
         user_access = next(
@@ -280,15 +280,15 @@ class SetAccessTask(IrodsBaseTask):
         super(SetAccessTask, self).execute(*args, **kwargs)
 
     def revert(
-            self, access_name, path, user_name, obj_target=False, *args,
-            **kwargs):
+            self, access_name, path, user_name, obj_target=False,
+            recursive=True, *args, **kwargs):
         if self.data_modified:
             acl = iRODSAccess(
                 access_name=self.execute_data['access_name'],
                 path=path,
                 user_name=user_name,
                 user_zone=self.irods.zone)
-            recursive = False if obj_target else True
+            recursive = False if obj_target else recursive
             self.irods.permissions.set(acl, recursive=recursive)
 
 
