@@ -123,7 +123,7 @@ def submit():
         except Exception as ex:
             msg = 'Error building flow'
 
-            if async:
+            if async and 'zone_pk' in flow.flow_data:
                 # Set zone status in the Django site
                 set_data = {
                     'zone_pk': flow.flow_data['zone_pk'],

@@ -12,6 +12,9 @@ class Flow(BaseLinearFlow):
     """Flow for creating a landing zone for a project and a user in iRODS"""
 
     def validate(self):
+        self.supported_modes = [
+            'sync',
+            'async']
         self.required_fields = [
             'zone_title',
             'user_name',
@@ -30,6 +33,20 @@ class Flow(BaseLinearFlow):
         zone_root = project_path + '/landing_zones'
         user_path = zone_root + '/' + self.flow_data['user_name']
         zone_path = user_path + '/' + self.flow_data['zone_title']
+
+        ##########################
+        # Omics Data Access Tasks
+        ##########################
+
+        self.add_task(
+            omics_tasks.CreateLandingZoneTask(
+                name='Create landing zone in the Omics database',
+                omics_api=self.omics_api,
+                project_pk=self.project_pk,
+                inject={
+                    'zone_title': self.flow_data['zone_title'],
+                    'user_pk': self.flow_data['user_pk'],
+                    'description': self.flow_data['description']}))
 
         ##############
         # iRODS Tasks
@@ -128,12 +145,14 @@ class Flow(BaseLinearFlow):
         # Omics Data Access Tasks
         ##########################
 
+        # NOTE: Not using zone_pk here because taskflow doesn't know it yet
         self.add_task(
-            omics_tasks.CreateLandingZoneTask(
-                name='Create landing zone in the Omics database',
+            omics_tasks.SetLandingZoneStatusTask(
+                name='Set landing zone status to ACTIVE',
                 omics_api=self.omics_api,
                 project_pk=self.project_pk,
                 inject={
                     'zone_title': self.flow_data['zone_title'],
                     'user_pk': self.flow_data['user_pk'],
-                    'description': self.flow_data['description']}))
+                    'status': 'ACTIVE',
+                    'status_info': 'Available with write access for user'}))

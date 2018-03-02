@@ -224,17 +224,23 @@ class SetLandingZoneStatusTask(OmicsBaseTask):
     """Set LandingZone status"""
 
     def execute(
-            self, zone_pk, status, status_info, *args, **kwargs):
+            self, status, status_info, zone_pk=None,
+            zone_title=None, user_pk=None, *args, **kwargs):
         set_data = {
-            'zone_pk': zone_pk,
             'status': status,
-            'status_info': status_info}
+            'status_info': status_info,
+            'zone_pk': zone_pk,
+            'project_pk': self.project_pk,
+            'zone_title': zone_title,
+            'user_pk': user_pk}
+
         self.omics_api.send_request('zones/taskflow/status/set', set_data)
         self.data_modified = True
         super(SetLandingZoneStatusTask, self).execute(*args, **kwargs)
 
     def revert(
-            self, zone_pk, status, status_info, *args, **kwargs):
+            self, status, status_info, zone_pk=None,
+            zone_title=None, user_pk=None, *args, **kwargs):
         pass    # Disabled, call RevertLandingZoneStatusTask to revert
 
 
