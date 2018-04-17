@@ -23,6 +23,8 @@ from tasks.irods_tasks import *
 
 USER_PREFIX = 'omics_'
 
+PROJECT_UUID = 'c668fca5-bc35-4721-b9e1-faefb660daba'
+
 IRODS_ZONE = settings.TASKFLOW_IRODS_ZONE
 DEFAULT_USER_GROUP = USER_PREFIX + 'group1'
 
@@ -115,7 +117,7 @@ class IRODSTestBase(TestCase):
         return BaseLinearFlow(
             irods=self.irods,
             omics_api=None,
-            project_pk=1,
+            project_uuid=PROJECT_UUID,
             flow_name=str(uuid.uuid4()),
             flow_data={},
             targets=['irods'])

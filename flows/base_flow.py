@@ -1,4 +1,3 @@
-from apis import lock_api
 from taskflow import engines
 from taskflow.patterns import linear_flow as lf
 
@@ -10,16 +9,16 @@ from config import settings
 class BaseLinearFlow:
     """Base class for linear flows used for task queues"""
     def __init__(
-            self, irods, omics_api, project_pk, flow_name, flow_data, targets,
-            timeline_pk=None, request_mode='sync'):
+            self, irods, omics_api, project_uuid, flow_name, flow_data, targets,
+            timeline_uuid=None, request_mode='sync'):
         self.irods = irods
         self.omics_api = omics_api      # TODO: Dynamic support for more APIs?
-        self.project_pk = project_pk
+        self.project_uuid = project_uuid
         self.flow_name = flow_name
         self.flow_data = flow_data
         self.targets = targets
         self.required_fields = []       # For validation
-        self.timeline_pk = timeline_pk
+        self.timeline_uuid = timeline_uuid
         self.request_mode = request_mode
         self.supported_modes = [
             'sync',

@@ -17,10 +17,11 @@ class Flow(BaseLinearFlow):
         self.required_fields = [
             'project_title',
             'project_description',
-            'parent_pk',
+            'parent_uuid',
             'owner_username',
-            'owner_pk',
-            'owner_role_pk']
+            'owner_uuid',
+            'owner_role_pk',
+            'settings']
         return super(Flow, self).validate()
 
     def build(self, force_fail=False):
@@ -29,8 +30,8 @@ class Flow(BaseLinearFlow):
         # Setup
         ########
 
-        project_path = get_project_path(self.project_pk)
-        project_group = get_project_group_name(self.project_pk)
+        project_path = get_project_path(self.project_uuid)
+        project_group = get_project_group_name(self.project_uuid)
 
         ##############
         # iRODS Tasks
@@ -74,8 +75,8 @@ class Flow(BaseLinearFlow):
                 irods=self.irods,
                 inject={
                     'path': project_path,
-                    'name': 'parent_pk',
-                    'value': self.flow_data['parent_pk']}))
+                    'name': 'parent_uuid',
+                    'value': self.flow_data['parent_uuid']}))
 
         self.add_task(
             irods_tasks.CreateUserGroupTask(
@@ -117,7 +118,15 @@ class Flow(BaseLinearFlow):
             omics_tasks.SetRoleTask(
                 name='Set owner role to user',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
-                    'user_pk': self.flow_data['owner_pk'],
+                    'user_uuid': self.flow_data['owner_uuid'],
                     'role_pk': self.flow_data['owner_role_pk']}))
+
+        self.add_task(
+            omics_tasks.SetProjectSettingsTask(
+                name='Set project settings',
+                omics_api=self.omics_api,
+                project_uuid=self.project_uuid,
+                inject={
+                    'settings': self.flow_data['settings']}))

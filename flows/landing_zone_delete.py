@@ -13,10 +13,10 @@ class Flow(BaseLinearFlow):
 
     def validate(self):
         self.required_fields = [
-            'zone_pk',
+            'zone_uuid',
             'zone_title',
             'user_name',
-            'user_pk']
+            'user_uuid']
         return super(Flow, self).validate()
 
     def build(self, force_fail=False):
@@ -25,7 +25,7 @@ class Flow(BaseLinearFlow):
         # Setup
         ########
 
-        project_path = get_project_path(self.project_pk)
+        project_path = get_project_path(self.project_uuid)
         zone_path = project_path + '/landing_zones/' + \
             self.flow_data['user_name'] + '/' + \
             self.flow_data['zone_title']
@@ -49,6 +49,6 @@ class Flow(BaseLinearFlow):
             omics_tasks.RemoveLandingZoneTask(
                 name='Remove the landing zone from the Omics database',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
-                    'zone_pk': self.flow_data['zone_pk']}))
+                    'zone_uuid': self.flow_data['zone_uuid']}))

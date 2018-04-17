@@ -23,7 +23,7 @@ def submit():
         if 'force_fail' in form_data else False
 
     required_keys = [
-        'project_pk',
+        'project_uuid',
         'request_mode',
         'flow_name',
         'targets']
@@ -70,12 +70,12 @@ def submit():
     flow = flow_cls(
         irods=irods,
         omics_api=omics_tf,
-        project_pk=form_data['project_pk'],
+        project_uuid=form_data['project_uuid'],
         flow_name=form_data['flow_name'],
         flow_data=form_data['flow_data'],
         targets=form_data['targets'],
         request_mode=form_data['request_mode'],
-        timeline_pk=form_data['timeline_pk'])
+        timeline_uuid=form_data['timeline_uuid'])
 
     try:
         flow.validate()
@@ -84,14 +84,14 @@ def submit():
         return Response(
             'Error validating flow: {}'.format(ex), status=400)
 
-    project_pk = form_data['project_pk']
+    project_uuid = form_data['project_uuid']
 
     #####################
     # Build and run flow
     #####################
 
     def run_flow(
-            flow, project_pk, timeline_pk, lock_api, omics_api, force_fail,
+            flow, project_uuid, timeline_uuid, lock_api, omics_api, force_fail,
             async=True):
         flow_result = None
         ex_str = None
@@ -105,7 +105,7 @@ def submit():
             ex_str = 'Error retrieving lock coordinator'
 
         if not ex_str:
-            lock_id = 'project{}'.format(project_pk)
+            lock_id = project_uuid
             lock = coordinator.get_lock(bytes(lock_id, encoding='utf-8'))
 
             try:
@@ -123,17 +123,17 @@ def submit():
         except Exception as ex:
             msg = 'Error building flow'
 
-            if async and 'zone_pk' in flow.flow_data:
+            if async and 'zone_uuid' in flow.flow_data:
                 # Set zone status in the Django site
                 set_data = {
-                    'zone_pk': flow.flow_data['zone_pk'],
+                    'zone_uuid': flow.flow_data['zone_uuid'],
                     'status': 'FAILED',
                     'status_info': '{}: {}'.format(msg, ex)}
                 omics_api.send_request('zones/taskflow/status/set', set_data)
 
                 # Set timeline status
                 omics_api.set_timeline_status(
-                    event_pk=timeline_pk,
+                    event_uuid=timeline_uuid,
                     status_type='FAILED',
                     status_desc=msg)
 
@@ -158,7 +158,7 @@ def submit():
         if flow_result:
             if async:
                 omics_api.set_timeline_status(
-                    event_pk=timeline_pk,
+                    event_uuid=timeline_uuid,
                     status_type='OK',
                     status_desc='Async submit OK')
 
@@ -169,7 +169,7 @@ def submit():
         else:
             if async:
                 omics_api.set_timeline_status(
-                    event_pk=timeline_pk,
+                    event_uuid=timeline_uuid,
                     status_type='FAILED',
                     status_desc='Error running async flow: ' +
                                 (ex_str if ex_str else 'unknown error'))
@@ -190,8 +190,8 @@ def submit():
         p = Process(
             target=run_flow,
             args=(
-                flow, project_pk, form_data['timeline_pk'], lock_api, omics_tf,
-                force_fail, True))
+                flow, project_uuid, form_data['timeline_uuid'], lock_api,
+                omics_tf, force_fail, True))
         p.start()
 
         return Response(str(True), status=200)
@@ -199,7 +199,7 @@ def submit():
     # Run synchronously
     else:
         return run_flow(
-            flow, project_pk, form_data['timeline_pk'], lock_api, omics_tf,
+            flow, project_uuid, form_data['timeline_uuid'], lock_api, omics_tf,
             force_fail, False)
 
 

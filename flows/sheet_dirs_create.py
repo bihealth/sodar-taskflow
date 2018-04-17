@@ -23,9 +23,9 @@ class Flow(BaseLinearFlow):
         # Setup
         ########
 
-        project_path = get_project_path(self.project_pk)
+        project_path = get_project_path(self.project_uuid)
         sample_path = project_path + '/bio_samples'
-        project_group = get_project_group_name(self.project_pk)
+        project_group = get_project_group_name(self.project_uuid)
 
         ##############
         # iRODS Tasks
@@ -74,6 +74,6 @@ class Flow(BaseLinearFlow):
             omics_tasks.SetIrodsDirStatusTask(
                 name='Set iRODS directory structure status to True',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
                     'dir_status': True}))

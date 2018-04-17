@@ -10,11 +10,12 @@ class Flow(BaseLinearFlow):
         self.required_fields = [
             'project_title',
             'project_description',
+            'owner_uuid',
             'owner_username',
-            'owner_pk',
             'owner_role_pk',
-            'old_owner_pk',
-            'old_owner_username']
+            'old_owner_uuid',
+            'old_owner_username',
+            'settings']
         return super(Flow, self).validate()
 
     def build(self, force_fail=False):
@@ -23,8 +24,8 @@ class Flow(BaseLinearFlow):
         # Setup
         ########
 
-        project_path = get_project_path(self.project_pk)
-        project_group = get_project_group_name(self.project_pk)
+        project_path = get_project_path(self.project_uuid)
+        project_group = get_project_group_name(self.project_uuid)
 
         ##############
         # iRODS Tasks
@@ -49,7 +50,7 @@ class Flow(BaseLinearFlow):
                     'value': self.flow_data['project_description']}))
 
         # Update owner if changed
-        if self.flow_data['owner_pk'] != self.flow_data['old_owner_pk']:
+        if self.flow_data['owner_uuid'] != self.flow_data['old_owner_uuid']:
             self.add_task(
                 irods_tasks.RemoveUserFromGroupTask(
                     name='Remove old owner "{}" from project user '
@@ -75,22 +76,22 @@ class Flow(BaseLinearFlow):
         self.add_task(
             omics_tasks.UpdateProjectTask(
                 name='Update project data',
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 omics_api=self.omics_api,
                 inject={
                     'title': self.flow_data['project_title'],
                     'description': self.flow_data['project_description']}))
 
         # Update owner if changed
-        if self.flow_data['owner_pk'] != self.flow_data['old_owner_pk']:
+        if self.flow_data['owner_uuid'] != self.flow_data['old_owner_uuid']:
             self.add_task(
                 omics_tasks.RemoveRoleTask(
                     name='Remove owner role from user "{}"'.format(
                         self.flow_data['old_owner_username']),
                     omics_api=self.omics_api,
-                    project_pk=self.project_pk,
+                    project_uuid=self.project_uuid,
                     inject={
-                        'user_pk': self.flow_data['old_owner_pk'],
+                        'user_uuid': self.flow_data['old_owner_uuid'],
                         'role_pk': self.flow_data['owner_role_pk']}))
 
             self.add_task(
@@ -98,7 +99,15 @@ class Flow(BaseLinearFlow):
                     name='Set owner role for user "{}"'.format(
                         self.flow_data['owner_username']),
                     omics_api=self.omics_api,
-                    project_pk=self.project_pk,
+                    project_uuid=self.project_uuid,
                     inject={
-                        'user_pk': self.flow_data['owner_pk'],
+                        'user_uuid': self.flow_data['owner_uuid'],
                         'role_pk': self.flow_data['owner_role_pk']}))
+
+        self.add_task(
+            omics_tasks.SetProjectSettingsTask(
+                name='Set project settings',
+                omics_api=self.omics_api,
+                project_uuid=self.project_uuid,
+                inject={
+                    'settings': self.flow_data['settings']}))

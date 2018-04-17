@@ -21,7 +21,7 @@ class Flow(BaseLinearFlow):
             'async']
         self.required_fields = [
             'zone_title',
-            'zone_pk',
+            'zone_uuid',
             'user_name']
         return super(Flow, self).validate()
 
@@ -29,7 +29,7 @@ class Flow(BaseLinearFlow):
 
         # Set zone status in the Django site
         set_data = {
-            'zone_pk': self.flow_data['zone_pk'],
+            'zone_uuid': self.flow_data['zone_uuid'],
             'status': 'PREPARING',
             'status_info': 'Preparing transaction for validation and moving'}
         self.omics_api.send_request('zones/taskflow/status/set', set_data)
@@ -38,8 +38,8 @@ class Flow(BaseLinearFlow):
         # Setup
         ########
 
-        project_path = get_project_path(self.project_pk)
-        project_group = get_project_group_name(self.project_pk)
+        project_path = get_project_path(self.project_uuid)
+        project_group = get_project_group_name(self.project_uuid)
         sample_path = project_path + '/bio_samples'
         zone_root = project_path + '/landing_zones'
         user_path = zone_root + '/' + self.flow_data['user_name']
@@ -83,18 +83,18 @@ class Flow(BaseLinearFlow):
                 omics_tasks.RevertLandingZoneFailTask(
                     name='Set landing zone status to FAILED on revert',
                     omics_api=self.omics_api,
-                    project_pk=self.project_pk,
+                    project_uuid=self.project_uuid,
                     inject={
-                        'zone_pk': self.flow_data['zone_pk'],
+                        'zone_uuid': self.flow_data['zone_uuid'],
                         'info_prefix': 'Running asynchronous job failed'}))
 
         self.add_task(
             omics_tasks.SetLandingZoneStatusTask(
                 name='Set landing zone status to VALIDATING',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
-                    'zone_pk': self.flow_data['zone_pk'],
+                    'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'VALIDATING',
                     'status_info':
                         'Validating {} files, write access disabled'.format(
@@ -141,9 +141,9 @@ class Flow(BaseLinearFlow):
             omics_tasks.SetLandingZoneStatusTask(
                 name='Set landing zone status to MOVING',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
-                    'zone_pk': self.flow_data['zone_pk'],
+                    'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'MOVING',
                     'status_info':
                         'Validation OK, moving {} files into '
@@ -179,9 +179,9 @@ class Flow(BaseLinearFlow):
             omics_tasks.SetLandingZoneStatusTask(
                 name='Set landing zone status to MOVED',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
-                    'zone_pk': self.flow_data['zone_pk'],
+                    'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'MOVED',
                     'status_info':
                         'Successfully moved {} files, landing zone '

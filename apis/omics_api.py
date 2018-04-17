@@ -23,7 +23,9 @@ class OmicsAPI:
         response = requests.post(request_url, data=query_data)
 
         if response.status_code != 200:
-            raise OmicsRequestException(response.text)
+            raise OmicsRequestException(
+                '{}: {}'.format(
+                    response.status_code, response.text or 'Unknown'))
 
         return response
 

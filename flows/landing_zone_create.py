@@ -18,7 +18,7 @@ class Flow(BaseLinearFlow):
         self.required_fields = [
             'zone_title',
             'user_name',
-            'user_pk',
+            'user_uuid',
             'dirs']
         return super(Flow, self).validate()
 
@@ -28,8 +28,8 @@ class Flow(BaseLinearFlow):
         # Setup
         ########
 
-        project_path = get_project_path(self.project_pk)
-        project_group = get_project_group_name(self.project_pk)
+        project_path = get_project_path(self.project_uuid)
+        project_group = get_project_group_name(self.project_uuid)
         zone_root = project_path + '/landing_zones'
         user_path = zone_root + '/' + self.flow_data['user_name']
         zone_path = user_path + '/' + self.flow_data['zone_title']
@@ -42,10 +42,10 @@ class Flow(BaseLinearFlow):
             omics_tasks.CreateLandingZoneTask(
                 name='Create landing zone in the Omics database',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
                     'zone_title': self.flow_data['zone_title'],
-                    'user_pk': self.flow_data['user_pk'],
+                    'user_uuid': self.flow_data['user_uuid'],
                     'description': self.flow_data['description']}))
 
         ##############
@@ -145,14 +145,14 @@ class Flow(BaseLinearFlow):
         # Omics Data Access Tasks
         ##########################
 
-        # NOTE: Not using zone_pk here because taskflow doesn't know it yet
+        # NOTE: Not using zone_uuid here because taskflow doesn't know it yet
         self.add_task(
             omics_tasks.SetLandingZoneStatusTask(
                 name='Set landing zone status to ACTIVE',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
                     'zone_title': self.flow_data['zone_title'],
-                    'user_pk': self.flow_data['user_pk'],
+                    'user_uuid': self.flow_data['user_uuid'],
                     'status': 'ACTIVE',
                     'status_info': 'Available with write access for user'}))

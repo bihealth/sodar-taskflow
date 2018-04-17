@@ -22,7 +22,7 @@ class Flow(BaseLinearFlow):
         # Setup
         ########
 
-        project_path = get_project_path(self.project_pk)
+        project_path = get_project_path(self.project_uuid)
         sample_path = project_path + '/bio_samples'
 
         ##############
@@ -44,5 +44,5 @@ class Flow(BaseLinearFlow):
             omics_tasks.RemoveSampleSheetTask(
                 name='Remove sample sheet',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={}))

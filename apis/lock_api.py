@@ -88,4 +88,4 @@ def print_status(lock, unlock=False, failed=False):
     print('{} {}: {}'.format(
         'Unlock' if unlock else 'Lock',
         'FAILED' if failed else 'OK',
-        str(lock.name).split('\'')[3]))
+        str(lock.name)))

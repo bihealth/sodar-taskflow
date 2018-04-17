@@ -54,15 +54,15 @@ def cleanup_irods(irods, verbose=True):
                 print('Removed user: {}'.format(g[UserGroup.name]))
 
 
-def get_project_path(project_pk):
+def get_project_path(project_uuid):
     """Return project path"""
-    return '{}/project{}'.format(
-        PROJECT_ROOT, project_pk)
+    return '{}/{}/{}'.format(
+        PROJECT_ROOT, project_uuid[:2], project_uuid)
 
 
-def get_project_group_name(project_pk):
+def get_project_group_name(project_uuid):
     """Return project user group name"""
-    return 'omics-project{}'.format(project_pk)
+    return 'omics-project-{}'.format(project_uuid)
 
 
 def get_trash_path(path, add_rand=False):

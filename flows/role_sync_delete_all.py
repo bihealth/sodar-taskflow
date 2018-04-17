@@ -18,7 +18,7 @@ class Flow(BaseLinearFlow):
         ########
 
         group_name = get_project_group_name(
-            self.project_pk)
+            self.project_uuid)
         irods_group = self.irods.user_groups.get(name=group_name)
 
         ##############
