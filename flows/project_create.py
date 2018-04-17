@@ -20,8 +20,7 @@ class Flow(BaseLinearFlow):
             'parent_uuid',
             'owner_username',
             'owner_uuid',
-            'owner_role_pk',
-            'settings']
+            'owner_role_pk']
         return super(Flow, self).validate()
 
     def build(self, force_fail=False):
