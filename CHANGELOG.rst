@@ -22,6 +22,8 @@ Changed
 - Upgrade to python-irodsclient 0.7.0 (#10)
 - Upgrade taskflow and tooz
 - Readme rewritten and converted to rst
+- Configure sample and landing zone directory names in settings
+- Flow ``sheet_delete``: also delete landing zones
 
 Removed
 -------

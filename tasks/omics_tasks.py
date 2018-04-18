@@ -165,14 +165,14 @@ class SetIrodsDirStatusTask(OmicsBaseTask):
         query_data = {
             'project_uuid': self.project_uuid}
         self.execute_data = self.omics_api.send_request(
-            'sheets/taskflow/dirstatus/get', query_data).json()
+            'samplesheets/taskflow/dirs/get', query_data).json()
 
         if self.execute_data['dir_status'] != dir_status:
             set_data = {
                 'project_uuid': self.project_uuid,
                 'dir_status': dir_status}
             self.omics_api.send_request(
-                'sheets/taskflow/dirstatus/set', set_data)
+                'samplesheets/taskflow/dirs/set', set_data)
             self.data_modified = True
 
         super(SetIrodsDirStatusTask, self).execute(*args, **kwargs)
@@ -180,7 +180,7 @@ class SetIrodsDirStatusTask(OmicsBaseTask):
     def revert(self, dir_status, *args, **kwargs):
         if self.data_modified is True:
             self.omics_api.send_request(
-                'sheets/taskflow/dirstatus/set', self.execute_data)
+                'samplesheets/taskflow/dirs/set', self.execute_data)
 
 
 # TODO: Handle revert (see above), before it this must be called last in flow
@@ -193,7 +193,7 @@ class RemoveSampleSheetTask(OmicsBaseTask):
 
         try:
             self.omics_api.send_request(
-                'sheets/taskflow/delete', query_data)
+                'samplesheets/taskflow/delete', query_data)
             self.data_modified = True
 
         except OmicsRequestException:

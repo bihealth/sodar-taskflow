@@ -7,6 +7,7 @@ from tasks import omics_tasks, irods_tasks
 
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
+TASKFLOW_SAMPLE_DIR = settings.TASKFLOW_SAMPLE_DIR
 
 
 class Flow(BaseLinearFlow):
@@ -24,7 +25,7 @@ class Flow(BaseLinearFlow):
         ########
 
         project_path = get_project_path(self.project_uuid)
-        sample_path = project_path + '/bio_samples'
+        sample_path = project_path + '/' + TASKFLOW_SAMPLE_DIR
         project_group = get_project_group_name(self.project_uuid)
 
         ##############
