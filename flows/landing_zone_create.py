@@ -1,7 +1,8 @@
 from config import settings
 
 from .base_flow import BaseLinearFlow
-from apis.irods_utils import get_project_path, get_project_group_name
+from apis.irods_utils import get_project_path, get_landing_zone_path, \
+    get_project_group_name
 from tasks import omics_tasks, irods_tasks
 
 
@@ -9,7 +10,7 @@ PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
 
 
 class Flow(BaseLinearFlow):
-    """Flow for creating a landing zone for a project and a user in iRODS"""
+    """Flow for creating a landing zone for an assay and a user in iRODS"""
 
     def validate(self):
         self.supported_modes = [
@@ -19,6 +20,8 @@ class Flow(BaseLinearFlow):
             'zone_title',
             'user_name',
             'user_uuid',
+            'study_uuid',
+            'assay_uuid',
             'dirs']
         return super(Flow, self).validate()
 
@@ -30,9 +33,15 @@ class Flow(BaseLinearFlow):
 
         project_path = get_project_path(self.project_uuid)
         project_group = get_project_group_name(self.project_uuid)
-        zone_root = project_path + '/landing_zones'
+        zone_root = project_path + settings.TASKFLOW_LANDING_ZONE_DIR
         user_path = zone_root + '/' + self.flow_data['user_name']
-        zone_path = user_path + '/' + self.flow_data['zone_title']
+        # zone_path = user_path + '/' + self.flow_data['zone_title']
+        zone_path = get_landing_zone_path(
+            project_uuid=self.project_uuid,
+            user_name=self.flow_data['user_name'],
+            study_uuid=self.flow_data['study_uuid'],
+            assay_uuid=self.flow_data['assay_uuid'],
+            zone_title=self.flow_data['zone_title'])
 
         ##########################
         # Omics Data Access Tasks
@@ -46,6 +55,7 @@ class Flow(BaseLinearFlow):
                 inject={
                     'zone_title': self.flow_data['zone_title'],
                     'user_uuid': self.flow_data['user_uuid'],
+                    'assay_uuid': self.flow_data['assay_uuid'],
                     'description': self.flow_data['description']}))
 
         ##############

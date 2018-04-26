@@ -56,8 +56,22 @@ def cleanup_irods(irods, verbose=True):
 
 def get_project_path(project_uuid):
     """Return project path"""
-    return '{}/{}/{}'.format(
-        PROJECT_ROOT, project_uuid[:2], project_uuid)
+    return '{project_root}/{uuid_prefix}/{uuid}'.format(
+        project_root=PROJECT_ROOT,
+        uuid_prefix=project_uuid[:2],
+        uuid=project_uuid)
+
+
+def get_landing_zone_path(
+        project_uuid, user_name, study_uuid, assay_uuid, zone_title):
+    return '{project_root}/{lz_name}/{user_name}/' \
+           '{study}/{assay}/{zone_title}'.format(
+            project_root=get_project_path(project_uuid),
+            lz_name=settings.TASKFLOW_LANDING_ZONE_DIR,
+            user_name=user_name,
+            study='study_' + study_uuid,
+            assay='assay_' + assay_uuid,
+            zone_title=zone_title)
 
 
 def get_project_group_name(project_uuid):

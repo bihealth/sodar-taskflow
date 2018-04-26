@@ -11,6 +11,7 @@ Added
 -----
 
 - Project settings modification in project creation/update
+- Helper function ``get_landing_zone_path()`` in ``irods_utils``
 - This changelog :)
 
 Changed
@@ -24,6 +25,8 @@ Changed
 - Readme rewritten and converted to rst
 - Configure sample and landing zone directory names in settings
 - Flow ``sheet_delete``: also delete landing zones
+- Refactor ``get_project_path()``
+- Update ``landing_zone_create`` for assay specific zones (#14)
 
 Removed
 -------

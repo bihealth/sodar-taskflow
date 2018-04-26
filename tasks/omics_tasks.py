@@ -208,25 +208,30 @@ class RemoveSampleSheetTask(OmicsBaseTask):
 class CreateLandingZoneTask(OmicsBaseTask):
     """Create LandingZone for a project and user in the Omics database"""
 
-    def execute(self, zone_title, user_uuid, description, *args, **kwargs):
+    def execute(
+            self, zone_title, user_uuid, assay_uuid, description,
+            *args, **kwargs):
         create_data = {
             'project_uuid': self.project_uuid,
+            'assay_uuid': assay_uuid,
             'title': zone_title,
             'user_uuid': user_uuid,
             'description': description}
         response = self.omics_api.send_request(
-            'zones/taskflow/zone/create', create_data)
+            'landingzones/taskflow/create', create_data)
         self.execute_data = response.json()
 
         self.data_modified = True
         super(CreateLandingZoneTask, self).execute(*args, **kwargs)
 
-    def revert(self, zone_title, user_uuid, description, *args, **kwargs):
+    def revert(
+            self, zone_title, user_uuid, assay_uuid, description,
+            *args, **kwargs):
         if self.data_modified:
             remove_data = {
                 'zone_uuid': self.execute_data['zone_uuid']}
             self.omics_api.send_request(
-                'zones/taskflow/zone/create', remove_data)
+                'landingzones/taskflow/create', remove_data)
 
 
 # TODO: Handle revert (see above), before it this must be called last in flow
@@ -236,7 +241,7 @@ class RemoveLandingZoneTask(OmicsBaseTask):
     def execute(self, zone_uuid, *args, **kwargs):
         remove_data = {
            'zone_uuid': zone_uuid}
-        self.omics_api.send_request('zones/taskflow/zone/delete', remove_data)
+        self.omics_api.send_request('landingzones/taskflow/delete', remove_data)
         self.data_modified = True
         super(RemoveLandingZoneTask, self).execute(*args, **kwargs)
 
@@ -259,7 +264,8 @@ class SetLandingZoneStatusTask(OmicsBaseTask):
             'zone_title': zone_title,
             'user_uuid': user_uuid}
 
-        self.omics_api.send_request('zones/taskflow/status/set', set_data)
+        self.omics_api.send_request(
+            'landingzones/taskflow/status/set', set_data)
         self.data_modified = True
         super(SetLandingZoneStatusTask, self).execute(*args, **kwargs)
 
@@ -287,4 +293,5 @@ class RevertLandingZoneFailTask(OmicsBaseTask):
             'zone_uuid': zone_uuid,
             'status': 'FAILED',
             'status_info': status_info}
-        self.omics_api.send_request('zones/taskflow/status/set', set_data)
+        self.omics_api.send_request(
+            'landingzones/taskflow/status/set', set_data)
