@@ -26,7 +26,7 @@ Changed
 - Configure sample and landing zone directory names in settings
 - Flow ``sheet_delete``: also delete landing zones
 - Refactor ``get_project_path()``
-- Update ``landing_zone_create`` for assay specific zones (#14)
+- Update ``landing_zone_create`` for assay specific zones (#15)
 
 Removed
 -------
