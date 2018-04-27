@@ -11,7 +11,7 @@ Added
 -----
 
 - Project settings modification in project creation/update
-- Helper function ``get_landing_zone_path()`` in ``irods_utils``
+- Helper functions ``get_landing_zone_root()`` and ``get_landing_zone_path()`` in ``irods_utils``
 - This changelog :)
 
 Changed
@@ -27,6 +27,7 @@ Changed
 - Flow ``sheet_delete``: also delete landing zones
 - Refactor ``get_project_path()``
 - Update ``landing_zone_create`` for assay specific zones (#15)
+- Update ``landing_zone_delete`` (#15)
 
 Removed
 -------

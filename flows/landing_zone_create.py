@@ -1,8 +1,8 @@
 from config import settings
 
 from .base_flow import BaseLinearFlow
-from apis.irods_utils import get_project_path, get_landing_zone_path, \
-    get_project_group_name
+from apis.irods_utils import get_project_path, get_landing_zone_root, \
+    get_landing_zone_path, get_project_group_name
 from tasks import omics_tasks, irods_tasks
 
 
@@ -34,7 +34,7 @@ class Flow(BaseLinearFlow):
 
         project_path = get_project_path(self.project_uuid)
         project_group = get_project_group_name(self.project_uuid)
-        zone_root = project_path + settings.TASKFLOW_LANDING_ZONE_DIR
+        zone_root = get_landing_zone_root(self.project_uuid)
         user_path = zone_root + '/' + self.flow_data['user_name']
         # zone_path = user_path + '/' + self.flow_data['zone_title']
         zone_path = get_landing_zone_path(
