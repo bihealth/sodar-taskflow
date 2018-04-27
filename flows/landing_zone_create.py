@@ -18,6 +18,7 @@ class Flow(BaseLinearFlow):
             'async']
         self.required_fields = [
             'zone_title',
+            'zone_uuid',
             'user_name',
             'user_uuid',
             'study_uuid',
@@ -47,6 +48,7 @@ class Flow(BaseLinearFlow):
         # Omics Data Access Tasks
         ##########################
 
+        '''
         self.add_task(
             omics_tasks.CreateLandingZoneTask(
                 name='Create landing zone in the Omics database',
@@ -57,6 +59,16 @@ class Flow(BaseLinearFlow):
                     'user_uuid': self.flow_data['user_uuid'],
                     'assay_uuid': self.flow_data['assay_uuid'],
                     'description': self.flow_data['description']}))
+        '''
+
+        self.add_task(
+            omics_tasks.RevertLandingZoneFailTask(
+                name='Set landing zone status to FAILED on revert',
+                omics_api=self.omics_api,
+                project_uuid=self.project_uuid,
+                inject={
+                    'zone_uuid': self.flow_data['zone_uuid'],
+                    'info_prefix': 'Creation failed'}))
 
         ##############
         # iRODS Tasks
@@ -162,7 +174,7 @@ class Flow(BaseLinearFlow):
                 omics_api=self.omics_api,
                 project_uuid=self.project_uuid,
                 inject={
-                    'zone_title': self.flow_data['zone_title'],
+                    'zone_uuid': self.flow_data['zone_uuid'],
                     'user_uuid': self.flow_data['user_uuid'],
                     'status': 'ACTIVE',
                     'status_info': 'Available with write access for user'}))

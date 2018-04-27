@@ -123,13 +123,15 @@ def submit():
         except Exception as ex:
             msg = 'Error building flow'
 
+            # TODO: HACK! generalize to report building problems in ODM!
             if async and 'zone_uuid' in flow.flow_data:
                 # Set zone status in the Django site
                 set_data = {
                     'zone_uuid': flow.flow_data['zone_uuid'],
                     'status': 'FAILED',
                     'status_info': '{}: {}'.format(msg, ex)}
-                omics_api.send_request('zones/taskflow/status/set', set_data)
+                omics_api.send_request(
+                    'landingzones/taskflow/status/set', set_data)
 
                 # Set timeline status
                 omics_api.set_timeline_status(
