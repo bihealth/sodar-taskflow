@@ -15,8 +15,8 @@ class Flow(BaseLinearFlow):
         self.required_fields = [
             'zone_title',
             'zone_uuid',
-            'study_uuid',
-            'assay_uuid',
+            'study_dir',
+            'assay_dir',
             'user_name']
         return super(Flow, self).validate()
 
@@ -29,8 +29,8 @@ class Flow(BaseLinearFlow):
         zone_path = get_landing_zone_path(
             project_uuid=self.project_uuid,
             user_name=self.flow_data['user_name'],
-            study_uuid=self.flow_data['study_uuid'],
-            assay_uuid=self.flow_data['assay_uuid'],
+            study_dir=self.flow_data['study_dir'],
+            assay_dir=self.flow_data['assay_dir'],
             zone_title=self.flow_data['zone_title'])
 
         ##############

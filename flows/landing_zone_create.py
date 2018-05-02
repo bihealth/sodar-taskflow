@@ -21,8 +21,8 @@ class Flow(BaseLinearFlow):
             'zone_uuid',
             'user_name',
             'user_uuid',
-            'study_uuid',
-            'assay_uuid',
+            'study_dir',
+            'assay_dir',
             'dirs']
         return super(Flow, self).validate()
 
@@ -40,26 +40,13 @@ class Flow(BaseLinearFlow):
         zone_path = get_landing_zone_path(
             project_uuid=self.project_uuid,
             user_name=self.flow_data['user_name'],
-            study_uuid=self.flow_data['study_uuid'],
-            assay_uuid=self.flow_data['assay_uuid'],
+            study_dir=self.flow_data['study_dir'],
+            assay_dir=self.flow_data['assay_dir'],
             zone_title=self.flow_data['zone_title'])
 
         ##########################
         # Omics Data Access Tasks
         ##########################
-
-        '''
-        self.add_task(
-            omics_tasks.CreateLandingZoneTask(
-                name='Create landing zone in the Omics database',
-                omics_api=self.omics_api,
-                project_uuid=self.project_uuid,
-                inject={
-                    'zone_title': self.flow_data['zone_title'],
-                    'user_uuid': self.flow_data['user_uuid'],
-                    'assay_uuid': self.flow_data['assay_uuid'],
-                    'description': self.flow_data['description']}))
-        '''
 
         self.add_task(
             omics_tasks.RevertLandingZoneFailTask(

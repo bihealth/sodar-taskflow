@@ -70,14 +70,14 @@ def get_landing_zone_root(project_uuid):
 
 
 def get_landing_zone_path(
-        project_uuid, user_name, study_uuid, assay_uuid, zone_title):
+        project_uuid, user_name, study_dir, assay_dir, zone_title):
     return '{project_path}/{lz_name}/{user_name}/' \
            '{study}/{assay}/{zone_title}'.format(
             project_path=get_project_path(project_uuid),
             lz_name=settings.TASKFLOW_LANDING_ZONE_DIR,
             user_name=user_name,
-            study='study_' + study_uuid,
-            assay='assay_' + assay_uuid,
+            study=study_dir,
+            assay=assay_dir,
             zone_title=zone_title)
 
 
