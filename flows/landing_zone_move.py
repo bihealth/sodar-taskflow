@@ -1,19 +1,24 @@
 from config import settings
 
 from .base_flow import BaseLinearFlow
-from apis.irods_utils import get_project_path, get_subcoll_obj_paths,\
+from apis.irods_utils import get_project_path, get_sample_path, \
+    get_landing_zone_root, get_landing_zone_path, get_subcoll_obj_paths, \
     get_project_group_name, get_subcoll_paths
+
 from tasks import omics_tasks, irods_tasks
 
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
+SAMPLE_DIR = settings.TASKFLOW_SAMPLE_DIR
+
+
+# TODO: Modify to move files to correct locations under study/assay!
+# TODO: (Old impl. works but creates new dirs directly under sample dir)
 
 
 class Flow(BaseLinearFlow):
     """Flow for validating and moving files from a landing zone to the
-    bio_samples collection in iRODS"""
-
-    # NOTE: Prototype implementation, will be done differently in final system
+    sample data collection in iRODS"""
 
     def validate(self):
         self.supported_modes = [
@@ -22,6 +27,8 @@ class Flow(BaseLinearFlow):
         self.required_fields = [
             'zone_title',
             'zone_uuid',
+            'study_dir',
+            'assay_dir',
             'user_name']
         return super(Flow, self).validate()
 
@@ -32,18 +39,24 @@ class Flow(BaseLinearFlow):
             'zone_uuid': self.flow_data['zone_uuid'],
             'status': 'PREPARING',
             'status_info': 'Preparing transaction for validation and moving'}
-        self.omics_api.send_request('zones/taskflow/status/set', set_data)
+        self.omics_api.send_request(
+            'landingzones/taskflow/status/set', set_data)
 
         ########
         # Setup
         ########
 
-        project_path = get_project_path(self.project_uuid)
+        # project_path = get_project_path(self.project_uuid)
         project_group = get_project_group_name(self.project_uuid)
-        sample_path = project_path + '/bio_samples'
-        zone_root = project_path + '/landing_zones'
-        user_path = zone_root + '/' + self.flow_data['user_name']
-        zone_path = user_path + '/' + self.flow_data['zone_title']
+        sample_path = get_sample_path(self.project_uuid)
+        # zone_root = get_landing_zone_root(self.project_uuid)
+        # user_path = zone_root + '/' + self.flow_data['user_name']
+        zone_path = get_landing_zone_path(
+            project_uuid=self.project_uuid,
+            user_name=self.flow_data['user_name'],
+            study_dir=self.flow_data['study_dir'],
+            assay_dir=self.flow_data['assay_dir'],
+            zone_title=self.flow_data['zone_title'])
         zone_depth = len(zone_path.split('/'))
         admin_name = settings.TASKFLOW_IRODS_USER
 
@@ -62,7 +75,7 @@ class Flow(BaseLinearFlow):
         zone_object_colls = list(set([
             p[:p.rfind('/')] for p in zone_objects]))
 
-        # Convert these to collections inside bio_samples
+        # Convert these to collections inside sample dir
         sample_colls = list(set([
             sample_path + '/' + '/'.join(p.split('/')[zone_depth:]) for
             p in zone_object_colls]))
@@ -146,12 +159,12 @@ class Flow(BaseLinearFlow):
                     'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'MOVING',
                     'status_info':
-                        'Validation OK, moving {} files into '
-                        'bio_samples'.format(len(zone_objects_nomd5))}))
+                        'Validation OK, moving {} files into {}'.format(
+                            SAMPLE_DIR, len(zone_objects_nomd5))}))
 
         self.add_task(
             irods_tasks.BatchCreateCollectionsTask(
-                name='Create collections in bio_samples',
+                name='Create collections in {}'.format(SAMPLE_DIR),
                 irods=self.irods,
                 inject={
                     'paths': sample_colls}))

@@ -11,7 +11,7 @@ Added
 -----
 
 - Project settings modification in project creation/update
-- Helper functions ``get_landing_zone_root()`` and ``get_landing_zone_path()`` in ``irods_utils``
+- Helper functions for building directory paths in ``irods_utils``
 - This changelog :)
 
 Changed

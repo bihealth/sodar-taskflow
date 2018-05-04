@@ -36,7 +36,6 @@ class Flow(BaseLinearFlow):
         project_group = get_project_group_name(self.project_uuid)
         zone_root = get_landing_zone_root(self.project_uuid)
         user_path = zone_root + '/' + self.flow_data['user_name']
-        # zone_path = user_path + '/' + self.flow_data['zone_title']
         zone_path = get_landing_zone_path(
             project_uuid=self.project_uuid,
             user_name=self.flow_data['user_name'],
