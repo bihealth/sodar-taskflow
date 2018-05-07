@@ -62,11 +62,16 @@ def get_project_path(project_uuid):
         uuid=project_uuid)
 
 
-def get_sample_path(project_uuid):
+def get_sample_path(project_uuid, assay_path=None):
     """Return project sample data path"""
-    return '{project_path}/{sample_dir}'.format(
+    ret = '{project_path}/{sample_dir}'.format(
         project_path=get_project_path(project_uuid),
         sample_dir=settings.TASKFLOW_SAMPLE_DIR)
+
+    if assay_path:
+        ret += '/' + assay_path
+
+    return ret
 
 
 def get_landing_zone_root(project_uuid):
@@ -77,14 +82,13 @@ def get_landing_zone_root(project_uuid):
 
 
 def get_landing_zone_path(
-        project_uuid, user_name, study_dir, assay_dir, zone_title):
+        project_uuid, user_name, assay_path, zone_title):
     return '{project_path}/{lz_dir}/{user_name}/' \
-           '{study}/{assay}/{zone_title}'.format(
+           '{assay}/{zone_title}'.format(
             project_path=get_project_path(project_uuid),
             lz_dir=settings.TASKFLOW_LANDING_ZONE_DIR,
             user_name=user_name,
-            study=study_dir,
-            assay=assay_dir,
+            assay=assay_path,
             zone_title=zone_title)
 
 

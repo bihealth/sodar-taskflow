@@ -1,19 +1,14 @@
 from config import settings
 
 from .base_flow import BaseLinearFlow
-from apis.irods_utils import get_project_path, get_sample_path, \
-    get_landing_zone_root, get_landing_zone_path, get_subcoll_obj_paths, \
-    get_project_group_name, get_subcoll_paths
+from apis.irods_utils import get_sample_path, get_landing_zone_path, \
+    get_subcoll_obj_paths, get_project_group_name, get_subcoll_paths
 
 from tasks import omics_tasks, irods_tasks
 
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
 SAMPLE_DIR = settings.TASKFLOW_SAMPLE_DIR
-
-
-# TODO: Modify to move files to correct locations under study/assay!
-# TODO: (Old impl. works but creates new dirs directly under sample dir)
 
 
 class Flow(BaseLinearFlow):
@@ -27,8 +22,8 @@ class Flow(BaseLinearFlow):
         self.required_fields = [
             'zone_title',
             'zone_uuid',
-            'study_dir',
-            'assay_dir',
+            'assay_path_zone',
+            'assay_path_samples',
             'user_name']
         return super(Flow, self).validate()
 
@@ -46,18 +41,15 @@ class Flow(BaseLinearFlow):
         # Setup
         ########
 
-        # project_path = get_project_path(self.project_uuid)
         project_group = get_project_group_name(self.project_uuid)
-        sample_path = get_sample_path(self.project_uuid)
-        # zone_root = get_landing_zone_root(self.project_uuid)
-        # user_path = zone_root + '/' + self.flow_data['user_name']
+        sample_path = get_sample_path(
+            project_uuid=self.project_uuid,
+            assay_path=self.flow_data['assay_path_samples'])
         zone_path = get_landing_zone_path(
             project_uuid=self.project_uuid,
             user_name=self.flow_data['user_name'],
-            study_dir=self.flow_data['study_dir'],
-            assay_dir=self.flow_data['assay_dir'],
+            assay_path=self.flow_data['assay_path_zone'],
             zone_title=self.flow_data['zone_title'])
-        zone_depth = len(zone_path.split('/'))
         admin_name = settings.TASKFLOW_IRODS_USER
 
         # Get landing zone file paths (without .md5 files) from iRODS
@@ -77,9 +69,10 @@ class Flow(BaseLinearFlow):
 
         # Convert these to collections inside sample dir
         sample_colls = list(set([
-            sample_path + '/' + '/'.join(p.split('/')[zone_depth:]) for
+            sample_path + '/' + '/'.join(p.split('/')[10:]) for
             p in zone_object_colls]))
 
+        # print('sample_path: {}'.format(sample_path))                # DEBUG
         # print('zone_objects: {}'.format(zone_objects))              # DEBUG
         # print('zone_objects_nomd5: {}'.format(zone_objects_nomd5))  # DEBUG
         # print('zone_all_colls: {}'.format(zone_all_colls))          # DEBUG

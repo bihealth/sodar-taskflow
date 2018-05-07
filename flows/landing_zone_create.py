@@ -21,8 +21,7 @@ class Flow(BaseLinearFlow):
             'zone_uuid',
             'user_name',
             'user_uuid',
-            'study_dir',
-            'assay_dir',
+            'assay_path',
             'dirs']
         return super(Flow, self).validate()
 
@@ -39,8 +38,7 @@ class Flow(BaseLinearFlow):
         zone_path = get_landing_zone_path(
             project_uuid=self.project_uuid,
             user_name=self.flow_data['user_name'],
-            study_dir=self.flow_data['study_dir'],
-            assay_dir=self.flow_data['assay_dir'],
+            assay_path=self.flow_data['assay_path'],
             zone_title=self.flow_data['zone_title'])
 
         ##########################
