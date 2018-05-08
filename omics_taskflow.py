@@ -128,7 +128,7 @@ def submit():
                 # Set zone status in the Django site
                 set_data = {
                     'zone_uuid': flow.flow_data['zone_uuid'],
-                    'status': 'FAILED',
+                    'status': 'NOT CREATED',
                     'status_info': '{}: {}'.format(msg, ex)}
                 omics_api.send_request(
                     'landingzones/taskflow/status/set', set_data)
