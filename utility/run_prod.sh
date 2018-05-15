@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 SCRIPT_PATH=$(dirname "$(readlink -f "$0")")
 export OMICS_TASKFLOW_SETTINGS=${SCRIPT_PATH}/../config/production.py
-python ${SCRIPT_PATH}/../omics_taskflow.py
+gunicorn omics_taskflow:app --bind 0.0.0.0:5005 --workers 4 --pythonpath ${SCRIPT_PATH}/..
+

@@ -28,6 +28,7 @@ Changed
 - Refactor ``get_project_path()``
 - Update ``landing_zone_create`` for assay specific zones (#15)
 - Update ``landing_zone_delete`` (#15)
+- Modify ``run_prod.sh`` to run Gunicorn with production settings
 
 Removed
 -------
