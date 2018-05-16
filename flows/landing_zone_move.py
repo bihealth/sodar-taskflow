@@ -175,6 +175,16 @@ class Flow(BaseLinearFlow):
                     'user_name': project_group}))
 
         self.add_task(
+            irods_tasks.SetAccessTask(
+                name='Remove user "{}" access from sample collection {}'.format(
+                    self.flow_data['user_name'], sample_path),
+                irods=self.irods,
+                inject={
+                    'access_name': 'null',
+                    'path': sample_path,
+                    'user_name': self.flow_data['user_name']}))
+
+        self.add_task(
             irods_tasks.RemoveCollectionTask(
                 name='Remove the landing zone collection',
                 irods=self.irods,

@@ -36,6 +36,12 @@ Removed
 - Flynn references removed as deploying via Flynn is no longer supported
 
 
+Fixed
+-----
+
+- Data object read access was left for landing zone user account in sample data (#19)
+
+
 v0.1-PROTOTYPE (2018-04-13)
 ===========================
 
