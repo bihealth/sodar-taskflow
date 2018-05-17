@@ -29,6 +29,7 @@ Changed
 - Update ``landing_zone_create`` for assay specific zones (#15)
 - Update ``landing_zone_delete`` (#15)
 - Modify ``run_prod.sh`` to run Gunicorn with production settings
+- Project user groups are now in form of ``omics_project_{UUID}``
 
 Removed
 -------

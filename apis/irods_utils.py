@@ -94,7 +94,7 @@ def get_landing_zone_path(
 
 def get_project_group_name(project_uuid):
     """Return project user group name"""
-    return 'omics-project-{}'.format(project_uuid)
+    return 'omics_project_{}'.format(project_uuid)
 
 
 def get_trash_path(path, add_rand=False):
