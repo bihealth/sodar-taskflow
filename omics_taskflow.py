@@ -16,7 +16,7 @@ app.config.from_envvar('OMICS_TASKFLOW_SETTINGS')
 # Set up logging
 app.logger.handlers = []
 formatter = logging.Formatter(
-    '%(asctime)s [%(levelname)s] %(name)s: %(message)s')
+    '%(asctime)s [%(levelname)s] %(message)s')
 
 # Stdout handler
 out_handler = logging.StreamHandler(stream=sys.stdout)
@@ -25,10 +25,11 @@ out_handler.setLevel(logging.getLevelName('DEBUG'))
 app.logger.addHandler(out_handler)
 
 # File handler
-file_handler = RotatingFileHandler(settings.TASKFLOW_LOG_PATH)
-file_handler.setFormatter(formatter)
-file_handler.setLevel(logging.getLevelName('INFO'))
-app.logger.addHandler(file_handler)
+if settings.TASKFLOW_LOG_TO_FILE:
+    file_handler = RotatingFileHandler(settings.TASKFLOW_LOG_PATH)
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(logging.getLevelName('INFO'))
+    app.logger.addHandler(file_handler)
 
 app.logger.setLevel(logging.getLevelName(settings.TASKFLOW_LOG_LEVEL))
 
