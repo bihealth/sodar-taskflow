@@ -153,7 +153,7 @@ class Flow(BaseLinearFlow):
                     'status': 'MOVING',
                     'status_info':
                         'Validation OK, moving {} files into {}'.format(
-                            SAMPLE_DIR, len(zone_objects_nomd5))}))
+                            len(zone_objects_nomd5), SAMPLE_DIR)}))
 
         self.add_task(
             irods_tasks.BatchCreateCollectionsTask(
