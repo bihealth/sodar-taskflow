@@ -1,5 +1,6 @@
 from flask import Flask, request, Response
 import logging
+from logging.handlers import RotatingFileHandler
 from multiprocessing import Process
 import os
 import sys
@@ -17,17 +18,19 @@ app.logger.handlers = []
 formatter = logging.Formatter(
     '%(asctime)s [%(levelname)s] %(name)s: %(message)s')
 
+# Stdout handler
 out_handler = logging.StreamHandler(stream=sys.stdout)
 out_handler.setFormatter(formatter)
-out_handler.setLevel(logging.getLevelName('INFO'))
+out_handler.setLevel(logging.getLevelName('DEBUG'))
 app.logger.addHandler(out_handler)
 
-err_handler = logging.StreamHandler(stream=sys.stderr)
-err_handler.setFormatter(formatter)
-err_handler.setLevel(logging.getLevelName('ERROR'))
-app.logger.addHandler(err_handler)
+# File handler
+file_handler = RotatingFileHandler(settings.TASKFLOW_LOG_PATH)
+file_handler.setFormatter(formatter)
+file_handler.setLevel(logging.getLevelName('INFO'))
+app.logger.addHandler(file_handler)
 
-app.logger.setLevel(logging.getLevelName(app.config['TASKFLOW_LOG_LEVEL']))
+app.logger.setLevel(logging.getLevelName(settings.TASKFLOW_LOG_LEVEL))
 
 
 @app.route('/submit', methods=['POST'])

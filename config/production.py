@@ -4,4 +4,4 @@ from config.base import *
 DEBUG = False
 
 # Taskflow
-TASKFLOW_LOG_LEVEL = 'INFO'
+TASKFLOW_LOG_LEVEL = 'WARNING'
