@@ -1,3 +1,4 @@
+import logging
 import random
 import string
 
@@ -9,6 +10,9 @@ from config import settings
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
 PERMANENT_USERS = settings.TASKFLOW_TEST_PERMANENT_USERS
+
+
+logger = logging.getLogger('omics_taskflow.apis.irods_utils')
 
 
 def init_irods():
@@ -39,7 +43,7 @@ def cleanup_irods(irods, verbose=True):
             PROJECT_ROOT, recurse=True, force=True)
 
         if verbose:
-            print('Removed project root: {}'.format(PROJECT_ROOT))
+            logger.info('Removed project root: {}'.format(PROJECT_ROOT))
 
     except Exception:
         pass    # This is OK, the root just wasn't there
@@ -51,7 +55,7 @@ def cleanup_irods(irods, verbose=True):
             irods.user_groups.remove(user_name=g[UserGroup.name])
 
             if verbose:
-                print('Removed user: {}'.format(g[UserGroup.name]))
+                logger.info('Removed user: {}'.format(g[UserGroup.name]))
 
 
 def get_project_path(project_uuid):

@@ -1,14 +1,33 @@
 from flask import Flask, request, Response
+import logging
 from multiprocessing import Process
 import os
+import sys
 
 from apis import irods_utils, lock_api, omics_api
 from config import settings
 import flows
 
 
-app = Flask(__name__)
+app = Flask('omics_taskflow')
 app.config.from_envvar('OMICS_TASKFLOW_SETTINGS')
+
+# Set up logging
+app.logger.handlers = []
+formatter = logging.Formatter(
+    '%(asctime)s [%(levelname)s] %(name)s: %(message)s')
+
+out_handler = logging.StreamHandler(stream=sys.stdout)
+out_handler.setFormatter(formatter)
+out_handler.setLevel(logging.getLevelName('INFO'))
+app.logger.addHandler(out_handler)
+
+err_handler = logging.StreamHandler(stream=sys.stderr)
+err_handler.setFormatter(formatter)
+err_handler.setLevel(logging.getLevelName('ERROR'))
+app.logger.addHandler(err_handler)
+
+app.logger.setLevel(logging.getLevelName(app.config['TASKFLOW_LOG_LEVEL']))
 
 
 @app.route('/submit', methods=['POST'])
@@ -18,7 +37,7 @@ def submit():
     ###################
 
     form_data = request.json
-    # print('SUBMIT DATA: {}'.format(form_data))
+    app.logger.debug('Submit data: {}'.format(form_data))
     force_fail = form_data['force_fail'] \
         if 'force_fail' in form_data else False
 
@@ -30,15 +49,17 @@ def submit():
 
     for k in required_keys:
         if k not in form_data or form_data[k] == '':
-            return Response(
-                'Missing or invalid argument: "{}"'.format(k),
-                status=400)  # Bad request
+            msg = 'Missing or invalid argument: "{}"'.format(k)
+            app.logger.error(msg)
+            return Response(msg, status=400)  # Bad request
 
     # Make sure we can support the named flow
     flow_cls = flows.get_flow(form_data['flow_name'])
 
     if not flow_cls:
-        return Response('Flow not supported', status=501)  # Not implemented
+        msg = 'Flow "{}" not supported'.format(form_data['flow_name'])
+        app.logger.error(msg)
+        return Response(msg, status=501)  # Not implemented
 
     #############
     # Init iRODS
@@ -48,8 +69,9 @@ def submit():
         irods = irods_utils.init_irods()
 
     except Exception as ex:
-        return Response(
-            'Error initializing iRODS: {}'.format(ex), status=500)
+        msg = 'Error initializing iRODS: {}'.format(ex)
+        app.logger.error(msg)
+        return Response(msg, status=500)
 
     ################
     # Init Omics API
@@ -81,8 +103,9 @@ def submit():
         flow.validate()
 
     except TypeError as ex:
-        return Response(
-            'Error validating flow: {}'.format(ex), status=400)
+        msg = 'Error validating flow: {}'.format(ex)
+        app.logger.error(msg)
+        return Response(msg, status=400)
 
     project_uuid = form_data['project_uuid']
 
@@ -115,7 +138,7 @@ def submit():
                 ex_str = str(ex)
 
         # Build flow
-        print('--- Building flow "{}" ---'.format(flow.flow_name))
+        app.logger.info('--- Building flow "{}" ---'.format(flow.flow_name))
 
         try:
             flow.build(force_fail)
@@ -140,14 +163,13 @@ def submit():
                     status_type='FAILED',
                     status_desc=msg)
 
-                # Print out for logs
-                print('{}: {}'.format(msg, ex))
+                app.logger.error('{}: {}'.format(msg, ex))
 
             else:
                 response = Response(
                     '{}: {}'.format(msg, ex), status=500)
 
-        print('--- Building flow OK ---')
+        app.logger.info('--- Building flow OK ---')
 
         # Run flow
         if not ex_str:
@@ -178,9 +200,10 @@ def submit():
                                 (ex_str if ex_str else 'unknown error'))
 
             else:
-                response = Response((
-                    'Error running flow: ' + ex_str if ex_str != ''
-                    else 'unknown error'), status=500)
+                msg = 'Error running flow: ' + (ex_str if ex_str != ''
+                    else 'unknown error')
+                app.logger.error(msg)
+                response = Response(msg, status=500)
 
         # Release lock
         lock_api.release(lock)
@@ -210,10 +233,10 @@ def submit():
 def cleanup():
     if settings.TASKFLOW_ALLOW_IRODS_CLEANUP:
         try:
-            print('--- Cleanup started ---')
+            app.logger.info('--- Cleanup started ---')
             irods = irods_utils.init_irods()
             irods_utils.cleanup_irods(irods)
-            print('--- Cleanup done ---')
+            app.logger.info('--- Cleanup done ---')
 
         except Exception as ex:
             return Response('Error during cleanup: {}'.format(ex), status=500)
@@ -226,11 +249,12 @@ def cleanup():
 # DEBUG
 @app.route('/hello', methods=['GET'])
 def hello():
+    app.logger.debug('Hello world request received')
     return Response('Hello world from omics_taskflow!', status=200)
 
 
 if __name__ == '__main__':
-    print('settings={}'.format(os.getenv('OMICS_TASKFLOW_SETTINGS')))
+    app.logger.info('settings={}'.format(os.getenv('OMICS_TASKFLOW_SETTINGS')))
     app.run('0.0.0.0', 5005)
 
 

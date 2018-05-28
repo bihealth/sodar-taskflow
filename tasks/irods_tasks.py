@@ -1,5 +1,6 @@
 """iRODS tasks for Taskflow"""
 
+import logging
 import random
 import string
 
@@ -27,6 +28,9 @@ INHERIT_STRINGS = {
     False: 'noinherit'}
 
 
+logger = logging.getLogger('omics_taskflow.tasks.irods_tasks')
+
+
 class IrodsBaseTask(BaseTask):
     """Base iRODS task"""
 
@@ -34,7 +38,7 @@ class IrodsBaseTask(BaseTask):
         super(IrodsBaseTask, self).__init__(
             name, force_fail=force_fail, inject=inject, *args, **kwargs)
         self.target = 'irods'
-        self.name = '[iRODS] {} ({})'.format(name, self.__class__.__name__)
+        self.name = '<iRODS> {} ({})'.format(name, self.__class__.__name__)
         self.irods = kwargs['irods']
 
     # For when taskflow won't catch a proper exception from the client
@@ -46,7 +50,7 @@ class IrodsBaseTask(BaseTask):
         if info:
             desc += ' ({})'.format(info)
 
-        print(desc)     # DEBUG
+        logger.error(desc)
         raise Exception(desc)
 
 
@@ -408,10 +412,10 @@ class ValidateDataObjectChecksumTask(IrodsBaseTask):
             file_obj = self.irods.data_objects.get(path)
 
             if file_sum != file_obj.checksum:
-                print('Checksums do not match for "{}"!'.format(
-                    path.split('/')[-1]))    # DEBUG
-                raise Exception('Checksums do not match for "{}"'.format(
-                    path.split('/')[-1]))
+                msg = 'Checksums do not match for "{}"'.format(
+                    path.split('/')[-1])
+                logger.error(msg)
+                raise Exception(msg)
 
         except Exception as ex:
             self._raise_irods_execption(ex)
@@ -447,10 +451,10 @@ class BatchValidateChecksumsTask(IrodsBaseTask):
                 file_obj = self.irods.data_objects.get(path)
 
                 if file_sum != file_obj.checksum:
-                    print('Checksums do not match for "{}"!'.format(
-                        path.split('/')[-1]))    # DEBUG
-                    raise Exception('Checksums do not match for "{}"'.format(
-                        path.split('/')[-1]))
+                    msg = 'Checksums do not match for "{}"'.format(
+                        path.split('/')[-1])
+                    logger.error(msg)
+                    raise Exception(msg)
 
             except Exception as ex:
                 self._raise_irods_execption(ex)
@@ -515,11 +519,28 @@ class BatchMoveDataObjectsTask(IrodsBaseTask):
                     dest_path=dest_obj_path)
 
             except Exception as ex:
-                self._raise_irods_execption(ex)
+                self._raise_irods_execption(
+                    ex, 'Error moving move data object "{}" to "{}"'.format(
+                        src_path, dest_obj_path))
 
             modifying_access = False
-            target = self.irods.data_objects.get(dest_obj_path)
-            target_access = self.irods.permissions.get(target=target)
+
+            try:
+                target = self.irods.data_objects.get(dest_obj_path)
+
+            except Exception as ex:
+                self._raise_irods_exception(
+                    ex, 'Error retrieving destination object "{}"'.format(
+                        dest_obj_path))
+
+            try:
+                target_access = self.irods.permissions.get(target=target)
+
+            except Exception as ex:
+                self._raise_irods_exception(
+                    ex, 'Error getting permissions of target "{}"'.format(
+                        target))
+
             user_access = next(
                 (x for x in target_access if x.user_name == user_name), None)
             prev_access = None
@@ -547,8 +568,9 @@ class BatchMoveDataObjectsTask(IrodsBaseTask):
                     self.irods.permissions.set(acl, recursive=False)
 
                 except Exception as ex:
-                    ex_info = dest_coll_path
-                    self._raise_irods_execption(ex, ex_info)
+                    self._raise_irods_execption(
+                        ex, 'Error setting permission for "{}"'.format(
+                            dest_coll_path))
 
         super(BatchMoveDataObjectsTask, self).execute(*args, **kwargs)
 

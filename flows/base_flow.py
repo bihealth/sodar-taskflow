@@ -1,9 +1,13 @@
+import logging
 from taskflow import engines
 from taskflow.patterns import linear_flow as lf
 
 from tasks.base_task import ForceFailException
 
 from config import settings
+
+
+logger = logging.getLogger('omics_taskflow.flows.base_flow')
 
 
 class BaseLinearFlow:
@@ -49,14 +53,16 @@ class BaseLinearFlow:
         the flow implementation."""
         # TODO: Add tasks to self.flow here with self.flow.add()
         # TODO: Add force_fail=force_fail to last add() for testing rollback
-        raise NotImplementedError('Function build() not implemented!')
+        msg = 'Function build() not implemented!'
+        logger.error(msg)
+        raise NotImplementedError(msg)
 
     def run(self, verbose=True):
         """Run the flow. Returns True or False depending on success. If False,
         the flow was rolled back. Also handle project locking and unlocking."""
 
         if verbose:
-            print('--- Running flow "{}" ---'.format(
+            logger.info('--- Running flow "{}" ---'.format(
                 self.flow.name))
 
         engine = engines.load(self.flow, engine='serial')
@@ -68,9 +74,7 @@ class BaseLinearFlow:
             return False
 
         except Exception as ex:
-            if verbose:
-                print('Exception: {}'.format(ex))
-
+            logger.error('Exception: {}'.format(ex))
             raise ex
 
         result = True if (
@@ -78,7 +82,7 @@ class BaseLinearFlow:
             engine.statistics['discarded_failures'] == 0) else False
 
         if verbose:
-            print(
+            logger.info(
                 '--- Flow finished: {} ({} completed, {} incomplete, '
                 '{} discarded) ---'.format(
                     'OK' if result is True else 'ROLLBACK',

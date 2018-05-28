@@ -6,9 +6,13 @@
 # TODO: delete objects instead?
 
 import json
+import logging
 
 from .base_task import BaseTask
 from apis.omics_api import OmicsRequestException
+
+
+logger = logging.getLogger('omics_taskflow.tasks.omics_tasks')
 
 
 class OmicsBaseTask(BaseTask):
@@ -20,7 +24,7 @@ class OmicsBaseTask(BaseTask):
         super(OmicsBaseTask, self).__init__(
             name, force_fail=force_fail, inject=inject, *args, **kwargs)
         self.target = 'omics'
-        self.name = '[Omics] {} ({})'.format(name, self.__class__.__name__)
+        self.name = '<Omics> {} ({})'.format(name, self.__class__.__name__)
         self.project_uuid = project_uuid
         self.omics_api = omics_api
 
@@ -31,12 +35,12 @@ class OmicsBaseTask(BaseTask):
             raise Exception('force_fail=True')
 
     def post_execute(self, *args, **kwargs):
-        print('{}: {}'.format(
+        logger.info('{}: {}'.format(
             'force_fail' if self.force_fail else 'Executed',
-            self.name))  # DEBUG
+            self.name))
 
     def post_revert(self, *args, **kwargs):
-        print('Reverted: {}'.format(self.name))  # DEBUG
+        logger.error('Reverted: {}'.format(self.name))
 
 
 class UpdateProjectTask(OmicsBaseTask):

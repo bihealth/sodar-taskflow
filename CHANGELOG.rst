@@ -30,11 +30,13 @@ Changed
 - Update ``landing_zone_delete`` (#15)
 - Modify ``run_prod.sh`` to run Gunicorn with production settings
 - Project user groups are now in form of ``omics_project_{UUID}``
+- Add proper logging
 
 Removed
 -------
 
 - Flynn references removed as deploying via Flynn is no longer supported
+- Redundant debug printouts (all now going to logger)
 
 
 Fixed
