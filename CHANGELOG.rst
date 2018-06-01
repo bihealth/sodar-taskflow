@@ -44,6 +44,7 @@ Fixed
 
 - Data object read access was left for landing zone user account in sample data (#19)
 - Failure in ``landing_zone_move`` raised ``NOT CREATED`` instead of ``FAILED`` (#20)
+- Missing ``project_readme`` param in ``UpdateProjectTask`` (#23)
 
 
 v0.1-PROTOTYPE (2018-04-13)

@@ -10,6 +10,7 @@ class Flow(BaseLinearFlow):
         self.required_fields = [
             'project_title',
             'project_description',
+            'project_readme',
             'owner_uuid',
             'owner_username',
             'owner_role_pk',
@@ -80,7 +81,8 @@ class Flow(BaseLinearFlow):
                 omics_api=self.omics_api,
                 inject={
                     'title': self.flow_data['project_title'],
-                    'description': self.flow_data['project_description']}))
+                    'description': self.flow_data['project_description'],
+                    'readme': self.flow_data['project_readme']}))
 
         # Update owner if changed
         if self.flow_data['owner_uuid'] != self.flow_data['old_owner_uuid']:

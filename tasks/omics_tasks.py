@@ -46,7 +46,7 @@ class OmicsBaseTask(BaseTask):
 class UpdateProjectTask(OmicsBaseTask):
     """Update project title and description"""
 
-    def execute(self, title, description, *args, **kwargs):
+    def execute(self, title, description, readme, *args, **kwargs):
         # Get initial data
         self.execute_data = self.omics_api.send_request(
             'project/taskflow/get',
@@ -55,14 +55,15 @@ class UpdateProjectTask(OmicsBaseTask):
         update_data = {
             'project_uuid': self.project_uuid,
             'title': title,
-            'description': description}
+            'description': description,
+            'readme': readme}
 
         self.omics_api.send_request(
             'project/taskflow/update', update_data)
 
         super(UpdateProjectTask, self).execute(*args, **kwargs)
 
-    def revert(self, title, description, *args, **kwargs):
+    def revert(self, title, description, readme, *args, **kwargs):
         if kwargs['result'] is True:
             self.omics_api.send_request(
                 'project/taskflow/update', self.execute_data)
