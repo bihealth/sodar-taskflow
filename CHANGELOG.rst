@@ -31,6 +31,9 @@ Changed
 - Modify ``run_prod.sh`` to run Gunicorn with production settings
 - Project user groups are now in form of ``omics_project_{UUID}``
 - Add proper logging
+- Use gevent in production mode (#26)
+- Upgrade to gunicorn==19.8.1
+
 
 Removed
 -------
