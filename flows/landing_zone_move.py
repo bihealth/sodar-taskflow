@@ -70,7 +70,7 @@ class Flow(BaseLinearFlow):
         # Convert these to collections inside sample dir
         sample_colls = list(set([
             sample_path + '/' + '/'.join(p.split('/')[10:]) for
-            p in zone_object_colls]))
+            p in zone_object_colls if len(p.split('/')) > 10]))
 
         # print('sample_path: {}'.format(sample_path))                # DEBUG
         # print('zone_objects: {}'.format(zone_objects))              # DEBUG
@@ -155,12 +155,13 @@ class Flow(BaseLinearFlow):
                         'Validation OK, moving {} files into {}'.format(
                             len(zone_objects_nomd5), SAMPLE_DIR)}))
 
-        self.add_task(
-            irods_tasks.BatchCreateCollectionsTask(
-                name='Create collections in {}'.format(SAMPLE_DIR),
-                irods=self.irods,
-                inject={
-                    'paths': sample_colls}))
+        if sample_colls:
+            self.add_task(
+                irods_tasks.BatchCreateCollectionsTask(
+                    name='Create collections in {}'.format(SAMPLE_DIR),
+                    irods=self.irods,
+                    inject={
+                        'paths': sample_colls}))
 
         self.add_task(
             irods_tasks.BatchMoveDataObjectsTask(
