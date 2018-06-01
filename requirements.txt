@@ -5,5 +5,5 @@ redis==2.10.6
 requests==2.18.4
 tooz==1.61.0
 taskflow==3.1.0  # 2.17.0
-python-irodsclient==0.7.0
+python-irodsclient==0.8.0
 gevent==1.3.2.post0
