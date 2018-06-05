@@ -1,4 +1,8 @@
+import logging
 from taskflow import task
+
+
+logger = logging.getLogger('omics_taskflow.tasks.base_task')
 
 
 class ForceFailException(Exception):
@@ -26,10 +30,10 @@ class BaseTask(task.Task):
 
     def post_execute(self, *args, **kwargs):
         if self.verbose:
-            print('{}: {}'.format(
+            logger.info('{}: {}'.format(
                 'force_fail' if self.force_fail else 'Executed',
-                self.name))  # DEBUG
+                self.name))
 
     def post_revert(self, *args, **kwargs):
         if self.verbose:
-            print('Reverted: {}'.format(self.name))  # DEBUG
+            logger.info('Reverted: {}'.format(self.name))

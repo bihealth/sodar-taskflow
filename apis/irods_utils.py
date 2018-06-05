@@ -1,3 +1,4 @@
+import logging
 import random
 import string
 
@@ -9,6 +10,9 @@ from config import settings
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
 PERMANENT_USERS = settings.TASKFLOW_TEST_PERMANENT_USERS
+
+
+logger = logging.getLogger('omics_taskflow.apis.irods_utils')
 
 
 def init_irods():
@@ -39,7 +43,7 @@ def cleanup_irods(irods, verbose=True):
             PROJECT_ROOT, recurse=True, force=True)
 
         if verbose:
-            print('Removed project root: {}'.format(PROJECT_ROOT))
+            logger.info('Removed project root: {}'.format(PROJECT_ROOT))
 
     except Exception:
         pass    # This is OK, the root just wasn't there
@@ -51,18 +55,50 @@ def cleanup_irods(irods, verbose=True):
             irods.user_groups.remove(user_name=g[UserGroup.name])
 
             if verbose:
-                print('Removed user: {}'.format(g[UserGroup.name]))
+                logger.info('Removed user: {}'.format(g[UserGroup.name]))
 
 
-def get_project_path(project_pk):
+def get_project_path(project_uuid):
     """Return project path"""
-    return '{}/project{}'.format(
-        PROJECT_ROOT, project_pk)
+    return '{project_root}/{uuid_prefix}/{uuid}'.format(
+        project_root=PROJECT_ROOT,
+        uuid_prefix=project_uuid[:2],
+        uuid=project_uuid)
 
 
-def get_project_group_name(project_pk):
+def get_sample_path(project_uuid, assay_path=None):
+    """Return project sample data path"""
+    ret = '{project_path}/{sample_dir}'.format(
+        project_path=get_project_path(project_uuid),
+        sample_dir=settings.TASKFLOW_SAMPLE_DIR)
+
+    if assay_path:
+        ret += '/' + assay_path
+
+    return ret
+
+
+def get_landing_zone_root(project_uuid):
+    """Return project landing zone root"""
+    return '{project_path}/{lz_dir}'.format(
+        project_path=get_project_path(project_uuid),
+        lz_dir=settings.TASKFLOW_LANDING_ZONE_DIR)
+
+
+def get_landing_zone_path(
+        project_uuid, user_name, assay_path, zone_title):
+    return '{project_path}/{lz_dir}/{user_name}/' \
+           '{assay}/{zone_title}'.format(
+            project_path=get_project_path(project_uuid),
+            lz_dir=settings.TASKFLOW_LANDING_ZONE_DIR,
+            user_name=user_name,
+            assay=assay_path,
+            zone_title=zone_title)
+
+
+def get_project_group_name(project_uuid):
     """Return project user group name"""
-    return 'omics-project{}'.format(project_pk)
+    return 'omics_project_{}'.format(project_uuid)
 
 
 def get_trash_path(path, add_rand=False):

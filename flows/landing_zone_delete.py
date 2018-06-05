@@ -1,7 +1,7 @@
 from config import settings
 
 from .base_flow import BaseLinearFlow
-from apis.irods_utils import get_project_path
+from apis.irods_utils import get_landing_zone_path
 from tasks import omics_tasks, irods_tasks
 
 
@@ -13,10 +13,10 @@ class Flow(BaseLinearFlow):
 
     def validate(self):
         self.required_fields = [
-            'zone_pk',
             'zone_title',
-            'user_name',
-            'user_pk']
+            'zone_uuid',
+            'assay_path',
+            'user_name']
         return super(Flow, self).validate()
 
     def build(self, force_fail=False):
@@ -25,10 +25,11 @@ class Flow(BaseLinearFlow):
         # Setup
         ########
 
-        project_path = get_project_path(self.project_pk)
-        zone_path = project_path + '/landing_zones/' + \
-            self.flow_data['user_name'] + '/' + \
-            self.flow_data['zone_title']
+        zone_path = get_landing_zone_path(
+            project_uuid=self.project_uuid,
+            user_name=self.flow_data['user_name'],
+            assay_path=self.flow_data['assay_path'],
+            zone_title=self.flow_data['zone_title'])
 
         ##############
         # iRODS Tasks
@@ -49,6 +50,6 @@ class Flow(BaseLinearFlow):
             omics_tasks.RemoveLandingZoneTask(
                 name='Remove the landing zone from the Omics database',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
-                    'zone_pk': self.flow_data['zone_pk']}))
+                    'zone_uuid': self.flow_data['zone_uuid']}))

@@ -23,14 +23,16 @@ class OmicsAPI:
         response = requests.post(request_url, data=query_data)
 
         if response.status_code != 200:
-            raise OmicsRequestException(response.text)
+            raise OmicsRequestException(
+                '{}: {}'.format(
+                    response.status_code, response.text or 'Unknown'))
 
         return response
 
     def set_timeline_status(
-            self, event_pk, status_type, status_desc=None, extra_data=None):
+            self, event_uuid, status_type, status_desc=None, extra_data=None):
         set_data = {
-            'event_pk': event_pk,
+            'event_uuid': event_uuid,
             'status_type': status_type,
             'status_desc': status_desc,
             'extra_data': extra_data}

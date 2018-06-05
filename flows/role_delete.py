@@ -9,7 +9,7 @@ class Flow(BaseLinearFlow):
     def validate(self):
         self.required_fields = [
             'username',
-            'user_pk',
+            'user_uuid',
             'role_pk']
         return super(Flow, self).validate()
 
@@ -20,7 +20,7 @@ class Flow(BaseLinearFlow):
         ########
 
         existing_group = get_project_group_name(
-            self.project_pk)
+            self.project_uuid)
 
         ##############
         # iRODS Tasks
@@ -44,7 +44,7 @@ class Flow(BaseLinearFlow):
             omics_tasks.RemoveRoleTask(
                 name='Remove user role',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
-                    'user_pk': self.flow_data['user_pk'],
+                    'user_uuid': self.flow_data['user_uuid'],
                     'role_pk': self.flow_data['role_pk']}))

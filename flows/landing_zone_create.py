@@ -1,7 +1,8 @@
 from config import settings
 
 from .base_flow import BaseLinearFlow
-from apis.irods_utils import get_project_path, get_project_group_name
+from apis.irods_utils import get_project_path, get_landing_zone_root, \
+    get_landing_zone_path, get_project_group_name
 from tasks import omics_tasks, irods_tasks
 
 
@@ -9,7 +10,7 @@ PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
 
 
 class Flow(BaseLinearFlow):
-    """Flow for creating a landing zone for a project and a user in iRODS"""
+    """Flow for creating a landing zone for an assay and a user in iRODS"""
 
     def validate(self):
         self.supported_modes = [
@@ -17,8 +18,10 @@ class Flow(BaseLinearFlow):
             'async']
         self.required_fields = [
             'zone_title',
+            'zone_uuid',
             'user_name',
-            'user_pk',
+            'user_uuid',
+            'assay_path',
             'dirs']
         return super(Flow, self).validate()
 
@@ -28,25 +31,28 @@ class Flow(BaseLinearFlow):
         # Setup
         ########
 
-        project_path = get_project_path(self.project_pk)
-        project_group = get_project_group_name(self.project_pk)
-        zone_root = project_path + '/landing_zones'
+        project_path = get_project_path(self.project_uuid)
+        project_group = get_project_group_name(self.project_uuid)
+        zone_root = get_landing_zone_root(self.project_uuid)
         user_path = zone_root + '/' + self.flow_data['user_name']
-        zone_path = user_path + '/' + self.flow_data['zone_title']
+        zone_path = get_landing_zone_path(
+            project_uuid=self.project_uuid,
+            user_name=self.flow_data['user_name'],
+            assay_path=self.flow_data['assay_path'],
+            zone_title=self.flow_data['zone_title'])
 
         ##########################
         # Omics Data Access Tasks
         ##########################
 
         self.add_task(
-            omics_tasks.CreateLandingZoneTask(
-                name='Create landing zone in the Omics database',
+            omics_tasks.RevertLandingZoneFailTask(
+                name='Set landing zone status to FAILED on revert',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
-                    'zone_title': self.flow_data['zone_title'],
-                    'user_pk': self.flow_data['user_pk'],
-                    'description': self.flow_data['description']}))
+                    'zone_uuid': self.flow_data['zone_uuid'],
+                    'info_prefix': 'Creation failed'}))
 
         ##############
         # iRODS Tasks
@@ -145,14 +151,14 @@ class Flow(BaseLinearFlow):
         # Omics Data Access Tasks
         ##########################
 
-        # NOTE: Not using zone_pk here because taskflow doesn't know it yet
+        # NOTE: Not using zone_uuid here because taskflow doesn't know it yet
         self.add_task(
             omics_tasks.SetLandingZoneStatusTask(
                 name='Set landing zone status to ACTIVE',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
-                    'zone_title': self.flow_data['zone_title'],
-                    'user_pk': self.flow_data['user_pk'],
+                    'zone_uuid': self.flow_data['zone_uuid'],
+                    'user_uuid': self.flow_data['user_uuid'],
                     'status': 'ACTIVE',
                     'status_info': 'Available with write access for user'}))

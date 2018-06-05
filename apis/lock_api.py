@@ -1,5 +1,6 @@
 """Project locking API"""
 
+import logging
 import time
 from tooz import coordination
 import uuid
@@ -11,6 +12,17 @@ LOCK_ENABLED = settings.TASKFLOW_LOCK_ENABLED
 LOCK_RETRY_COUNT = settings.TASKFLOW_LOCK_RETRY_COUNT
 LOCK_RETRY_INTERVAL = settings.TASKFLOW_LOCK_RETRY_INTERVAL
 REDIS_URL = settings.TASKFLOW_REDIS_URL
+
+
+logger = logging.getLogger('omics_taskflow.apis.lock_api')
+
+
+def log_status(lock, unlock=False, failed=False):
+    msg = '{} {}: {}'.format(
+        'Unlock' if unlock else 'Lock',
+        'FAILED' if failed else 'OK',
+        str(lock.name))
+    logger.error(msg) if failed else logger.info(msg)
 
 
 def get_coordinator():
@@ -46,7 +58,7 @@ def acquire(
     acquired = lock.acquire(blocking=False)
 
     if acquired:
-        print_status(lock, unlock=False, failed=False)
+        log_status(lock, unlock=False, failed=False)
         return True
 
     if retry_count > 0:
@@ -54,12 +66,12 @@ def acquire(
             acquired = lock.acquire(blocking=False)
 
             if acquired:
-                print_status(lock, unlock=False, failed=False)
+                log_status(lock, unlock=False, failed=False)
                 return True
 
             time.sleep(retry_interval)
 
-    print_status(lock, unlock=False, failed=True)
+    log_status(lock, unlock=False, failed=True)
     raise LockAcquireException('Unable to acquire project lock')
 
 
@@ -73,19 +85,12 @@ def release(lock):
     released = lock.release()
 
     if released:
-        print_status(lock, unlock=True, failed=False)
+        log_status(lock, unlock=True, failed=False)
         return True
 
-    print_status(lock, unlock=True, failed=True)
+    log_status(lock, unlock=True, failed=True)
     return False
 
 
 class LockAcquireException(Exception):
     """Project lock acquiring exception"""
-
-
-def print_status(lock, unlock=False, failed=False):
-    print('{} {}: {}'.format(
-        'Unlock' if unlock else 'Lock',
-        'FAILED' if failed else 'OK',
-        str(lock.name).split('\'')[3]))

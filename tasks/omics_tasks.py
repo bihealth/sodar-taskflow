@@ -5,22 +5,27 @@
 # TODO: sheets it may be difficult. Add some sort of "disabled" tag to soft
 # TODO: delete objects instead?
 
+import json
+import logging
 
 from .base_task import BaseTask
 from apis.omics_api import OmicsRequestException
+
+
+logger = logging.getLogger('omics_taskflow.tasks.omics_tasks')
 
 
 class OmicsBaseTask(BaseTask):
     """Base Django web UI task"""
 
     def __init__(
-            self, name, project_pk, omics_api, force_fail=False,
+            self, name, project_uuid, omics_api, force_fail=False,
             inject=None, *args, **kwargs):
         super(OmicsBaseTask, self).__init__(
             name, force_fail=force_fail, inject=inject, *args, **kwargs)
         self.target = 'omics'
-        self.name = '[Omics] {} ({})'.format(name, self.__class__.__name__)
-        self.project_pk = project_pk
+        self.name = '<Omics> {} ({})'.format(name, self.__class__.__name__)
+        self.project_uuid = project_uuid
         self.omics_api = omics_api
 
     def execute(self, *args, **kwargs):
@@ -30,95 +35,120 @@ class OmicsBaseTask(BaseTask):
             raise Exception('force_fail=True')
 
     def post_execute(self, *args, **kwargs):
-        print('{}: {}'.format(
+        logger.info('{}: {}'.format(
             'force_fail' if self.force_fail else 'Executed',
-            self.name))  # DEBUG
+            self.name))
 
     def post_revert(self, *args, **kwargs):
-        print('Reverted: {}'.format(self.name))  # DEBUG
+        logger.error('Reverted: {}'.format(self.name))
 
 
 class UpdateProjectTask(OmicsBaseTask):
     """Update project title and description"""
 
-    def execute(self, title, description, *args, **kwargs):
+    def execute(self, title, description, readme, *args, **kwargs):
         # Get initial data
         self.execute_data = self.omics_api.send_request(
-            'projects/taskflow/project/get',
-            {'project_pk': self.project_pk}).json()
+            'project/taskflow/get',
+            {'project_uuid': self.project_uuid}).json()
 
         update_data = {
-            'project_pk': self.project_pk,
+            'project_uuid': self.project_uuid,
             'title': title,
-            'description': description}
+            'description': description,
+            'readme': readme}
 
         self.omics_api.send_request(
-            'projects/taskflow/project/update', update_data)
+            'project/taskflow/update', update_data)
 
         super(UpdateProjectTask, self).execute(*args, **kwargs)
 
-    def revert(self, title, description, *args, **kwargs):
+    def revert(self, title, description, readme, *args, **kwargs):
         if kwargs['result'] is True:
             self.omics_api.send_request(
-                'projects/taskflow/project/update', self.execute_data)
+                'project/taskflow/update', self.execute_data)
+
+
+class SetProjectSettingsTask(OmicsBaseTask):
+    """Set project settings"""
+
+    def execute(self, settings, *args, **kwargs):
+        # Get initial data
+        self.execute_data = self.omics_api.send_request(
+            'project/taskflow/settings/get',
+            {'project_uuid': self.project_uuid}).json()
+
+        update_data = {
+            'project_uuid': self.project_uuid,
+            'settings': json.dumps(settings)}
+
+        self.omics_api.send_request(
+            'project/taskflow/settings/set', update_data)
+
+        super(SetProjectSettingsTask, self).execute(*args, **kwargs)
+
+    def revert(self, settings, *args, **kwargs):
+        if kwargs['result'] is True:
+            self.omics_api.send_request(
+                'project/taskflow/settings/set', self.execute_data)
 
 
 class SetRoleTask(OmicsBaseTask):
     """Update user role in a project"""
 
-    def execute(self, user_pk, role_pk, *args, **kwargs):
+    def execute(self, user_uuid, role_pk, *args, **kwargs):
         # Get initial data
         query_data = {
-            'project_pk': self.project_pk,
-            'user_pk': user_pk}
+            'project_uuid': self.project_uuid,
+            'user_uuid': user_uuid}
 
         try:
             self.execute_data = self.omics_api.send_request(
-                'projects/taskflow/role/get', query_data).json()
+                'project/taskflow/role/get', query_data).json()
 
         except Exception as ex:
             self.execute_data = None
 
         set_data = {
-            'project_pk': self.project_pk,
-            'user_pk': user_pk,
+            'project_uuid': self.project_uuid,
+            'user_uuid': user_uuid,
             'role_pk': role_pk}
         response = self.omics_api.send_request(
-            'projects/taskflow/role/set', set_data)
+            'project/taskflow/role/set', set_data)
         self.data_modified = True
 
         super(SetRoleTask, self).execute(*args, **kwargs)
 
-    def revert(self, user_pk, role_pk, *args, **kwargs):
+    def revert(self, user_uuid, role_pk, *args, **kwargs):
         if self.data_modified:
             if self.execute_data:
                 self.omics_api.send_request(
-                    'projects/taskflow/role/set', self.execute_data)
+                    'project/taskflow/role/set', self.execute_data)
             else:
                 remove_data = {
-                    'project_pk': self.project_pk,
-                    'user_pk': user_pk}
+                    'project_uuid': self.project_uuid,
+                    'user_uuid': user_uuid}
                 self.omics_api.send_request(
-                    'projects/taskflow/role/delete', remove_data)
+                    'project/taskflow/role/delete', remove_data)
 
 
 class RemoveRoleTask(OmicsBaseTask):
     """Remove user role in a project"""
 
-    def execute(self, user_pk, role_pk, *args, **kwargs):
+    def execute(self, user_uuid, role_pk, *args, **kwargs):
         # Get initial data
         self.execute_data = {
-            'project_pk': self.project_pk,
-            'user_pk': user_pk,
+            'project_uuid': self.project_uuid,
+            'user_uuid': user_uuid,
             'role_pk': role_pk}
 
         remove_data = {
-            'project_pk': self.project_pk,
-            'user_pk': user_pk}
+            'project_uuid': self.project_uuid,
+            'user_uuid': user_uuid}
 
         try:
             self.omics_api.send_request(
-                'projects/taskflow/role/delete', remove_data)
+                'project/taskflow/role/delete', remove_data)
             self.data_modified = True
 
         except OmicsRequestException:
@@ -126,10 +156,10 @@ class RemoveRoleTask(OmicsBaseTask):
 
         super(RemoveRoleTask, self).execute(*args, **kwargs)
 
-    def revert(self, user_pk, role_pk, *args, **kwargs):
+    def revert(self, user_uuid, role_pk, *args, **kwargs):
         if self.data_modified:
             self.omics_api.send_request(
-                'projects/taskflow/role/set', self.execute_data)
+                'project/taskflow/role/set', self.execute_data)
 
 
 class SetIrodsDirStatusTask(OmicsBaseTask):
@@ -138,16 +168,16 @@ class SetIrodsDirStatusTask(OmicsBaseTask):
     def execute(self, dir_status, *args, **kwargs):
         # Get initial data
         query_data = {
-            'project_pk': self.project_pk}
+            'project_uuid': self.project_uuid}
         self.execute_data = self.omics_api.send_request(
-            'sheets/taskflow/dirstatus/get', query_data).json()
+            'samplesheets/taskflow/dirs/get', query_data).json()
 
         if self.execute_data['dir_status'] != dir_status:
             set_data = {
-                'project_pk': self.project_pk,
+                'project_uuid': self.project_uuid,
                 'dir_status': dir_status}
             self.omics_api.send_request(
-                'sheets/taskflow/dirstatus/set', set_data)
+                'samplesheets/taskflow/dirs/set', set_data)
             self.data_modified = True
 
         super(SetIrodsDirStatusTask, self).execute(*args, **kwargs)
@@ -155,7 +185,7 @@ class SetIrodsDirStatusTask(OmicsBaseTask):
     def revert(self, dir_status, *args, **kwargs):
         if self.data_modified is True:
             self.omics_api.send_request(
-                'sheets/taskflow/dirstatus/set', self.execute_data)
+                'samplesheets/taskflow/dirs/set', self.execute_data)
 
 
 # TODO: Handle revert (see above), before it this must be called last in flow
@@ -164,11 +194,11 @@ class RemoveSampleSheetTask(OmicsBaseTask):
 
     def execute(self, *args, **kwargs):
         query_data = {
-            'project_pk': self.project_pk}
+            'project_uuid': self.project_uuid}
 
         try:
             self.omics_api.send_request(
-                'sheets/taskflow/delete', query_data)
+                'samplesheets/taskflow/delete', query_data)
             self.data_modified = True
 
         except OmicsRequestException:
@@ -183,39 +213,44 @@ class RemoveSampleSheetTask(OmicsBaseTask):
 class CreateLandingZoneTask(OmicsBaseTask):
     """Create LandingZone for a project and user in the Omics database"""
 
-    def execute(self, zone_title, user_pk, description, *args, **kwargs):
+    def execute(
+            self, zone_title, user_uuid, assay_uuid, description,
+            *args, **kwargs):
         create_data = {
-            'project_pk': self.project_pk,
+            'project_uuid': self.project_uuid,
+            'assay_uuid': assay_uuid,
             'title': zone_title,
-            'user_pk': user_pk,
+            'user_uuid': user_uuid,
             'description': description}
         response = self.omics_api.send_request(
-            'zones/taskflow/zone/create', create_data)
+            'landingzones/taskflow/create', create_data)
         self.execute_data = response.json()
 
         self.data_modified = True
         super(CreateLandingZoneTask, self).execute(*args, **kwargs)
 
-    def revert(self, zone_title, user_pk, description, *args, **kwargs):
+    def revert(
+            self, zone_title, user_uuid, assay_uuid, description,
+            *args, **kwargs):
         if self.data_modified:
             remove_data = {
-                'zone_pk': self.execute_data['zone_pk']}
+                'zone_uuid': self.execute_data['zone_uuid']}
             self.omics_api.send_request(
-                'zones/taskflow/zone/create', remove_data)
+                'landingzones/taskflow/create', remove_data)
 
 
 # TODO: Handle revert (see above), before it this must be called last in flow
 class RemoveLandingZoneTask(OmicsBaseTask):
     """Remove LandingZone from a project and user from the Omics database"""
 
-    def execute(self, zone_pk, *args, **kwargs):
+    def execute(self, zone_uuid, *args, **kwargs):
         remove_data = {
-           'zone_pk': zone_pk}
-        self.omics_api.send_request('zones/taskflow/zone/delete', remove_data)
+           'zone_uuid': zone_uuid}
+        self.omics_api.send_request('landingzones/taskflow/delete', remove_data)
         self.data_modified = True
         super(RemoveLandingZoneTask, self).execute(*args, **kwargs)
 
-    def revert(self, zone_pk, *args, **kwargs):
+    def revert(self, zone_uuid, *args, **kwargs):
         if self.data_modified:
             pass    # TODO: How to handle this?
 
@@ -224,33 +259,29 @@ class SetLandingZoneStatusTask(OmicsBaseTask):
     """Set LandingZone status"""
 
     def execute(
-            self, status, status_info, zone_pk=None,
-            zone_title=None, user_pk=None, *args, **kwargs):
+            self, status, status_info, zone_uuid=None, *args, **kwargs):
         set_data = {
             'status': status,
             'status_info': status_info,
-            'zone_pk': zone_pk,
-            'project_pk': self.project_pk,
-            'zone_title': zone_title,
-            'user_pk': user_pk}
+            'zone_uuid': zone_uuid}
 
-        self.omics_api.send_request('zones/taskflow/status/set', set_data)
+        self.omics_api.send_request(
+            'landingzones/taskflow/status/set', set_data)
         self.data_modified = True
         super(SetLandingZoneStatusTask, self).execute(*args, **kwargs)
 
     def revert(
-            self, status, status_info, zone_pk=None,
-            zone_title=None, user_pk=None, *args, **kwargs):
+            self, status, status_info, zone_uuid=None, *args, **kwargs):
         pass    # Disabled, call RevertLandingZoneStatusTask to revert
 
 
 class RevertLandingZoneFailTask(OmicsBaseTask):
     """Set LandingZone status in case of failure"""
 
-    def execute(self, zone_pk, info_prefix, *args, **kwargs):
+    def execute(self, zone_uuid, info_prefix, *args, **kwargs):
         super(RevertLandingZoneFailTask, self).execute(*args, **kwargs)
 
-    def revert(self, zone_pk, info_prefix, *args, **kwargs):
+    def revert(self, zone_uuid, info_prefix, *args, **kwargs):
         status_info = info_prefix
 
         for k, v in kwargs['flow_failures'].items():
@@ -259,7 +290,8 @@ class RevertLandingZoneFailTask(OmicsBaseTask):
                 v.exception else 'unknown error'
 
         set_data = {
-            'zone_pk': zone_pk,
+            'zone_uuid': zone_uuid,
             'status': 'FAILED',
             'status_info': status_info}
-        self.omics_api.send_request('zones/taskflow/status/set', set_data)
+        self.omics_api.send_request(
+            'landingzones/taskflow/status/set', set_data)

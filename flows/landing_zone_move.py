@@ -1,19 +1,19 @@
 from config import settings
 
 from .base_flow import BaseLinearFlow
-from apis.irods_utils import get_project_path, get_subcoll_obj_paths,\
-    get_project_group_name, get_subcoll_paths
+from apis.irods_utils import get_sample_path, get_landing_zone_path, \
+    get_subcoll_obj_paths, get_project_group_name, get_subcoll_paths
+
 from tasks import omics_tasks, irods_tasks
 
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
+SAMPLE_DIR = settings.TASKFLOW_SAMPLE_DIR
 
 
 class Flow(BaseLinearFlow):
     """Flow for validating and moving files from a landing zone to the
-    bio_samples collection in iRODS"""
-
-    # NOTE: Prototype implementation, will be done differently in final system
+    sample data collection in iRODS"""
 
     def validate(self):
         self.supported_modes = [
@@ -21,7 +21,9 @@ class Flow(BaseLinearFlow):
             'async']
         self.required_fields = [
             'zone_title',
-            'zone_pk',
+            'zone_uuid',
+            'assay_path_zone',
+            'assay_path_samples',
             'user_name']
         return super(Flow, self).validate()
 
@@ -29,22 +31,25 @@ class Flow(BaseLinearFlow):
 
         # Set zone status in the Django site
         set_data = {
-            'zone_pk': self.flow_data['zone_pk'],
+            'zone_uuid': self.flow_data['zone_uuid'],
             'status': 'PREPARING',
             'status_info': 'Preparing transaction for validation and moving'}
-        self.omics_api.send_request('zones/taskflow/status/set', set_data)
+        self.omics_api.send_request(
+            'landingzones/taskflow/status/set', set_data)
 
         ########
         # Setup
         ########
 
-        project_path = get_project_path(self.project_pk)
-        project_group = get_project_group_name(self.project_pk)
-        sample_path = project_path + '/bio_samples'
-        zone_root = project_path + '/landing_zones'
-        user_path = zone_root + '/' + self.flow_data['user_name']
-        zone_path = user_path + '/' + self.flow_data['zone_title']
-        zone_depth = len(zone_path.split('/'))
+        project_group = get_project_group_name(self.project_uuid)
+        sample_path = get_sample_path(
+            project_uuid=self.project_uuid,
+            assay_path=self.flow_data['assay_path_samples'])
+        zone_path = get_landing_zone_path(
+            project_uuid=self.project_uuid,
+            user_name=self.flow_data['user_name'],
+            assay_path=self.flow_data['assay_path_zone'],
+            zone_title=self.flow_data['zone_title'])
         admin_name = settings.TASKFLOW_IRODS_USER
 
         # Get landing zone file paths (without .md5 files) from iRODS
@@ -62,11 +67,12 @@ class Flow(BaseLinearFlow):
         zone_object_colls = list(set([
             p[:p.rfind('/')] for p in zone_objects]))
 
-        # Convert these to collections inside bio_samples
+        # Convert these to collections inside sample dir
         sample_colls = list(set([
-            sample_path + '/' + '/'.join(p.split('/')[zone_depth:]) for
-            p in zone_object_colls]))
+            sample_path + '/' + '/'.join(p.split('/')[10:]) for
+            p in zone_object_colls if len(p.split('/')) > 10]))
 
+        # print('sample_path: {}'.format(sample_path))                # DEBUG
         # print('zone_objects: {}'.format(zone_objects))              # DEBUG
         # print('zone_objects_nomd5: {}'.format(zone_objects_nomd5))  # DEBUG
         # print('zone_all_colls: {}'.format(zone_all_colls))          # DEBUG
@@ -83,18 +89,18 @@ class Flow(BaseLinearFlow):
                 omics_tasks.RevertLandingZoneFailTask(
                     name='Set landing zone status to FAILED on revert',
                     omics_api=self.omics_api,
-                    project_pk=self.project_pk,
+                    project_uuid=self.project_uuid,
                     inject={
-                        'zone_pk': self.flow_data['zone_pk'],
+                        'zone_uuid': self.flow_data['zone_uuid'],
                         'info_prefix': 'Running asynchronous job failed'}))
 
         self.add_task(
             omics_tasks.SetLandingZoneStatusTask(
                 name='Set landing zone status to VALIDATING',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
-                    'zone_pk': self.flow_data['zone_pk'],
+                    'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'VALIDATING',
                     'status_info':
                         'Validating {} files, write access disabled'.format(
@@ -141,20 +147,21 @@ class Flow(BaseLinearFlow):
             omics_tasks.SetLandingZoneStatusTask(
                 name='Set landing zone status to MOVING',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
-                    'zone_pk': self.flow_data['zone_pk'],
+                    'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'MOVING',
                     'status_info':
-                        'Validation OK, moving {} files into '
-                        'bio_samples'.format(len(zone_objects_nomd5))}))
+                        'Validation OK, moving {} files into {}'.format(
+                            len(zone_objects_nomd5), SAMPLE_DIR)}))
 
-        self.add_task(
-            irods_tasks.BatchCreateCollectionsTask(
-                name='Create collections in bio_samples',
-                irods=self.irods,
-                inject={
-                    'paths': sample_colls}))
+        if sample_colls:
+            self.add_task(
+                irods_tasks.BatchCreateCollectionsTask(
+                    name='Create collections in {}'.format(SAMPLE_DIR),
+                    irods=self.irods,
+                    inject={
+                        'paths': sample_colls}))
 
         self.add_task(
             irods_tasks.BatchMoveDataObjectsTask(
@@ -169,6 +176,16 @@ class Flow(BaseLinearFlow):
                     'user_name': project_group}))
 
         self.add_task(
+            irods_tasks.SetAccessTask(
+                name='Remove user "{}" access from sample collection {}'.format(
+                    self.flow_data['user_name'], sample_path),
+                irods=self.irods,
+                inject={
+                    'access_name': 'null',
+                    'path': sample_path,
+                    'user_name': self.flow_data['user_name']}))
+
+        self.add_task(
             irods_tasks.RemoveCollectionTask(
                 name='Remove the landing zone collection',
                 irods=self.irods,
@@ -179,9 +196,9 @@ class Flow(BaseLinearFlow):
             omics_tasks.SetLandingZoneStatusTask(
                 name='Set landing zone status to MOVED',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={
-                    'zone_pk': self.flow_data['zone_pk'],
+                    'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'MOVED',
                     'status_info':
                         'Successfully moved {} files, landing zone '

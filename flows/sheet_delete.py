@@ -1,12 +1,13 @@
 from config import settings
 
 from .base_flow import BaseLinearFlow
-from apis.irods_utils import get_project_path,\
-    get_project_group_name
+from apis.irods_utils import get_project_path
 from tasks import omics_tasks, irods_tasks
 
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
+TASKFLOW_SAMPLE_DIR = settings.TASKFLOW_SAMPLE_DIR
+TASKFLOW_LANDING_ZONE_DIR = settings.TASKFLOW_LANDING_ZONE_DIR
 
 
 class Flow(BaseLinearFlow):
@@ -22,12 +23,20 @@ class Flow(BaseLinearFlow):
         # Setup
         ########
 
-        project_path = get_project_path(self.project_pk)
-        sample_path = project_path + '/bio_samples'
+        project_path = get_project_path(self.project_uuid)
+        sample_path = project_path + '/' + TASKFLOW_SAMPLE_DIR
+        zone_path = project_path + '/' + TASKFLOW_LANDING_ZONE_DIR
 
         ##############
         # iRODS Tasks
         ##############
+
+        self.add_task(
+            irods_tasks.RemoveCollectionTask(
+                name='Remove sample sheet landing zones',
+                irods=self.irods,
+                inject={
+                    'path': zone_path}))
 
         self.add_task(
             irods_tasks.RemoveCollectionTask(
@@ -44,5 +53,5 @@ class Flow(BaseLinearFlow):
             omics_tasks.RemoveSampleSheetTask(
                 name='Remove sample sheet',
                 omics_api=self.omics_api,
-                project_pk=self.project_pk,
+                project_uuid=self.project_uuid,
                 inject={}))
