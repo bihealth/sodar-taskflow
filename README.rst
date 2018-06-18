@@ -5,7 +5,7 @@ The Omics Taskflow component executes taskflows on the iRODS and Omics Data
 Management databases. It also handles project locking and unlocking using tooz and
 Redis.
 
-:License: MIT
+**TODO:** Update docker instructions after updating omics_docker_env.
 
 
 Requirements
@@ -14,14 +14,12 @@ Requirements
 * Ubuntu 16.04
 * Python 3.5+
 * Redis
-* Access to an iRODS iCAT server
-* Docker (optional)
+* Access to a dedicated iRODS iCAT server
 
 
 Installation
 ------------
 
-* Install ``docker`` with apt-get
 * Set up and activate a ``virtualenv`` environment for Python 3
 * Run ``pip install -r requirements.txt``
 * Set up required components either by:
@@ -32,18 +30,21 @@ Installation
 Local Execution for Development
 -------------------------------
 
-* **NOTE:** For offline demonstration or quick debugging, use omics_docker_env instead
 * Execute Redis server with ``redis-server``
-* Start up iRODS iCAT server, e.g. with Ansible/Vagrant
-    * Ensure you have the host for the testing irods set up correctly in config/test.py
-    * Ensure the env variables used in ``config/*.py`` files point to correct hosts and ports
-* Execute ``run_dev.sh`` or ``run_prod.sh`` depending on if you want to run in debug more
-* To run unit tests, execute ``test.sh``
-    * This can also be run against the Docker environment
+* Make sure an iRODS iCAT server 4.2+ is started and properly configured
+    * The rule file ``omics.re`` must be available and configured in ``/etc/irods/server_config.json`` under ``re_rulebase_set``
+    * The value for ``default_hash_scheme`` in ``/etc/irods/server_config.json`` must be ``"MD5"``
+* Set up your environment variables with the correct iRODS host, zone and admin user login data
+    * See ``config/base.py`` for the variables and their default values
+* Execute ``utility/run_dev.sh`` or ``utility/run_prod.sh`` depending on if you want to run in debug mode
+* To run unit tests, execute ``utility/test.sh``
+    * **IMPORTANT:** Do **NOT** run tests on a production server or an iRODS server used for any other project, as server data **WILL** be wiped between automated tests!
 
 
 Pushing to CUBI GitLab Container Registry
 -----------------------------------------
+
+**NOTE:** Currently out of date, to be updated
 
 * Login to the BIH gitlab with ``docker login cubi-gitlab.bihealth.org:4567``
 * Execute ``docker_push.sh`` to login, build and push the container image.
@@ -52,4 +53,5 @@ Pushing to CUBI GitLab Container Registry
 Server Deployment
 -----------------
 
-**TODO**: Update (Flynn no longer supported)
+Use the `CUBI Ansible Playbooks <https://cubi-gitlab.bihealth.org/CUBI_Operations/Ansible_Playbooks/>`_
+by running the role ``cubi.omics-beta`` with the tag ``omics_taskflow``.
