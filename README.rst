@@ -30,13 +30,24 @@ Installation
 Local Execution for Development
 -------------------------------
 
+The first two steps are already correctly setup if you are using the Docker in ``omics_docker_env``.
+
 * Execute Redis server with ``redis-server``
 * Make sure an iRODS iCAT server 4.2+ is started and properly configured
     * The rule file ``omics.re`` must be available and configured in ``/etc/irods/server_config.json`` under ``re_rulebase_set``
     * The value for ``default_hash_scheme`` in ``/etc/irods/server_config.json`` must be ``"MD5"``
+
+The third step is also already setup with ``omics_docker_env``.
+
 * Set up your environment variables with the correct iRODS host, zone and admin user login data
     * See ``config/base.py`` for the variables and their default values
+
+The fourth step is only all that you need to do in development.
+
 * Execute ``utility/run_dev.sh`` or ``utility/run_prod.sh`` depending on if you want to run in debug mode
+
+And finally, to run tests and a caveat lector!
+
 * To run unit tests, execute ``utility/test.sh``
     * **IMPORTANT:** Do **NOT** run tests on a production server or an iRODS server used for any other project, as server data **WILL** be wiped between automated tests!
 
