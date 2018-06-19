@@ -2,6 +2,7 @@ import logging
 from taskflow import engines
 from taskflow.patterns import linear_flow as lf
 
+from apis.irods_utils import init_irods
 from tasks.base_task import ForceFailException
 
 from config import settings
@@ -28,6 +29,7 @@ class BaseLinearFlow:
             'sync',
             # 'async'                   # Support only sync by default
         ]
+        self.require_lock = True        # Always require project lock by default
         self.flow = lf.Flow(flow_name)
 
     def validate(self):

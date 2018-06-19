@@ -12,6 +12,7 @@ class Flow(BaseLinearFlow):
     """Flow for deleting a landing zone from a project and a user in iRODS"""
 
     def validate(self):
+        self.require_lock = False  # Project lock not required for this flow
         self.supported_modes = [
             'sync',
             'async']

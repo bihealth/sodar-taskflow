@@ -124,22 +124,29 @@ def submit():
         ex_str = None
         response = None
         lock = None
+        coordinator = None
 
-        # Acquire lock
-        coordinator = lock_api.get_coordinator()
+        if flow.require_lock:
+            # Acquire lock
+            coordinator = lock_api.get_coordinator()
 
-        if not coordinator:
-            ex_str = 'Error retrieving lock coordinator'
+            if not coordinator:
+                ex_str = 'Error retrieving lock coordinator'
 
-        if not ex_str:
-            lock_id = project_uuid
-            lock = coordinator.get_lock(bytes(lock_id, encoding='utf-8'))
+            if not ex_str:
+                lock_id = project_uuid
+                lock = coordinator.get_lock(bytes(lock_id, encoding='utf-8'))
 
-            try:
-                lock_api.acquire(lock)
+                try:
+                    lock_api.acquire(lock)
 
-            except Exception as ex:
-                ex_str = str(ex)
+                except Exception as ex:
+                    ex_str = str(ex)
+                    # TODO: Shouldn't we return a response here..?
+                    # TODO: See omics_data_mgmt#235
+
+        else:
+            app.logger.info('Lock not required (flow.require_lock=False)')
 
         # Build flow
         app.logger.info('--- Building flow "{}" ---'.format(flow.flow_name))
@@ -209,9 +216,10 @@ def submit():
                 app.logger.error(msg)
                 response = Response(msg, status=500)
 
-        # Release lock
-        lock_api.release(lock)
-        coordinator.stop()
+        # Release lock if acquired
+        if flow.require_lock and lock:
+            lock_api.release(lock)
+            coordinator.stop()
 
         return response
 
@@ -259,7 +267,8 @@ def hello():
 
 if __name__ == '__main__':
     app.logger.info('settings={}'.format(os.getenv('OMICS_TASKFLOW_SETTINGS')))
-    app.run('0.0.0.0', 5005)
+    app_kwargs = {'processes': 4} if settings.DEBUG else {}
+    app.run('0.0.0.0', 5005, **app_kwargs)
 
 
 def validate_kwargs(kwargs_dict, required_keys):

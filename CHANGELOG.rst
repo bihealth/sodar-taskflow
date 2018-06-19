@@ -11,6 +11,19 @@ Added
 -----
 
 - Async support for landing_zone_delete (omics_data_mgmt#228)
+- Option for not requiring lock by setting flow.require_lock to False (omics_data_mgmt#231)
+
+Changed
+-------
+
+
+
+Fixed
+-----
+
+- Configuration in `utility/run_prod.sh`
+- Concurrent requests failed in debug mode, now using multiple processes
+
 
 Removed
 -------

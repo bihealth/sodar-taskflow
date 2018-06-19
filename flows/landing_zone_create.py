@@ -13,6 +13,7 @@ class Flow(BaseLinearFlow):
     """Flow for creating a landing zone for an assay and a user in iRODS"""
 
     def validate(self):
+        self.require_lock = False   # Project lock not required for this flow
         self.supported_modes = [
             'sync',
             'async']
