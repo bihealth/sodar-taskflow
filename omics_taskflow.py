@@ -112,41 +112,42 @@ def submit():
         return Response(msg, status=400)
 
     project_uuid = form_data['project_uuid']
+    coordinator = None
+    lock = None
+
+    # Acquire lock if needed
+    if flow.require_lock:
+        # Acquire lock
+        coordinator = lock_api.get_coordinator()
+
+        if not coordinator:
+            ex_str = 'Error retrieving lock coordinator'
+
+        else:
+            lock_id = project_uuid
+            lock = coordinator.get_lock(bytes(lock_id, encoding='utf-8'))
+
+            try:
+                lock_api.acquire(lock)
+
+            except Exception as ex:
+                msg = 'Unable to acquire project lock'
+                app.logger.info(msg + ': ' + str(ex))
+                return Response(msg, status=503)
+
+    else:
+        app.logger.info('Lock not required (flow.require_lock=False)')
 
     #####################
     # Build and run flow
     #####################
 
     def run_flow(
-            flow, project_uuid, timeline_uuid, lock_api, omics_api, force_fail,
-            async=True):
+            flow, project_uuid, timeline_uuid, lock_api, coordinator, lock,
+            omics_api, force_fail, async=True):
         flow_result = None
         ex_str = None
         response = None
-        lock = None
-        coordinator = None
-
-        if flow.require_lock:
-            # Acquire lock
-            coordinator = lock_api.get_coordinator()
-
-            if not coordinator:
-                ex_str = 'Error retrieving lock coordinator'
-
-            if not ex_str:
-                lock_id = project_uuid
-                lock = coordinator.get_lock(bytes(lock_id, encoding='utf-8'))
-
-                try:
-                    lock_api.acquire(lock)
-
-                except Exception as ex:
-                    ex_str = str(ex)
-                    # TODO: Shouldn't we return a response here..?
-                    # TODO: See omics_data_mgmt#235
-
-        else:
-            app.logger.info('Lock not required (flow.require_lock=False)')
 
         # Build flow
         app.logger.info('--- Building flow "{}" ---'.format(flow.flow_name))
@@ -229,7 +230,7 @@ def submit():
             target=run_flow,
             args=(
                 flow, project_uuid, form_data['timeline_uuid'], lock_api,
-                omics_tf, force_fail, True))
+                coordinator, lock, omics_tf, force_fail, True))
         p.start()
 
         return Response(str(True), status=200)
@@ -237,7 +238,8 @@ def submit():
     # Run synchronously
     else:
         return run_flow(
-            flow, project_uuid, form_data['timeline_uuid'], lock_api, omics_tf,
+            flow, project_uuid, form_data['timeline_uuid'], lock_api,
+            coordinator, lock, omics_tf,
             force_fail, False)
 
 

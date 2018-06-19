@@ -19,6 +19,7 @@ Fixed
 
 - Configuration in ``utility/run_prod.sh``
 - Concurrent requests failed in debug mode, now using multiple processes
+- Failure in acquiring lock was not correctly reported in async mode (omics_data_mgmt#235)
 
 
 Removed
