@@ -42,6 +42,12 @@ The third step is also already setup with ``omics_docker_env``.
 * Set up your environment variables with the correct iRODS host, zone and admin user login data
     * See ``config/base.py`` for the variables and their default values
 
+If you are running the Docker environment, add the following lines to ``config/dev.py``.
+
+.. code-block:: python
+    TASKFLOW_IRODS_PORT = os.getenv('TASKFLOW_IRODS_PORT', 4477)
+    TASKFLOW_REDIS_URL = os.getenv('TASKFLOW_REDIS_URL', 'redis://0.0.0.0:6633')
+
 The fourth step is only all that you need to do in development.
 
 * Execute ``utility/run_dev.sh`` or ``utility/run_prod.sh`` depending on if you want to run in debug mode
