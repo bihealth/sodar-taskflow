@@ -4,6 +4,20 @@ Omics Taskflow Changelog
 Changelog for the Omics Taskflow service.
 
 
+Unreleased
+==========
+
+Added
+-----
+
+- Async support for landing_zone_delete (omics_data_mgmt#228)
+
+Removed
+-------
+
+- Support for omics_tasks.RemoveLandingZoneTask as it's no longer needed (omics_data_mgmt#228)
+
+
 v0.2.0b (2018-06-05)
 ====================
 

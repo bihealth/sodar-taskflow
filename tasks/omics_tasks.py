@@ -239,22 +239,6 @@ class CreateLandingZoneTask(OmicsBaseTask):
                 'landingzones/taskflow/create', remove_data)
 
 
-# TODO: Handle revert (see above), before it this must be called last in flow
-class RemoveLandingZoneTask(OmicsBaseTask):
-    """Remove LandingZone from a project and user from the Omics database"""
-
-    def execute(self, zone_uuid, *args, **kwargs):
-        remove_data = {
-           'zone_uuid': zone_uuid}
-        self.omics_api.send_request('landingzones/taskflow/delete', remove_data)
-        self.data_modified = True
-        super(RemoveLandingZoneTask, self).execute(*args, **kwargs)
-
-    def revert(self, zone_uuid, *args, **kwargs):
-        if self.data_modified:
-            pass    # TODO: How to handle this?
-
-
 class SetLandingZoneStatusTask(OmicsBaseTask):
     """Set LandingZone status"""
 
