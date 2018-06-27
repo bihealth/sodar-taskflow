@@ -86,14 +86,15 @@ def get_landing_zone_root(project_uuid):
 
 
 def get_landing_zone_path(
-        project_uuid, user_name, assay_path, zone_title):
+        project_uuid, user_name, assay_path, zone_title, zone_config):
     return '{project_path}/{lz_dir}/{user_name}/' \
-           '{assay}/{zone_title}'.format(
+           '{assay}/{zone_title}{zone_config}'.format(
             project_path=get_project_path(project_uuid),
             lz_dir=settings.TASKFLOW_LANDING_ZONE_DIR,
             user_name=user_name,
             assay=assay_path,
-            zone_title=zone_title)
+            zone_title=zone_title,
+            zone_config=('_' + zone_config) if zone_config else '')
 
 
 def get_project_group_name(project_uuid):

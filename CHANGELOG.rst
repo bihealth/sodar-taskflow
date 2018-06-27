@@ -12,6 +12,7 @@ Added
 
 - Async support for landing_zone_delete (omics_data_mgmt#228)
 - Option for not requiring lock by setting flow.require_lock to False (omics_data_mgmt#231)
+- Support for landing zone configuration
 
 
 Fixed

@@ -49,7 +49,8 @@ class Flow(BaseLinearFlow):
             project_uuid=self.project_uuid,
             user_name=self.flow_data['user_name'],
             assay_path=self.flow_data['assay_path_zone'],
-            zone_title=self.flow_data['zone_title'])
+            zone_title=self.flow_data['zone_title'],
+            zone_config=self.flow_data['zone_config'])
         admin_name = settings.TASKFLOW_IRODS_USER
 
         # Get landing zone file paths (without .md5 files) from iRODS
