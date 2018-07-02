@@ -109,6 +109,7 @@ def submit():
     except TypeError as ex:
         msg = 'Error validating flow: {}'.format(ex)
         app.logger.error(msg)
+        irods_utils.close_irods(irods)
         return Response(msg, status=400)
 
     project_uuid = form_data['project_uuid']
@@ -133,6 +134,7 @@ def submit():
             except Exception as ex:
                 msg = 'Unable to acquire project lock'
                 app.logger.info(msg + ': ' + str(ex))
+                irods_utils.close_irods(irods)
                 return Response(msg, status=503)
 
     else:
@@ -222,6 +224,7 @@ def submit():
             lock_api.release(lock)
             coordinator.stop()
 
+        irods_utils.close_irods(irods)
         return response
 
     # Run asynchronously
@@ -232,7 +235,6 @@ def submit():
                 flow, project_uuid, form_data['timeline_uuid'], lock_api,
                 coordinator, lock, omics_tf, force_fail, True))
         p.start()
-
         return Response(str(True), status=200)
 
     # Run synchronously
@@ -251,6 +253,7 @@ def cleanup():
             irods = irods_utils.init_irods()
             irods_utils.cleanup_irods(irods)
             app.logger.info('--- Cleanup done ---')
+            irods_utils.close_irods(irods)
 
         except Exception as ex:
             return Response('Error during cleanup: {}'.format(ex), status=500)

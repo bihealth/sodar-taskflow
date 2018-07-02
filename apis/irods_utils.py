@@ -31,6 +31,13 @@ def init_irods():
     return irods
 
 
+def close_irods(irods):
+    """Gracefully close iRODS connection if opened"""
+    if irods:
+        irods.cleanup()
+
+
+# TODO: Naming? (clashes with iRODSSession.cleanup())
 def cleanup_irods(irods, verbose=True):
     """Cleanup data from iRODS. Used in debugging/testing."""
 
