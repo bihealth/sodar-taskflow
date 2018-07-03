@@ -4,8 +4,8 @@ Omics Taskflow Changelog
 Changelog for the Omics Taskflow service.
 
 
-Unreleased
-==========
+v0.2.0 (2018-07-03)
+===================
 
 Added
 -----
