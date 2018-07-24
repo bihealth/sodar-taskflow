@@ -116,37 +116,40 @@ def submit():
     coordinator = None
     lock = None
 
-    # Acquire lock if needed
-    if flow.require_lock:
-        # Acquire lock
-        coordinator = lock_api.get_coordinator()
-
-        if not coordinator:
-            ex_str = 'Error retrieving lock coordinator'
-
-        else:
-            lock_id = project_uuid
-            lock = coordinator.get_lock(bytes(lock_id, encoding='utf-8'))
-
-            try:
-                lock_api.acquire(lock)
-
-            except Exception as ex:
-                msg = 'Unable to acquire project lock'
-                app.logger.info(msg + ': ' + str(ex))
-                irods_utils.close_irods(irods)
-                return Response(msg, status=503)
-
-    else:
-        app.logger.info('Lock not required (flow.require_lock=False)')
-
     #####################
     # Build and run flow
     #####################
 
     def run_flow(
-            flow, project_uuid, timeline_uuid, lock_api, coordinator, lock,
-            omics_api, force_fail, async=True):
+            flow, project_uuid, timeline_uuid, omics_api, force_fail,
+            async=True):
+        coordinator = None
+        lock = None
+
+        # Acquire lock if needed
+        if flow.require_lock:
+            # Acquire lock
+            coordinator = lock_api.get_coordinator()
+
+            if not coordinator:
+                ex_str = 'Error retrieving lock coordinator'
+
+            else:
+                lock_id = project_uuid
+                lock = coordinator.get_lock(bytes(lock_id, encoding='utf-8'))
+
+                try:
+                    lock_api.acquire(lock)
+
+                except Exception as ex:
+                    msg = 'Unable to acquire project lock'
+                    app.logger.info(msg + ': ' + str(ex))
+                    irods_utils.close_irods(irods)
+                    return Response(msg, status=503)
+
+        else:
+            app.logger.info('Lock not required (flow.require_lock=False)')
+
         flow_result = None
         ex_str = None
         response = None
@@ -232,16 +235,15 @@ def submit():
         p = Process(
             target=run_flow,
             args=(
-                flow, project_uuid, form_data['timeline_uuid'], lock_api,
-                coordinator, lock, omics_tf, force_fail, True))
+                flow, project_uuid, form_data['timeline_uuid'], omics_tf,
+                force_fail, True))
         p.start()
         return Response(str(True), status=200)
 
     # Run synchronously
     else:
         return run_flow(
-            flow, project_uuid, form_data['timeline_uuid'], lock_api,
-            coordinator, lock, omics_tf,
+            flow, project_uuid, form_data['timeline_uuid'], omics_tf,
             force_fail, False)
 
 

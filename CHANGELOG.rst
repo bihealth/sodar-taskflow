@@ -4,6 +4,15 @@ Omics Taskflow Changelog
 Changelog for the Omics Taskflow service.
 
 
+Unreleased
+==========
+
+Fixed
+-----
+
+- Project lock timeouts in async flows due to initiating coordinator in the wrong process (#32)
+
+
 v0.2.0 (2018-07-03)
 ===================
 
