@@ -7,6 +7,12 @@ Changelog for the Omics Taskflow service.
 Unreleased
 ==========
 
+Added
+-----
+
+- Workaround for iRODS ticket issue in the bih_proteomics_smb case (omics_data_mgmt#297)
+
+
 Fixed
 -----
 

@@ -136,6 +136,10 @@ class Flow(BaseLinearFlow):
                     'path': zone_path,
                     'user_name': self.flow_data['user_name']}))
 
+        # Workaround for omics_data_mgmt#297
+        # If script user is set and exists, set read access
+        self.set_script_user_access('read', zone_path)
+
         self.add_task(
             irods_tasks.BatchValidateChecksumsTask(
                 name='Batch validate MD5 checksums of {} data objects'.format(
@@ -185,6 +189,10 @@ class Flow(BaseLinearFlow):
                     'access_name': 'null',
                     'path': sample_path,
                     'user_name': self.flow_data['user_name']}))
+
+        # Workaround for omics_data_mgmt#297
+        # If script user is set and exists, remove access
+        self.set_script_user_access('null', sample_path)
 
         self.add_task(
             irods_tasks.RemoveCollectionTask(

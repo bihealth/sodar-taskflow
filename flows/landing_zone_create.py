@@ -129,6 +129,10 @@ class Flow(BaseLinearFlow):
                     'path': zone_path,
                     'user_name': self.flow_data['user_name']}))
 
+        # Workaround for omics_data_mgmt#297
+        # If script user is set and exists, add write access
+        self.set_script_user_access('write', zone_path)
+
         if ('description' in self.flow_data and
                 self.flow_data['description'] != ''):
             self.add_task(
