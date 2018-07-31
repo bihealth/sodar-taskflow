@@ -34,4 +34,6 @@ TASKFLOW_TEST_PERMANENT_USERS = [
     'client_user',
     'rods',
     'rodsadmin',
-    'public']
+    'public',
+    'bih_proteomics_smb',   # Added for temporary proteomics fix
+]
