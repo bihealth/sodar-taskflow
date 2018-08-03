@@ -4,13 +4,19 @@ Omics Taskflow Changelog
 Changelog for the Omics Taskflow service.
 
 
-Unreleased
-==========
+v0.3.1 (2018-08-03)
+===================
 
 Added
 -----
 
 - Workaround for iRODS ticket issue in the bih_proteomics_smb case (omics_data_mgmt#297)
+
+
+Changed
+-------
+
+- Bumping the version number to math SODAR to avoid confusion
 
 
 Fixed
