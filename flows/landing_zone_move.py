@@ -107,6 +107,24 @@ class Flow(BaseLinearFlow):
                         'Validating {} files, write access disabled'.format(
                             len(zone_objects_nomd5))}))
 
+        # If "validate_only" is set, return without moving and set status
+        if ('validate_only' in self.flow_data and
+                self.flow_data['validate_only']):
+            self.add_task(
+                omics_tasks.SetLandingZoneStatusTask(
+                    name='Set landing zone status to ACTIVE',
+                    omics_api=self.omics_api,
+                    project_uuid=self.project_uuid,
+                    inject={
+                        'zone_uuid': self.flow_data['zone_uuid'],
+                        'status': 'ACTIVE',
+                        'status_info':
+                            'Successfully validated {} file{}'.format(
+                                len(zone_objects_nomd5),
+                                's' if len(zone_objects_nomd5) != 1 else '')}))
+            return
+
+        # Else continue with moving
         self.add_task(
             irods_tasks.SetInheritanceTask(
                 name='Set inheritance for landing zone collection {}'.format(

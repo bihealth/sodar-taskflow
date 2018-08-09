@@ -12,6 +12,7 @@ Added
 
 - Workaround for iRODS ticket issue in the bih_proteomics_smb case (omics_data_mgmt#297)
 - Proper exception reporting for AddUserToGroupTask (#4)
+- Option for validating only in ``landing_zone_move`` (omics_data_mgmt#333)
 
 
 Changed
