@@ -45,7 +45,8 @@ class IrodsBaseTask(BaseTask):
     def _raise_irods_execption(self, ex, info=None):
         desc = '{} failed: {}'.format(
             self.__class__.__name__, (
-                str(ex) if str(ex) != '' else ex.__class__.__name__))
+                str(ex) if str(ex) not in ['', None] else
+                ex.__class__.__name__))
 
         if info:
             desc += ' ({})'.format(info)
@@ -326,14 +327,22 @@ class AddUserToGroupTask(IrodsBaseTask):
         try:
             group = self.irods.user_groups.get(group_name)
 
-            if not group.hasmember(user_name):
+        except Exception as ex:
+            self._raise_irods_execption(
+                ex, info='Failed to retrieve group "{}"'.format(group_name))
+
+        if not group.hasmember(user_name):
+            try:
                 group.addmember(
                     user_name=user_name,
                     user_zone=self.irods.zone)
                 self.data_modified = True
 
-        except Exception as ex:
-            self._raise_irods_execption(ex)
+            except Exception as ex:
+                self._raise_irods_execption(
+                    ex,
+                    info='Failed to add user "{}" into group "{}"'.format(
+                        user_name, group_name))
 
         super(AddUserToGroupTask, self).execute(*args, **kwargs)
 
