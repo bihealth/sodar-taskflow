@@ -4,7 +4,7 @@ Omics Taskflow Changelog
 Changelog for the Omics Taskflow service.
 
 
-v0.3.1 (2018-08-XX)
+v0.2.1 (2018-08-24)
 ===================
 
 Added
@@ -18,7 +18,6 @@ Added
 Changed
 -------
 
-- Bumping the version number to math SODAR to avoid confusion
 - Modify iRODS exception raising in attempt to catch exception name (#34)
 
 
