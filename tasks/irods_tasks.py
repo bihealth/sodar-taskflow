@@ -45,7 +45,7 @@ class IrodsBaseTask(BaseTask):
     def _raise_irods_execption(self, ex, info=None):
         desc = '{} failed: {}'.format(
             self.__class__.__name__, (
-                str(ex) if str(ex) not in ['', None] else
+                str(ex) if str(ex) not in ['', 'None'] else
                 ex.__class__.__name__))
 
         if info:
@@ -528,9 +528,14 @@ class BatchMoveDataObjectsTask(IrodsBaseTask):
                     dest_path=dest_obj_path)
 
             except Exception as ex:
-                self._raise_irods_execption(
-                    ex, 'Error moving move data object "{}" to "{}"'.format(
-                        src_path, dest_obj_path))
+                if ex.__class__.__name__ == 'CAT_NAME_EXISTS_AS_DATAOBJ':
+                    msg = 'Target file already exists: {}'.format(dest_obj_path)
+
+                else:
+                    msg = 'Error moving move data object "{}" to "{}"'.format(
+                        src_path, dest_obj_path)
+
+                self._raise_irods_execption(ex, msg)
 
             modifying_access = False
 

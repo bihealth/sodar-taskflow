@@ -4,6 +4,20 @@ Omics Taskflow Changelog
 Changelog for the Omics Taskflow service.
 
 
+Unreleased
+==========
+
+Added
+-----
+
+- More informative exception message for ``CAT_NAME_EXISTS_AS_DATAOBJ`` in ``BatchMoveDataObjectsTask``
+
+Fixed
+-----
+
+- Missing exception ``__str__()`` detection in ``_raise_irods_exception()``
+
+
 v0.2.1 (2018-08-24)
 ===================
 
