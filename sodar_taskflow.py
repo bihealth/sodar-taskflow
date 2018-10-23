@@ -5,13 +5,13 @@ from multiprocessing import Process
 import os
 import sys
 
-from apis import irods_utils, lock_api, omics_api
+from apis import irods_utils, lock_api, sodar_api
 from config import settings
 import flows
 
 
-app = Flask('omics_taskflow')
-app.config.from_envvar('OMICS_TASKFLOW_SETTINGS')
+app = Flask('sodar_taskflow')
+app.config.from_envvar('SODAR_TASKFLOW_SETTINGS')
 
 # Set up logging
 app.logger.handlers = []
@@ -78,16 +78,16 @@ def submit():
         return Response(msg, status=500)
 
     ################
-    # Init Omics API
+    # Init SODAR API
     ################
 
-    if 'omics_url' in form_data:
-        omics_url = form_data['omics_url']
+    if 'sodar_url' in form_data:
+        sodar_url = form_data['sodar_url']
 
     else:
-        omics_url = settings.TASKFLOW_OMICS_URL
+        sodar_url = settings.TASKFLOW_SODAR_URL
 
-    omics_tf = omics_api.OmicsAPI(omics_url)
+    sodar_tf = sodar_api.SODARAPI(sodar_url)
 
     ##############
     # Create flow
@@ -95,7 +95,7 @@ def submit():
 
     flow = flow_cls(
         irods=irods,
-        omics_api=omics_tf,
+        sodar_api=sodar_tf,
         project_uuid=form_data['project_uuid'],
         flow_name=form_data['flow_name'],
         flow_data=form_data['flow_data'],
@@ -121,7 +121,7 @@ def submit():
     #####################
 
     def run_flow(
-            flow, project_uuid, timeline_uuid, omics_api, force_fail,
+            flow, project_uuid, timeline_uuid, sodar_api, force_fail,
             async=True):
         coordinator = None
         lock = None
@@ -171,11 +171,11 @@ def submit():
                     'status': 'NOT CREATED' if
                     flow.flow_name == 'landing_zone_create' else 'FAILED',
                     'status_info': '{}: {}'.format(msg, ex)}
-                omics_api.send_request(
+                sodar_api.send_request(
                     'landingzones/taskflow/status/set', set_data)
 
                 # Set timeline status
-                omics_api.set_timeline_status(
+                sodar_api.set_timeline_status(
                     event_uuid=timeline_uuid,
                     status_type='FAILED',
                     status_desc=msg)
@@ -199,7 +199,7 @@ def submit():
         # Flow completion
         if flow_result:
             if async:
-                omics_api.set_timeline_status(
+                sodar_api.set_timeline_status(
                     event_uuid=timeline_uuid,
                     status_type='OK',
                     status_desc='Async submit OK')
@@ -210,7 +210,7 @@ def submit():
         # Exception/failure
         else:
             if async:
-                omics_api.set_timeline_status(
+                sodar_api.set_timeline_status(
                     event_uuid=timeline_uuid,
                     status_type='FAILED',
                     status_desc='Error running async flow: ' +
@@ -235,7 +235,7 @@ def submit():
         p = Process(
             target=run_flow,
             args=(
-                flow, project_uuid, form_data['timeline_uuid'], omics_tf,
+                flow, project_uuid, form_data['timeline_uuid'], sodar_tf,
                 force_fail, True))
         p.start()
         return Response(str(True), status=200)
@@ -243,7 +243,7 @@ def submit():
     # Run synchronously
     else:
         return run_flow(
-            flow, project_uuid, form_data['timeline_uuid'], omics_tf,
+            flow, project_uuid, form_data['timeline_uuid'], sodar_tf,
             force_fail, False)
 
 
@@ -269,11 +269,11 @@ def cleanup():
 @app.route('/hello', methods=['GET'])
 def hello():
     app.logger.debug('Hello world request received')
-    return Response('Hello world from omics_taskflow!', status=200)
+    return Response('Hello world from sodar_taskflow!', status=200)
 
 
 if __name__ == '__main__':
-    app.logger.info('settings={}'.format(os.getenv('OMICS_TASKFLOW_SETTINGS')))
+    app.logger.info('settings={}'.format(os.getenv('SODAR_TASKFLOW_SETTINGS')))
     app_kwargs = {'processes': 4} if settings.DEBUG else {}
     app.run('0.0.0.0', 5005, **app_kwargs)
 

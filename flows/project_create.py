@@ -3,7 +3,7 @@ from config import settings
 from .base_flow import BaseLinearFlow
 from apis.irods_utils import get_project_path,\
     get_project_group_name
-from tasks import omics_tasks, irods_tasks
+from tasks import sodar_tasks, irods_tasks
 
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
@@ -109,23 +109,23 @@ class Flow(BaseLinearFlow):
                     'group_name': project_group,
                     'user_name': self.flow_data['owner_username']}))
 
-        ##########################
-        # Omics Data Access Tasks
-        ##########################
+        ##############
+        # SODAR Tasks
+        ##############
 
         self.add_task(
-            omics_tasks.SetRoleTask(
+            sodar_tasks.SetRoleTask(
                 name='Set owner role to user',
-                omics_api=self.omics_api,
+                sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
                 inject={
                     'user_uuid': self.flow_data['owner_uuid'],
                     'role_pk': self.flow_data['owner_role_pk']}))
 
         self.add_task(
-            omics_tasks.SetProjectSettingsTask(
+            sodar_tasks.SetProjectSettingsTask(
                 name='Set project settings',
-                omics_api=self.omics_api,
+                sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
                 inject={
                     'settings': self.flow_data['settings']}))

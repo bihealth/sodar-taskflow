@@ -28,7 +28,7 @@ INHERIT_STRINGS = {
     False: 'noinherit'}
 
 
-logger = logging.getLogger('omics_taskflow.tasks.irods_tasks')
+logger = logging.getLogger('sodar_taskflow.tasks.irods_tasks')
 
 
 class IrodsBaseTask(BaseTask):

@@ -116,7 +116,7 @@ class IRODSTestBase(TestCase):
     def _init_flow(self):
         return BaseLinearFlow(
             irods=self.irods,
-            omics_api=None,
+            sodar_api=None,
             project_uuid=PROJECT_UUID,
             flow_name=str(uuid.uuid4()),
             flow_data={},

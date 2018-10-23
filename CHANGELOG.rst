@@ -1,7 +1,7 @@
-Omics Taskflow Changelog
+SODAR Taskflow Changelog
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Changelog for the Omics Taskflow service.
+Changelog for the SODAR Taskflow service.
 
 
 Unreleased
@@ -81,8 +81,8 @@ Changed
 -------
 
 - Use UUIDs instead of pk:s when referring to omics_data_mgmt objects (#14)
-- Modify Omics Taskflow API URLs
-- Improve Omics API error reporting
+- Modify SODAR Taskflow API URLs
+- Improve SODAR API error reporting
 - Upgrade to python-irodsclient 0.7.0 (#10)
 - Upgrade taskflow and tooz
 - Readme rewritten and converted to rst

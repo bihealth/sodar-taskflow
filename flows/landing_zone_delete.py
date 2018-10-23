@@ -2,7 +2,7 @@ from config import settings
 
 from .base_flow import BaseLinearFlow
 from apis.irods_utils import get_landing_zone_path
-from tasks import omics_tasks, irods_tasks
+from tasks import sodar_tasks, irods_tasks
 
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
@@ -43,9 +43,9 @@ class Flow(BaseLinearFlow):
         # If async, set up task to set landing zone status to failed
         if self.request_mode == 'async':
             self.add_task(
-                omics_tasks.RevertLandingZoneFailTask(
+                sodar_tasks.RevertLandingZoneFailTask(
                     name='Set landing zone status to FAILED on revert',
-                    omics_api=self.omics_api,
+                    sodar_api=self.sodar_api,
                     project_uuid=self.project_uuid,
                     inject={
                         'zone_uuid': self.flow_data['zone_uuid'],
@@ -53,9 +53,9 @@ class Flow(BaseLinearFlow):
 
         # Set zone status to DELETING
         self.add_task(
-            omics_tasks.SetLandingZoneStatusTask(
+            sodar_tasks.SetLandingZoneStatusTask(
                 name='Set landing zone status to DELETING',
-                omics_api=self.omics_api,
+                sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
@@ -69,15 +69,15 @@ class Flow(BaseLinearFlow):
                 inject={
                     'path': zone_path}))
 
-        ##########################
-        # Omics Data Access Tasks
-        ##########################
+        ##############
+        # SODAR Tasks
+        ##############
 
         # Set zone status to DELETING
         self.add_task(
-            omics_tasks.SetLandingZoneStatusTask(
+            sodar_tasks.SetLandingZoneStatusTask(
                 name='Set landing zone status to DELETED',
-                omics_api=self.omics_api,
+                sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],

@@ -2,7 +2,7 @@ from config import settings
 
 from .base_flow import BaseLinearFlow
 from apis.irods_utils import get_project_path
-from tasks import omics_tasks, irods_tasks
+from tasks import sodar_tasks, irods_tasks
 
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
@@ -45,13 +45,13 @@ class Flow(BaseLinearFlow):
                 inject={
                     'path': sample_path}))
 
-        ##########################
-        # Omics Data Access Tasks
-        ##########################
+        ##############
+        # SODAR Tasks
+        ##############
 
         self.add_task(
-            omics_tasks.RemoveSampleSheetTask(
+            sodar_tasks.RemoveSampleSheetTask(
                 name='Remove sample sheet',
-                omics_api=self.omics_api,
+                sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
                 inject={}))

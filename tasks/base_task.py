@@ -2,7 +2,7 @@ import logging
 from taskflow import task
 
 
-logger = logging.getLogger('omics_taskflow.tasks.base_task')
+logger = logging.getLogger('sodar_taskflow.tasks.base_task')
 
 
 class ForceFailException(Exception):

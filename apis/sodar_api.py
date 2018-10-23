@@ -7,23 +7,23 @@ TL_URL = 'timeline/taskflow/status/set'
 ZONE_URL = 'zones/taskflow/status/set'
 
 
-class OmicsRequestException(Exception):
+class SODARRequestException(Exception):
     """General django REST API submission exception"""
     pass
 
 
-class OmicsAPI:
+class SODARAPI:
     """API for accessing the Django Taskflow REST views"""
 
-    def __init__(self, omics_url):
-        self.omics_url = omics_url
+    def __init__(self, sodar_url):
+        self.sodar_url = sodar_url
 
     def send_request(self, url, query_data):
-        request_url = self.omics_url + '/' + url
+        request_url = self.sodar_url + '/' + url
         response = requests.post(request_url, data=query_data)
 
         if response.status_code != 200:
-            raise OmicsRequestException(
+            raise SODARRequestException(
                 '{}: {}'.format(
                     response.status_code, response.text or 'Unknown'))
 

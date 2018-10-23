@@ -3,7 +3,7 @@ from config import settings
 from .base_flow import BaseLinearFlow
 from apis.irods_utils import get_project_path, get_landing_zone_root, \
     get_landing_zone_path, get_project_group_name
-from tasks import omics_tasks, irods_tasks
+from tasks import sodar_tasks, irods_tasks
 
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
@@ -43,14 +43,14 @@ class Flow(BaseLinearFlow):
             zone_title=self.flow_data['zone_title'],
             zone_config=self.flow_data['zone_config'])
 
-        ##########################
-        # Omics Data Access Tasks
-        ##########################
+        ##############
+        # SODAR Tasks
+        ##############
 
         self.add_task(
-            omics_tasks.RevertLandingZoneFailTask(
+            sodar_tasks.RevertLandingZoneFailTask(
                 name='Set landing zone status to FAILED on revert',
-                omics_api=self.omics_api,
+                sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
@@ -129,7 +129,7 @@ class Flow(BaseLinearFlow):
                     'path': zone_path,
                     'user_name': self.flow_data['user_name']}))
 
-        # Workaround for omics_data_mgmt#297
+        # Workaround for sodar#297
         # If script user is set and exists, add write access
         self.set_script_user_access('write', zone_path)
 
@@ -153,15 +153,15 @@ class Flow(BaseLinearFlow):
                     inject={
                         'path': dir_path}))
 
-        ##########################
-        # Omics Data Access Tasks
-        ##########################
+        ##############
+        # SODAR Tasks
+        ##############
 
         # NOTE: Not using zone_uuid here because taskflow doesn't know it yet
         self.add_task(
-            omics_tasks.SetLandingZoneStatusTask(
+            sodar_tasks.SetLandingZoneStatusTask(
                 name='Set landing zone status to ACTIVE',
-                omics_api=self.omics_api,
+                sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],

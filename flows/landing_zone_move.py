@@ -4,7 +4,7 @@ from .base_flow import BaseLinearFlow
 from apis.irods_utils import get_sample_path, get_landing_zone_path, \
     get_subcoll_obj_paths, get_project_group_name, get_subcoll_paths
 
-from tasks import omics_tasks, irods_tasks
+from tasks import sodar_tasks, irods_tasks
 
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
@@ -34,7 +34,7 @@ class Flow(BaseLinearFlow):
             'zone_uuid': self.flow_data['zone_uuid'],
             'status': 'PREPARING',
             'status_info': 'Preparing transaction for validation and moving'}
-        self.omics_api.send_request(
+        self.sodar_api.send_request(
             'landingzones/taskflow/status/set', set_data)
 
         ########
@@ -87,18 +87,18 @@ class Flow(BaseLinearFlow):
         # If async, set up task to set landing zone status to failed
         if self.request_mode == 'async':
             self.add_task(
-                omics_tasks.RevertLandingZoneFailTask(
+                sodar_tasks.RevertLandingZoneFailTask(
                     name='Set landing zone status to FAILED on revert',
-                    omics_api=self.omics_api,
+                    sodar_api=self.sodar_api,
                     project_uuid=self.project_uuid,
                     inject={
                         'zone_uuid': self.flow_data['zone_uuid'],
                         'info_prefix': 'Running asynchronous job failed'}))
 
         self.add_task(
-            omics_tasks.SetLandingZoneStatusTask(
+            sodar_tasks.SetLandingZoneStatusTask(
                 name='Set landing zone status to VALIDATING',
-                omics_api=self.omics_api,
+                sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
@@ -124,9 +124,9 @@ class Flow(BaseLinearFlow):
                         'paths': zone_objects_nomd5}))
 
             self.add_task(
-                omics_tasks.SetLandingZoneStatusTask(
+                sodar_tasks.SetLandingZoneStatusTask(
                     name='Set landing zone status to ACTIVE',
-                    omics_api=self.omics_api,
+                    sodar_api=self.sodar_api,
                     project_uuid=self.project_uuid,
                     inject={
                         'zone_uuid': self.flow_data['zone_uuid'],
@@ -168,7 +168,7 @@ class Flow(BaseLinearFlow):
                     'path': zone_path,
                     'user_name': self.flow_data['user_name']}))
 
-        # Workaround for omics_data_mgmt#297
+        # Workaround for sodar#297
         # If script user is set and exists, set read access
         self.set_script_user_access('read', zone_path)
 
@@ -181,9 +181,9 @@ class Flow(BaseLinearFlow):
                     'paths': zone_objects_nomd5}))
 
         self.add_task(
-            omics_tasks.SetLandingZoneStatusTask(
+            sodar_tasks.SetLandingZoneStatusTask(
                 name='Set landing zone status to MOVING',
-                omics_api=self.omics_api,
+                sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
@@ -222,7 +222,7 @@ class Flow(BaseLinearFlow):
                     'path': sample_path,
                     'user_name': self.flow_data['user_name']}))
 
-        # Workaround for omics_data_mgmt#297
+        # Workaround for sodar#297
         # If script user is set and exists, remove access
         self.set_script_user_access('null', sample_path)
 
@@ -234,9 +234,9 @@ class Flow(BaseLinearFlow):
                     'path': zone_path}))
 
         self.add_task(
-            omics_tasks.SetLandingZoneStatusTask(
+            sodar_tasks.SetLandingZoneStatusTask(
                 name='Set landing zone status to MOVED',
-                omics_api=self.omics_api,
+                sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],

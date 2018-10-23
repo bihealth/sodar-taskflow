@@ -1,6 +1,6 @@
 from .base_flow import BaseLinearFlow
 from apis.irods_utils import get_project_group_name
-from tasks import omics_tasks, irods_tasks
+from tasks import sodar_tasks, irods_tasks
 
 
 class Flow(BaseLinearFlow):

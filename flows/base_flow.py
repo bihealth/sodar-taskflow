@@ -9,16 +9,16 @@ from tasks.irods_tasks import SetAccessTask     # For temporary workaround
 from config import settings
 
 
-logger = logging.getLogger('omics_taskflow.flows.base_flow')
+logger = logging.getLogger('sodar_taskflow.flows.base_flow')
 
 
 class BaseLinearFlow:
     """Base class for linear flows used for task queues"""
     def __init__(
-            self, irods, omics_api, project_uuid, flow_name, flow_data, targets,
+            self, irods, sodar_api, project_uuid, flow_name, flow_data, targets,
             timeline_uuid=None, request_mode='sync'):
         self.irods = irods
-        self.omics_api = omics_api      # TODO: Dynamic support for more APIs?
+        self.sodar_api = sodar_api      # TODO: Dynamic support for more APIs?
         self.project_uuid = project_uuid
         self.flow_name = flow_name
         self.flow_data = flow_data
@@ -95,7 +95,7 @@ class BaseLinearFlow:
 
         return result
 
-    # Temporary workaround for omics_data_mgmt#297
+    # Temporary workaround for sodar#297
     def set_script_user_access(self, access_name, target_path):
         # If script user is set and exists, add write access
         if 'script_user' in self.flow_data:

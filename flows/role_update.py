@@ -1,6 +1,6 @@
 from .base_flow import BaseLinearFlow
 from apis.irods_utils import get_project_group_name
-from tasks import omics_tasks, irods_tasks
+from tasks import sodar_tasks, irods_tasks
 
 
 class Flow(BaseLinearFlow):
@@ -42,14 +42,14 @@ class Flow(BaseLinearFlow):
                     'group_name': project_group,
                     'user_name': self.flow_data['username']}))
 
-        ##########################
-        # Omics Data Access Tasks
-        ##########################
+        ##############
+        # SODAR Tasks
+        ##############
 
         self.add_task(
-            omics_tasks.SetRoleTask(
+            sodar_tasks.SetRoleTask(
                 name='Set user role',
-                omics_api=self.omics_api,
+                sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
                 inject={
                     'user_uuid': self.flow_data['user_uuid'],

@@ -14,7 +14,7 @@ LOCK_RETRY_INTERVAL = settings.TASKFLOW_LOCK_RETRY_INTERVAL
 REDIS_URL = settings.TASKFLOW_REDIS_URL
 
 
-logger = logging.getLogger('omics_taskflow.apis.lock_api')
+logger = logging.getLogger('sodar_taskflow.apis.lock_api')
 
 
 def log_status(lock, unlock=False, failed=False):
@@ -27,7 +27,7 @@ def log_status(lock, unlock=False, failed=False):
 
 def get_coordinator():
     """Return a Tooz coordinator object"""
-    host_id = 'omics_taskflow_{}'.format(uuid.uuid4())
+    host_id = 'sodar_taskflow_{}'.format(uuid.uuid4())
 
     coordinator = coordination.get_coordinator(
         backend_url=REDIS_URL,

@@ -1,8 +1,8 @@
-Omics Taskflow
+SODAR Taskflow
 ==============
 
-The Omics Taskflow component executes taskflows on the iRODS and Omics Data
-Management databases. It also handles project locking and unlocking using tooz and
+The SODAR Taskflow component executes taskflows on the iRODS and SODAR
+databases. It also handles project locking and unlocking using tooz and
 Redis.
 
 **TODO:** Update docker instructions after updating omics_docker_env.

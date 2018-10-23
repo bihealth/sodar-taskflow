@@ -3,7 +3,7 @@ from config import settings
 from .base_flow import BaseLinearFlow
 from apis.irods_utils import get_project_path,\
     get_project_group_name
-from tasks import omics_tasks, irods_tasks
+from tasks import sodar_tasks, irods_tasks
 
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
@@ -67,14 +67,14 @@ class Flow(BaseLinearFlow):
                     inject={
                         'path': dir_path}))
 
-        ##########################
-        # Omics Data Access Tasks
-        ##########################
+        ##############
+        # SODAR Tasks
+        ##############
 
         self.add_task(
-            omics_tasks.SetIrodsDirStatusTask(
+            sodar_tasks.SetIrodsDirStatusTask(
                 name='Set iRODS directory structure status to True',
-                omics_api=self.omics_api,
+                sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
                 inject={
                     'dir_status': True}))

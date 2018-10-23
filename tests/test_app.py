@@ -1,7 +1,7 @@
 """Tests for web app requests"""
 from unittest import TestCase
 
-import omics_taskflow
+import sodar_taskflow
 from apis.irods_utils import init_irods, cleanup_irods
 
 
@@ -11,7 +11,7 @@ class AppTestBase(TestCase):
     def setUp(self):
         # Init iRODS connection
         self.irods = init_irods()
-        self.app = omics_taskflow.app.test_client()
+        self.app = sodar_taskflow.app.test_client()
         pass
 
     def tearDown(self):
@@ -27,6 +27,6 @@ class TestHello(AppTestBase):
         # url = settings.SERVER_NAME + '/hello'
         response = self.app.get('/hello')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, b'Hello world from omics_taskflow!')
+        self.assertEqual(response.data, b'Hello world from sodar_taskflow!')
 
 # TODO: Tests for submit & cleanup
