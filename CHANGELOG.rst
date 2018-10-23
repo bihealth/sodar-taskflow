@@ -12,6 +12,12 @@ Added
 
 - More informative exception message for ``CAT_NAME_EXISTS_AS_DATAOBJ`` in ``BatchMoveDataObjectsTask``
 
+Changed
+-------
+
+- Rebrand site as SODAR Taskflow (#36)
+- Expect ``sodar_url`` parameter instead of ``omics_url`` for SODAR Core compatibility (#35)
+
 Fixed
 -----
 
