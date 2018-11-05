@@ -10,7 +10,7 @@ class AppTestBase(TestCase):
 
     def setUp(self):
         # Init iRODS connection
-        self.irods = init_irods()
+        self.irods = init_irods(test_mode=True)
         self.app = sodar_taskflow.app.test_client()
         pass
 
