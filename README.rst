@@ -5,70 +5,57 @@ The SODAR Taskflow component executes taskflows on the iRODS and SODAR
 databases. It also handles project locking and unlocking using tooz and
 Redis.
 
-**TODO:** Update docker instructions after updating omics_docker_env.
-
 
 Requirements
 ------------
 
-* Ubuntu 16.04
-* Python 3.5+
-* Redis
-* Access to a dedicated iRODS iCAT server
+- Ubuntu 16.04
+- Python 3.5+
+- Redis
+- Access to *two* dedicated iRODS iCAT servers (one for running tests)
 
 
 Installation
 ------------
 
-* Set up and activate a ``virtualenv`` environment for Python 3
-* Run ``pip install -r requirements.txt``
-* Set up required components either by:
-    * Running components manually, or
-    * Deploying omics_docker_env (recommended, see project for instructions)
+- Set up and activate a ``virtualenv`` environment for Python 3
+- Execute ``pip install -r requirements.txt``
+- Set up required components
+    * DEFAULT iRODS iCAT Server
+    * TEST iRODS iCAT Server
+    * Redis-server
+- Execute ``utility/run_dev.sh`` for development/debug mode
 
 
-Local Execution for Development
--------------------------------
+Local Development Environment
+-----------------------------
 
-The first two steps are already correctly setup if you are using the Docker in ``omics_docker_env``.
+The `sodar_docker_env <https://cubi-gitlab.bihealth.org/CUBI_Engineering/CUBI_Data_Mgmt/sodar_docker_env>`_
+setup runs a redis-server and two iRODS servers as Docker containers. It is the
+easiest way to get the required servers running. See the repository for
+installation instructions.
 
-* Execute Redis server with ``redis-server``
-* Make sure an iRODS iCAT server 4.2+ is started and properly configured
-    * The rule file ``omics.re`` must be available and configured in ``/etc/irods/server_config.json`` under ``re_rulebase_set``
-    * The value for ``default_hash_scheme`` in ``/etc/irods/server_config.json`` must be ``"MD5"``
+**NOTE:** At the time of writing, no permanent storage is supported for the
+DEFAULT iRODS server in the Docker environment. If this is needed for
+development, it is recommended you set up an iRODS iCAT server locally or on
+a VM and only use the TEST server from ``sodar_docker_env``. Otherwise, you can
+sync project metadata after reboot or Docker container downtime by executing
+your SODAR dev instance with ``run.sh sync``. Naturally, data objects in iRODS
+will not be re-created.
 
-The third step is also already setup with ``omics_docker_env``.
+Make sure to set up your environment variables with the correct iRODS host, zone
+and admin user login data, both for the default and test iRODS servers.
+See ``config/base.py`` for the variables and their default values.
 
-* Set up your environment variables with the correct iRODS host, zone and admin user login data
-    * See ``config/base.py`` for the variables and their default values
+The default configuration assumes a local DEFAULT iRODS server, while the TEST
+iRODS server and Redis are accessed from ``sodar_docker_env``.
 
-If you are running the Docker environment, add the following lines to ``config/dev.py``.
-
-.. code-block:: python
-    TASKFLOW_IRODS_PORT = os.getenv('TASKFLOW_IRODS_PORT', 4477)
-    TASKFLOW_REDIS_URL = os.getenv('TASKFLOW_REDIS_URL', 'redis://0.0.0.0:6633')
-
-The fourth step is only all that you need to do in development.
-
-* Execute ``utility/run_dev.sh`` or ``utility/run_prod.sh`` depending on if you want to run in debug mode
-
-And finally, to run tests and a caveat lector!
-
-* To run unit tests, execute ``utility/test.sh``
-    * **IMPORTANT:** Do **NOT** run tests on a production server or an iRODS server used for any other project, as server data **WILL** be wiped between automated tests!
+**WARNING:** Never set a production server as the TEST server in your
+configuration, as this may result in data loss!
 
 
-Pushing to CUBI GitLab Container Registry
------------------------------------------
-
-**NOTE:** Currently out of date, to be updated
-
-* Login to the BIH gitlab with ``docker login cubi-gitlab.bihealth.org:4567``
-* Execute ``docker_push.sh`` to login, build and push the container image.
-
-
-Server Deployment
------------------
+Production Deployment
+---------------------
 
 Use the `CUBI Ansible Playbooks <https://cubi-gitlab.bihealth.org/CUBI_Operations/Ansible_Playbooks/>`_
-by running the role ``cubi.omics-beta`` with the tag ``omics_taskflow``.
+by running the role ``cubi.omics-beta`` with the tag ``sodar_taskflow``.
