@@ -44,6 +44,7 @@ def submit():
     app.logger.debug('Submit data: {}'.format(form_data))
     force_fail = form_data['force_fail'] \
         if 'force_fail' in form_data else False
+    test_mode = form_data['test_mode'] if 'test_mode' in form_data else False
 
     required_keys = [
         'project_uuid',
@@ -70,7 +71,7 @@ def submit():
     #############
 
     try:
-        irods = irods_utils.init_irods()
+        irods = irods_utils.init_irods(test_mode=test_mode)
 
     except Exception as ex:
         msg = 'Error initializing iRODS: {}'.format(ex)
@@ -247,12 +248,15 @@ def submit():
             force_fail, False)
 
 
-@app.route('/cleanup', methods=['GET'])
+@app.route('/cleanup', methods=['POST'])
 def cleanup():
-    if settings.TASKFLOW_ALLOW_IRODS_CLEANUP:
+    form_data = request.json
+    test_mode = form_data['test_mode'] if 'test_mode' in form_data else False
+
+    if test_mode or settings.TASKFLOW_ALLOW_IRODS_CLEANUP:
         try:
             app.logger.info('--- Cleanup started ---')
-            irods = irods_utils.init_irods()
+            irods = irods_utils.init_irods(test_mode=test_mode)
             irods_utils.cleanup_irods(irods)
             app.logger.info('--- Cleanup done ---')
             irods_utils.close_irods(irods)

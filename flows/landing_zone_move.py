@@ -51,7 +51,7 @@ class Flow(BaseLinearFlow):
             assay_path=self.flow_data['assay_path_zone'],
             zone_title=self.flow_data['zone_title'],
             zone_config=self.flow_data['zone_config'])
-        admin_name = settings.TASKFLOW_IRODS_USER
+        admin_name = self.irods.username
 
         # Get landing zone file paths (without .md5 files) from iRODS
         zone_coll = self.irods.collections.get(zone_path)

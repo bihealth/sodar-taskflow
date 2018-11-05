@@ -4,6 +4,20 @@ SODAR Taskflow Changelog
 Changelog for the SODAR Taskflow service.
 
 
+Unreleased
+==========
+
+Added
+-----
+
+- Support for additional iRODS test server (sodar_core#67)
+
+Removed
+-------
+
+- Unneeded ``utility/test_local.sh`` script
+
+
 v0.3.0 (2018-10-26)
 ===================
 

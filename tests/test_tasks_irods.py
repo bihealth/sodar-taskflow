@@ -68,11 +68,12 @@ class IRODSTestBase(TestCase):
 
     def setUp(self):
         # Fail if we can't cleanup iRODS
+        # TODO: Remove, not needed anymore
         if not settings.TASKFLOW_ALLOW_IRODS_CLEANUP:
             raise Exception('iRODS cleanup not allowed')
 
-        # Init iRODS connection
-        self.irods = init_irods()
+        # Init iRODS connection to TEST server
+        self.irods = init_irods(test_mode=True)
 
         # HACK: Avoiding exceptions which may result to tearDown not getting
         #       called and unwanted objects being left in iRODS

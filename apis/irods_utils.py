@@ -15,18 +15,32 @@ PERMANENT_USERS = settings.TASKFLOW_TEST_PERMANENT_USERS
 logger = logging.getLogger('sodar_taskflow.apis.irods_utils')
 
 
-def init_irods():
+def init_irods(test_mode=False):
     """Initialize iRODS session. Returns an iRODSSession object."""
-    irods = iRODSSession(
-        host=settings.TASKFLOW_IRODS_HOST,
-        port=settings.TASKFLOW_IRODS_PORT,
-        user=settings.TASKFLOW_IRODS_USER,
-        password=settings.TASKFLOW_IRODS_PASS,
-        zone=settings.TASKFLOW_IRODS_ZONE)
+
+    # Default server
+    if not test_mode:
+        irods = iRODSSession(
+            host=settings.TASKFLOW_IRODS_HOST,
+            port=settings.TASKFLOW_IRODS_PORT,
+            user=settings.TASKFLOW_IRODS_USER,
+            password=settings.TASKFLOW_IRODS_PASS,
+            zone=settings.TASKFLOW_IRODS_ZONE)
+
+    # Test server
+    else:
+        irods = iRODSSession(
+            host=settings.TASKFLOW_IRODS_TEST_HOST,
+            port=settings.TASKFLOW_IRODS_TEST_PORT,
+            user=settings.TASKFLOW_IRODS_TEST_USER,
+            password=settings.TASKFLOW_IRODS_TEST_PASS,
+            zone=settings.TASKFLOW_IRODS_ZONE)
 
     # Ensure we have a connection
-    irods.collections.exists('/{}/home/{}'.format(
-        settings.TASKFLOW_IRODS_ZONE, settings.TASKFLOW_IRODS_USER))
+    irods.collections.exists('/{}/home/{}'.format(irods.zone, irods.username))
+
+    logger.debug('Connected to {} server on {}:{}'.format(
+        'TEST' if test_mode else 'DEFAULT', irods.host, irods.port))
 
     return irods
 

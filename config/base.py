@@ -15,14 +15,24 @@ TASKFLOW_IRODS_PORT = os.getenv('TASKFLOW_IRODS_PORT', 1247)
 TASKFLOW_IRODS_ZONE = os.getenv('TASKFLOW_IRODS_ZONE', 'omicsZone')
 TASKFLOW_IRODS_USER = os.getenv('TASKFLOW_IRODS_USER', 'rods')
 TASKFLOW_IRODS_PASS = os.getenv('TASKFLOW_IRODS_PASS', 'rods')
+
+# TODO: To be removed, cleanup should only be allowed for test server
+TASKFLOW_ALLOW_IRODS_CLEANUP = os.getenv('TASKFLOW_ALLOW_IRODS_CLEANUP', False)
+
+# iRODS server test settings
 TASKFLOW_IRODS_PROJECT_ROOT = '/{}/projects'.format(TASKFLOW_IRODS_ZONE)
 TASKFLOW_SAMPLE_DIR = 'sample_data'
 TASKFLOW_LANDING_ZONE_DIR = 'landing_zones'
 
-TASKFLOW_ALLOW_IRODS_CLEANUP = os.getenv('TASKFLOW_ALLOW_IRODS_CLEANUP', False)
-
 TASKFLOW_SODAR_URL = os.getenv('TASKFLOW_SODAR_URL', 'http://0.0.0.0:8000')
-TASKFLOW_REDIS_URL = os.getenv('TASKFLOW_REDIS_URL', 'redis://0.0.0.0:6379')
+TASKFLOW_REDIS_URL = os.getenv('TASKFLOW_REDIS_URL', 'redis://0.0.0.0:6633')
+
+# iRODS test server settings (default = sodar_docker_env)
+# NOTE: Zone remains the same
+TASKFLOW_IRODS_TEST_HOST = os.getenv('TASKFLOW_IRODS_TEST_HOST', '0.0.0.0')
+TASKFLOW_IRODS_TEST_PORT = os.getenv('TASKFLOW_IRODS_TEST_PORT', 4488)
+TASKFLOW_IRODS_TEST_USER = os.getenv('TASKFLOW_IRODS_TEST_USER', 'rods')
+TASKFLOW_IRODS_TEST_PASS = os.getenv('TASKFLOW_IRODS_TEST_PASS', 'rods')
 
 TASKFLOW_LOCK_RETRY_COUNT = 2
 TASKFLOW_LOCK_RETRY_INTERVAL = 3
