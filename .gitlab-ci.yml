@@ -11,6 +11,7 @@ variables:
   IRODS_ZONE_NAME: omicsZone
   TASKFLOW_REDIS_URL: http://redis:6379
   TASKFLOW_IRODS_TEST_HOST: mjstealey-irods-provider-postgres
+  TASKFLOW_IRODS_TEST_PORT: 1247
   OMICS_TASKFLOW_SETTINGS: ./config/production.py
 
 before_script:
