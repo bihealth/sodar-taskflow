@@ -15,8 +15,8 @@ RUN pip3 install -r requirements.txt
 
 COPY . /app
 
-ENV OMICS_TASKFLOW_SETTINGS /app/config/production.py
+ENV SODAR_TASKFLOW_SETTINGS /app/config/production.py
 
 EXPOSE 5005
 
-CMD ["gunicorn", "--bind=0.0.0.0:5005", "--workers=4", "omics_taskflow:app"]
+CMD ["gunicorn", "--bind=0.0.0.0:5005", "--workers=4", "sodar_taskflow:app"]
