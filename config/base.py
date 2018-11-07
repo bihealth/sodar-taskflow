@@ -18,8 +18,6 @@ TASKFLOW_IRODS_PORT = os.getenv('TASKFLOW_IRODS_PORT', 4477)
 TASKFLOW_IRODS_ZONE = os.getenv('TASKFLOW_IRODS_ZONE', 'omicsZone')
 TASKFLOW_IRODS_USER = os.getenv('TASKFLOW_IRODS_USER', 'rods')
 TASKFLOW_IRODS_PASS = os.getenv('TASKFLOW_IRODS_PASS', 'rods')
-
-# TODO: To be removed, cleanup should only be allowed for test server
 TASKFLOW_ALLOW_IRODS_CLEANUP = os.getenv('TASKFLOW_ALLOW_IRODS_CLEANUP', False)
 
 # iRODS server test settings
