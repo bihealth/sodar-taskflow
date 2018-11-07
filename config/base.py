@@ -1,4 +1,7 @@
+import dotenv
 import os
+
+dotenv.load_dotenv()
 
 # Flask
 DEBUG = True
@@ -11,7 +14,7 @@ TASKFLOW_LOG_TO_FILE = os.getenv('TASKFLOW_LOG_TO_FILE', False)
 TASKFLOW_LOG_PATH = os.getenv('TASKFLOW_LOG_PATH', 'sodar_taskflow.log')
 
 TASKFLOW_IRODS_HOST = os.getenv('TASKFLOW_IRODS_HOST', '0.0.0.0')
-TASKFLOW_IRODS_PORT = os.getenv('TASKFLOW_IRODS_PORT', 1247)
+TASKFLOW_IRODS_PORT = os.getenv('TASKFLOW_IRODS_PORT', 4477)
 TASKFLOW_IRODS_ZONE = os.getenv('TASKFLOW_IRODS_ZONE', 'omicsZone')
 TASKFLOW_IRODS_USER = os.getenv('TASKFLOW_IRODS_USER', 'rods')
 TASKFLOW_IRODS_PASS = os.getenv('TASKFLOW_IRODS_PASS', 'rods')

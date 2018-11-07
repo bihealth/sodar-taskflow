@@ -11,6 +11,7 @@ Added
 -----
 
 - Support for additional iRODS test server (sodar_core#67)
+- Dotenv configuration (#37)
 
 Removed
 -------
