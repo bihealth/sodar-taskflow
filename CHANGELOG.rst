@@ -4,14 +4,15 @@ SODAR Taskflow Changelog
 Changelog for the SODAR Taskflow service.
 
 
-Unreleased
-==========
+v0.3.1 (2018-12-19)
+===================
 
 Added
 -----
 
 - Support for additional iRODS test server (sodar_core#67)
 - Dotenv configuration (#37)
+- Use ``TASKFLOW_SODAR_SECRET`` variable for securing connections (sodar_core#46)
 
 Removed
 -------
@@ -49,12 +50,10 @@ Added
 - Proper exception reporting for AddUserToGroupTask (#4)
 - Option for validating only in ``landing_zone_move`` (omics_data_mgmt#333)
 
-
 Changed
 -------
 
 - Modify iRODS exception raising in attempt to catch exception name (#34)
-
 
 Fixed
 -----
@@ -72,7 +71,6 @@ Added
 - Option for not requiring lock by setting flow.require_lock to False (omics_data_mgmt#231)
 - Support for landing zone configuration
 
-
 Fixed
 -----
 
@@ -80,7 +78,6 @@ Fixed
 - Concurrent requests failed in debug mode, now using multiple processes
 - Failure in acquiring lock was not correctly reported in async mode (omics_data_mgmt#235)
 - Project update failure if readme is empty (omics_data_mgmt#251)
-
 
 Removed
 -------
@@ -118,13 +115,11 @@ Changed
 - Use gevent in production mode (#26)
 - Upgrade to gunicorn==19.8.1
 
-
 Removed
 -------
 
 - Flynn references removed as deploying via Flynn is no longer supported
 - Redundant debug printouts (all now going to logger)
-
 
 Fixed
 -----

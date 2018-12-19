@@ -59,3 +59,7 @@ Production Deployment
 
 Use the `CUBI Ansible Playbooks <https://cubi-gitlab.bihealth.org/CUBI_Operations/Ansible_Playbooks/>`_
 by running the role ``cubi.omics-beta`` with the tag ``sodar_taskflow``.
+
+**NOTE:** Due to the ``TASKFLOW_SODAR_SECRET`` variable having to match between
+SODAR and SODAR Taskflow, only one SODAR instance may be used with one SODAR
+Taskflow instance!

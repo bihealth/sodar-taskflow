@@ -2,6 +2,8 @@
 
 import requests
 
+from config import settings
+
 
 TL_URL = 'timeline/taskflow/status/set'
 ZONE_URL = 'zones/taskflow/status/set'
@@ -20,6 +22,7 @@ class SODARAPI:
 
     def send_request(self, url, query_data):
         request_url = self.sodar_url + '/' + url
+        query_data['sodar_secret'] = settings.TASKFLOW_SODAR_SECRET
         response = requests.post(request_url, data=query_data)
 
         if response.status_code != 200:
@@ -35,5 +38,6 @@ class SODARAPI:
             'event_uuid': event_uuid,
             'status_type': status_type,
             'status_desc': status_desc,
-            'extra_data': extra_data}
+            'extra_data': extra_data,
+            'sodar_secret': settings.TASKFLOW_SODAR_SECRET}
         self.send_request(TL_URL, set_data)

@@ -50,13 +50,20 @@ def submit():
         'project_uuid',
         'request_mode',
         'flow_name',
-        'targets']
+        'targets',
+        'sodar_secret']
 
     for k in required_keys:
         if k not in form_data or form_data[k] == '':
             msg = 'Missing or invalid argument: "{}"'.format(k)
             app.logger.error(msg)
             return Response(msg, status=400)  # Bad request
+
+    # Ensure sodar_secret is correct
+    if form_data['sodar_secret'] != settings.TASKFLOW_SODAR_SECRET:
+        msg = 'Not authorized'
+        app.logger.error(msg)
+        return Response(msg, status=403)
 
     # Make sure we can support the named flow
     flow_cls = flows.get_flow(form_data['flow_name'])

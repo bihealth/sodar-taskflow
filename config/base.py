@@ -28,6 +28,8 @@ TASKFLOW_LANDING_ZONE_DIR = 'landing_zones'
 TASKFLOW_SODAR_URL = os.getenv('TASKFLOW_SODAR_URL', 'http://0.0.0.0:8000')
 TASKFLOW_REDIS_URL = os.getenv('TASKFLOW_REDIS_URL', 'redis://0.0.0.0:6633')
 
+TASKFLOW_SODAR_SECRET = os.getenv('TASKFLOW_SODAR_SECRET', 'CHANGE ME!')
+
 # iRODS test server settings (default = sodar_docker_env)
 # NOTE: Zone remains the same
 TASKFLOW_IRODS_TEST_HOST = os.getenv('TASKFLOW_IRODS_TEST_HOST', '0.0.0.0')
