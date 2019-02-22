@@ -24,4 +24,5 @@ all_tests:
   script:
     - ./utility/test.sh
     - ./utility/black.sh --check
+    - flake8 .
   when: on_success

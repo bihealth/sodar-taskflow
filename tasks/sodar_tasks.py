@@ -127,9 +127,7 @@ class SetRoleTask(SODARBaseTask):
             'user_uuid': user_uuid,
             'role_pk': role_pk,
         }
-        self.sodar_api.send_request(
-            'project/taskflow/role/set', set_data
-        )
+        self.sodar_api.send_request('project/taskflow/role/set', set_data)
         self.data_modified = True
 
         super(SetRoleTask, self).execute(*args, **kwargs)

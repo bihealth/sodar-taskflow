@@ -36,13 +36,13 @@ app.logger.setLevel(logging.getLevelName(settings.TASKFLOW_LOG_LEVEL))
 
 
 def run_flow(
-        flow,
-        project_uuid,
-        timeline_uuid,
-        sodar_api,
-        irods,
-        force_fail,
-        async_mode=True,
+    flow,
+    project_uuid,
+    timeline_uuid,
+    sodar_api,
+    irods,
+    force_fail,
+    async_mode=True,
 ):
     """
     Run a task flow, either synchronously or asynchronously.
@@ -106,15 +106,11 @@ def run_flow(
                 else 'FAILED',
                 'status_info': '{}: {}'.format(msg, ex),
             }
-            sodar_api.send_request(
-                'landingzones/taskflow/status/set', set_data
-            )
+            sodar_api.send_request('landingzones/taskflow/status/set', set_data)
 
             # Set timeline status
             sodar_api.set_timeline_status(
-                event_uuid=timeline_uuid,
-                status_type='FAILED',
-                status_desc=msg,
+                event_uuid=timeline_uuid, status_type='FAILED', status_desc=msg
             )
 
             app.logger.error('{}: {}'.format(msg, ex))
@@ -151,7 +147,7 @@ def run_flow(
                 event_uuid=timeline_uuid,
                 status_type='FAILED',
                 status_desc='Error running async flow: '
-                            + (ex_str if ex_str else 'unknown error'),
+                + (ex_str if ex_str else 'unknown error'),
             )
 
         else:
