@@ -7,11 +7,21 @@ Changelog for the SODAR Taskflow service.
 Unreleased
 ==========
 
+Changed
+-------
+
+- Prettify Tooz lock status logging (#33)
+
 Fixed
 -----
 
 - Checksum validation failure on tab-formatted .md5 files (#40)
 - Wrong landing zone status info for "validate only" mode (#43)
+
+Removed
+-------
+
+- Unnecessary byte encoding in Tooz lock API (#33)
 
 
 v0.3.1 (2018-12-19)

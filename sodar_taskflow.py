@@ -144,7 +144,7 @@ def submit():
 
             else:
                 lock_id = project_uuid
-                lock = coordinator.get_lock(bytes(lock_id, encoding='utf-8'))
+                lock = coordinator.get_lock(lock_id)
 
                 try:
                     lock_api.acquire(lock)

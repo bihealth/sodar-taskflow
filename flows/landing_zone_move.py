@@ -1,4 +1,5 @@
 from config import settings
+import time
 
 from .base_flow import BaseLinearFlow
 from apis.irods_utils import get_sample_path, get_landing_zone_path, \
@@ -28,6 +29,8 @@ class Flow(BaseLinearFlow):
         return super(Flow, self).validate()
 
     def build(self, force_fail=False):
+
+        time.sleep(10)
 
         validate_only = (
             True if 'validate_only' in self.flow_data and

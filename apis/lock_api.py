@@ -18,10 +18,10 @@ logger = logging.getLogger('sodar_taskflow.apis.lock_api')
 
 
 def log_status(lock, unlock=False, failed=False):
-    msg = '{} {}: {}'.format(
+    msg = '{} {} for project {}'.format(
         'Unlock' if unlock else 'Lock',
         'FAILED' if failed else 'OK',
-        str(lock.name))
+        lock.name.split('_')[2])
     logger.error(msg) if failed else logger.info(msg)
 
 
@@ -31,7 +31,7 @@ def get_coordinator():
 
     coordinator = coordination.get_coordinator(
         backend_url=REDIS_URL,
-        member_id=bytes(host_id, encoding='utf-8'),
+        member_id=host_id,
         socket_keepalive=True)
 
     if coordinator:
