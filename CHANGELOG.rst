@@ -11,6 +11,7 @@ Fixed
 -----
 
 - Checksum validation failure on tab-formatted .md5 files (#40)
+- Wrong landing zone status info for "validate only" mode (#43)
 
 
 v0.3.1 (2018-12-19)

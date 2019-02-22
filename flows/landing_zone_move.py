@@ -29,11 +29,16 @@ class Flow(BaseLinearFlow):
 
     def build(self, force_fail=False):
 
+        validate_only = (
+            True if 'validate_only' in self.flow_data and
+            self.flow_data['validate_only'] else False)
+
         # Set zone status in the Django site
         set_data = {
             'zone_uuid': self.flow_data['zone_uuid'],
             'status': 'PREPARING',
-            'status_info': 'Preparing transaction for validation and moving'}
+            'status_info': 'Preparing transaction for validation{}'.format(
+                ' and moving' if not validate_only else '')}
         self.sodar_api.send_request(
             'landingzones/taskflow/status/set', set_data)
 
@@ -113,8 +118,7 @@ class Flow(BaseLinearFlow):
 
         # If "validate_only" is set, return without moving and set status
 
-        if ('validate_only' in self.flow_data and
-                self.flow_data['validate_only']):
+        if validate_only:
             self.add_task(
                 irods_tasks.BatchValidateChecksumsTask(
                     name='Batch validate MD5 checksums of {} data '
