@@ -21,7 +21,8 @@ def log_status(lock, unlock=False, failed=False):
     msg = '{} {} for project {}'.format(
         'Unlock' if unlock else 'Lock',
         'FAILED' if failed else 'OK',
-        lock.name.split('_')[2])
+        lock.name.split('_')[2],
+    )
     logger.error(msg) if failed else logger.info(msg)
 
 
@@ -30,9 +31,8 @@ def get_coordinator():
     host_id = 'sodar_taskflow_{}'.format(uuid.uuid4())
 
     coordinator = coordination.get_coordinator(
-        backend_url=REDIS_URL,
-        member_id=host_id,
-        socket_keepalive=True)
+        backend_url=REDIS_URL, member_id=host_id, socket_keepalive=True
+    )
 
     if coordinator:
         coordinator.start(start_heart=True)
@@ -42,9 +42,8 @@ def get_coordinator():
 
 
 def acquire(
-        lock,
-        retry_count=LOCK_RETRY_COUNT,
-        retry_interval=LOCK_RETRY_INTERVAL):
+    lock, retry_count=LOCK_RETRY_COUNT, retry_interval=LOCK_RETRY_INTERVAL
+):
     """
     Acquire project lock
     :param lock: Tooz lock object

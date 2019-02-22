@@ -11,9 +11,10 @@ class ForceFailException(Exception):
 
 class BaseTask(task.Task):
     """Common base task"""
+
     def __init__(
-            self, name, force_fail=False, verbose=True, inject=None, *args,
-            **kwargs):
+        self, name, force_fail=False, verbose=True, inject=None, *args, **kwargs
+    ):
         super(BaseTask, self).__init__(name, inject=inject)
         self.name = name
         self.target = None  # TODO: Set this when inheriting task
@@ -30,9 +31,11 @@ class BaseTask(task.Task):
 
     def post_execute(self, *args, **kwargs):
         if self.verbose:
-            logger.info('{}: {}'.format(
-                'force_fail' if self.force_fail else 'Executed',
-                self.name))
+            logger.info(
+                '{}: {}'.format(
+                    'force_fail' if self.force_fail else 'Executed', self.name
+                )
+            )
 
     def post_revert(self, *args, **kwargs):
         if self.verbose:

@@ -22,11 +22,13 @@ class AppTestBase(TestCase):
 
 class TestHello(AppTestBase):
     """Tests for the hello world page"""
+
     def test_hello_render(self):
         """Test rendering of hello page (to ensure we can connect to app)"""
         # url = settings.SERVER_NAME + '/hello'
         response = self.app.get('/hello')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, b'Hello world from sodar_taskflow!')
+
 
 # TODO: Tests for submit & cleanup

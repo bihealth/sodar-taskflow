@@ -25,7 +25,8 @@ def init_irods(test_mode=False):
             port=settings.TASKFLOW_IRODS_PORT,
             user=settings.TASKFLOW_IRODS_USER,
             password=settings.TASKFLOW_IRODS_PASS,
-            zone=settings.TASKFLOW_IRODS_ZONE)
+            zone=settings.TASKFLOW_IRODS_ZONE,
+        )
 
     # Test server
     else:
@@ -34,13 +35,17 @@ def init_irods(test_mode=False):
             port=settings.TASKFLOW_IRODS_TEST_PORT,
             user=settings.TASKFLOW_IRODS_TEST_USER,
             password=settings.TASKFLOW_IRODS_TEST_PASS,
-            zone=settings.TASKFLOW_IRODS_ZONE)
+            zone=settings.TASKFLOW_IRODS_ZONE,
+        )
 
     # Ensure we have a connection
     irods.collections.exists('/{}/home/{}'.format(irods.zone, irods.username))
 
-    logger.debug('Connected to {} server on {}:{}'.format(
-        'TEST' if test_mode else 'DEFAULT', irods.host, irods.port))
+    logger.debug(
+        'Connected to {} server on {}:{}'.format(
+            'TEST' if test_mode else 'DEFAULT', irods.host, irods.port
+        )
+    )
 
     return irods
 
@@ -60,14 +65,13 @@ def cleanup_irods(irods, verbose=True):
 
     # Remove project folders
     try:
-        irods.collections.remove(
-            PROJECT_ROOT, recurse=True, force=True)
+        irods.collections.remove(PROJECT_ROOT, recurse=True, force=True)
 
         if verbose:
             logger.info('Removed project root: {}'.format(PROJECT_ROOT))
 
     except Exception:
-        pass    # This is OK, the root just wasn't there
+        pass  # This is OK, the root just wasn't there
 
     # Remove created user groups and users
     # NOTE: user_groups.remove does both
@@ -84,14 +88,16 @@ def get_project_path(project_uuid):
     return '{project_root}/{uuid_prefix}/{uuid}'.format(
         project_root=PROJECT_ROOT,
         uuid_prefix=project_uuid[:2],
-        uuid=project_uuid)
+        uuid=project_uuid,
+    )
 
 
 def get_sample_path(project_uuid, assay_path=None):
     """Return project sample data path"""
     ret = '{project_path}/{sample_dir}'.format(
         project_path=get_project_path(project_uuid),
-        sample_dir=settings.TASKFLOW_SAMPLE_DIR)
+        sample_dir=settings.TASKFLOW_SAMPLE_DIR,
+    )
 
     if assay_path:
         ret += '/' + assay_path
@@ -103,19 +109,24 @@ def get_landing_zone_root(project_uuid):
     """Return project landing zone root"""
     return '{project_path}/{lz_dir}'.format(
         project_path=get_project_path(project_uuid),
-        lz_dir=settings.TASKFLOW_LANDING_ZONE_DIR)
+        lz_dir=settings.TASKFLOW_LANDING_ZONE_DIR,
+    )
 
 
 def get_landing_zone_path(
-        project_uuid, user_name, assay_path, zone_title, zone_config):
-    return '{project_path}/{lz_dir}/{user_name}/' \
-           '{assay}/{zone_title}{zone_config}'.format(
+    project_uuid, user_name, assay_path, zone_title, zone_config
+):
+    return (
+        '{project_path}/{lz_dir}/{user_name}/'
+        '{assay}/{zone_title}{zone_config}'.format(
             project_path=get_project_path(project_uuid),
             lz_dir=settings.TASKFLOW_LANDING_ZONE_DIR,
             user_name=user_name,
             assay=assay_path,
             zone_title=zone_title,
-            zone_config=('_' + zone_config) if zone_config else '')
+            zone_config=('_' + zone_config) if zone_config else '',
+        )
+    )
 
 
 def get_project_group_name(project_uuid):
@@ -126,13 +137,18 @@ def get_project_group_name(project_uuid):
 def get_trash_path(path, add_rand=False):
     """Return base trash path for an object without a versioning suffix. Adds
     random characters if add_rand is set True (for revert operations)"""
-    trash_path = '/' + path.split('/')[1] + '/trash/' + '/'.join(
-        [x for x in path.split('/')[2:]])
+    trash_path = (
+        '/'
+        + path.split('/')[1]
+        + '/trash/'
+        + '/'.join([x for x in path.split('/')[2:]])
+    )
 
     if add_rand:
         trash_path += '_' + ''.join(
-            random.SystemRandom().choice(
-                string.ascii_lowercase + string.digits) for x in range(16))
+            random.SystemRandom().choice(string.ascii_lowercase + string.digits)
+            for x in range(16)
+        )
 
     return trash_path
 

@@ -8,8 +8,13 @@ import uuid
 from irods.access import iRODSAccess
 from irods.data_object import iRODSDataObject
 from irods.collection import iRODSCollection
-from irods.exception import CollectionDoesNotExist, UserDoesNotExist,\
-    UserGroupDoesNotExist, NoResultFound, DataObjectDoesNotExist
+from irods.exception import (
+    CollectionDoesNotExist,
+    UserDoesNotExist,
+    UserGroupDoesNotExist,
+    NoResultFound,
+    DataObjectDoesNotExist,
+)
 from irods.meta import iRODSMeta
 from irods.models import Collection
 from irods.user import iRODSUser, iRODSUserGroup
@@ -87,15 +92,15 @@ class IRODSTestBase(TestCase):
 
             # Init default users
             self.irods.users.create(
-                user_name=GROUP_USER,
-                user_type='rodsuser',
-                user_zone=IRODS_ZONE)
+                user_name=GROUP_USER, user_type='rodsuser', user_zone=IRODS_ZONE
+            )
             group.addmember(GROUP_USER)
 
             self.irods.users.create(
                 user_name=GROUPLESS_USER,
                 user_type='rodsuser',
-                user_zone=IRODS_ZONE)
+                user_zone=IRODS_ZONE,
+            )
 
         except Exception as ex:
             print('setUp failed: {}'.format(ex))
@@ -121,15 +126,19 @@ class IRODSTestBase(TestCase):
             project_uuid=PROJECT_UUID,
             flow_name=str(uuid.uuid4()),
             flow_data={},
-            targets=['irods'])
+            targets=['irods'],
+        )
 
     def _add_task(self, cls, name, inject, force_fail=False):
-        self.flow.add_task(cls(
-            name=name,
-            irods=self.irods,
-            verbose=False,
-            inject=inject,
-            force_fail=force_fail))
+        self.flow.add_task(
+            cls(
+                name=name,
+                irods=self.irods,
+                verbose=False,
+                inject=inject,
+                force_fail=force_fail,
+            )
+        )
 
     def _get_root_coll(self):
         return self.irods.collections.get(ROOT_COLL)
@@ -143,7 +152,8 @@ class IRODSTestBase(TestCase):
     def _get_user_access(self, target, user_name):
         target_access = self.irods.permissions.get(target=target)
         return next(
-            (x for x in target_access if x.user_name == user_name), None)
+            (x for x in target_access if x.user_name == user_name), None
+        )
 
 
 class TestCreateCollectionTask(IRODSTestBase):
@@ -152,13 +162,13 @@ class TestCreateCollectionTask(IRODSTestBase):
         self._add_task(
             cls=CreateCollectionTask,
             name='Create collection',
-            inject={'path': TEST_COLL_NEW})
+            inject={'path': TEST_COLL_NEW},
+        )
 
         # Assert precondition
         self.assertRaises(
-            CollectionDoesNotExist,
-            self.irods.collections.get,
-            TEST_COLL_NEW)
+            CollectionDoesNotExist, self.irods.collections.get, TEST_COLL_NEW
+        )
 
         result = self._run_flow()
 
@@ -174,7 +184,8 @@ class TestCreateCollectionTask(IRODSTestBase):
         self._add_task(
             cls=CreateCollectionTask,
             name='Create collection',
-            inject={'path': TEST_COLL_NEW})
+            inject={'path': TEST_COLL_NEW},
+        )
 
         result = self._run_flow()
 
@@ -183,7 +194,8 @@ class TestCreateCollectionTask(IRODSTestBase):
         self._add_task(
             cls=CreateCollectionTask,
             name='Create collection',
-            inject={'path': TEST_COLL_NEW})
+            inject={'path': TEST_COLL_NEW},
+        )
         result = self._run_flow()
 
         # Assert flow success
@@ -199,7 +211,8 @@ class TestCreateCollectionTask(IRODSTestBase):
             cls=CreateCollectionTask,
             name='Create collection',
             inject={'path': TEST_COLL_NEW},
-            force_fail=True)    # FAIL
+            force_fail=True,
+        )  # FAIL
 
         result = self._run_flow()
 
@@ -208,16 +221,16 @@ class TestCreateCollectionTask(IRODSTestBase):
 
         # Assert postcondition
         self.assertRaises(
-            CollectionDoesNotExist,
-            self.irods.collections.get,
-            TEST_COLL_NEW)
+            CollectionDoesNotExist, self.irods.collections.get, TEST_COLL_NEW
+        )
 
     def test_revert_not_modified(self):
         """Test collection creation reverting without modification"""
         self._add_task(
             cls=CreateCollectionTask,
             name='Create collection',
-            inject={'path': TEST_COLL_NEW})
+            inject={'path': TEST_COLL_NEW},
+        )
 
         result = self._run_flow()
 
@@ -230,7 +243,8 @@ class TestCreateCollectionTask(IRODSTestBase):
             cls=CreateCollectionTask,
             name='Create collection',
             inject={'path': TEST_COLL_NEW},
-            force_fail=True)    # FAIL
+            force_fail=True,
+        )  # FAIL
         result = self._run_flow()
 
         # Assert flow failure
@@ -245,23 +259,25 @@ class TestCreateCollectionTask(IRODSTestBase):
         self._add_task(
             cls=CreateCollectionTask,
             name='Create collection',
-            inject={'path': TEST_COLL_NEW + '/subcoll1/subcoll2'})
+            inject={'path': TEST_COLL_NEW + '/subcoll1/subcoll2'},
+        )
 
         # Assert preconditions
         self.assertRaises(
-            CollectionDoesNotExist,
-            self.irods.collections.get,
-            TEST_COLL_NEW)
+            CollectionDoesNotExist, self.irods.collections.get, TEST_COLL_NEW
+        )
 
         self.assertRaises(
             CollectionDoesNotExist,
             self.irods.collections.get,
-            TEST_COLL_NEW + '/subcoll1')
+            TEST_COLL_NEW + '/subcoll1',
+        )
 
         self.assertRaises(
             CollectionDoesNotExist,
             self.irods.collections.get,
-            TEST_COLL_NEW + '/subcoll1/subcoll2')
+            TEST_COLL_NEW + '/subcoll1/subcoll2',
+        )
 
         result = self._run_flow()
 
@@ -283,7 +299,8 @@ class TestCreateCollectionTask(IRODSTestBase):
         self._add_task(
             cls=CreateCollectionTask,
             name='Create collection',
-            inject={'path': TEST_COLL_NEW + '/subcoll1/subcoll2'})
+            inject={'path': TEST_COLL_NEW + '/subcoll1/subcoll2'},
+        )
 
         result = self._run_flow()
 
@@ -292,7 +309,8 @@ class TestCreateCollectionTask(IRODSTestBase):
         self._add_task(
             cls=CreateCollectionTask,
             name='Create collection',
-            inject={'path': TEST_COLL_NEW + '/subcoll1/subcoll2'})
+            inject={'path': TEST_COLL_NEW + '/subcoll1/subcoll2'},
+        )
         result = self._run_flow()
 
         # Assert flow success
@@ -314,7 +332,8 @@ class TestCreateCollectionTask(IRODSTestBase):
             cls=CreateCollectionTask,
             name='Create collection',
             inject={'path': TEST_COLL_NEW + '/subcoll1/subcoll2'},
-            force_fail=True)    # FAIL
+            force_fail=True,
+        )  # FAIL
 
         result = self._run_flow()
 
@@ -323,29 +342,30 @@ class TestCreateCollectionTask(IRODSTestBase):
 
         # Assert postconditions
         self.assertRaises(
-            CollectionDoesNotExist,
-            self.irods.collections.get,
-            TEST_COLL_NEW)
+            CollectionDoesNotExist, self.irods.collections.get, TEST_COLL_NEW
+        )
 
         self.assertRaises(
             CollectionDoesNotExist,
             self.irods.collections.get,
-            TEST_COLL_NEW + '/subcoll1')
+            TEST_COLL_NEW + '/subcoll1',
+        )
 
         self.assertRaises(
             CollectionDoesNotExist,
             self.irods.collections.get,
-            TEST_COLL_NEW + '/subcoll1/subcoll2')
+            TEST_COLL_NEW + '/subcoll1/subcoll2',
+        )
 
 
 class TestRemoveCollectionTask(IRODSTestBase):
-
     def test_execute(self):
         """Test collection removal"""
         self._add_task(
             cls=RemoveCollectionTask,
             name='Remove collection',
-            inject={'path': TEST_COLL})
+            inject={'path': TEST_COLL},
+        )
 
         # Assert precondition
         coll = self.irods.collections.get(TEST_COLL)
@@ -358,16 +378,16 @@ class TestRemoveCollectionTask(IRODSTestBase):
 
         # Assert postcondition
         self.assertRaises(
-            CollectionDoesNotExist,
-            self.irods.collections.get,
-            TEST_COLL)
+            CollectionDoesNotExist, self.irods.collections.get, TEST_COLL
+        )
 
     def test_execute_twice(self):
         """Test collection removal twice"""
         self._add_task(
             cls=RemoveCollectionTask,
             name='Remove collection',
-            inject={'path': TEST_COLL})
+            inject={'path': TEST_COLL},
+        )
 
         result = self._run_flow()
 
@@ -376,7 +396,8 @@ class TestRemoveCollectionTask(IRODSTestBase):
         self._add_task(
             cls=RemoveCollectionTask,
             name='Remove collection',
-            inject={'path': TEST_COLL})
+            inject={'path': TEST_COLL},
+        )
         result = self._run_flow()
 
         # Assert flow success
@@ -384,9 +405,8 @@ class TestRemoveCollectionTask(IRODSTestBase):
 
         # Assert postcondition
         self.assertRaises(
-            CollectionDoesNotExist,
-            self.irods.collections.get,
-            TEST_COLL)
+            CollectionDoesNotExist, self.irods.collections.get, TEST_COLL
+        )
 
     def test_revert_removed(self):
         """Test collection removal reverting after removing"""
@@ -394,7 +414,8 @@ class TestRemoveCollectionTask(IRODSTestBase):
             cls=RemoveCollectionTask,
             name='Remove collection',
             inject={'path': TEST_COLL},
-            force_fail=True)    # FAIL
+            force_fail=True,
+        )  # FAIL
 
         result = self._run_flow()
 
@@ -410,9 +431,8 @@ class TestRemoveCollectionTask(IRODSTestBase):
 
         # Assert precondition
         self.assertRaises(
-            CollectionDoesNotExist,
-            self.irods.collections.get,
-            TEST_COLL_NEW)
+            CollectionDoesNotExist, self.irods.collections.get, TEST_COLL_NEW
+        )
 
         # Init and run flow
         self.flow = self._init_flow()
@@ -420,7 +440,8 @@ class TestRemoveCollectionTask(IRODSTestBase):
             cls=RemoveCollectionTask,
             name='Remove collection',
             inject={'path': TEST_COLL_NEW},
-            force_fail=True)  # FAIL
+            force_fail=True,
+        )  # FAIL
         result = self._run_flow()
 
         # Assert flow failure
@@ -428,9 +449,8 @@ class TestRemoveCollectionTask(IRODSTestBase):
 
         # Assert postcondition
         self.assertRaises(
-            CollectionDoesNotExist,
-            self.irods.collections.get,
-            TEST_COLL_NEW)
+            CollectionDoesNotExist, self.irods.collections.get, TEST_COLL_NEW
+        )
 
 
 class TestSetCollectionMetadataTask(IRODSTestBase):
@@ -443,15 +463,14 @@ class TestSetCollectionMetadataTask(IRODSTestBase):
                 'path': TEST_COLL,
                 'name': TEST_KEY,
                 'value': TEST_VAL,
-                'units': TEST_UNITS})
+                'units': TEST_UNITS,
+            },
+        )
 
         test_coll = self._get_test_coll()
 
         # Assert precondition
-        self.assertRaises(
-            Exception,
-            test_coll.metadata.get_one,
-            TEST_KEY)
+        self.assertRaises(Exception, test_coll.metadata.get_one, TEST_KEY)
 
         result = self._run_flow()
 
@@ -476,7 +495,9 @@ class TestSetCollectionMetadataTask(IRODSTestBase):
                 'path': TEST_COLL,
                 'name': TEST_KEY,
                 'value': TEST_VAL,
-                'units': TEST_UNITS})
+                'units': TEST_UNITS,
+            },
+        )
 
         result = self._run_flow()
 
@@ -489,7 +510,9 @@ class TestSetCollectionMetadataTask(IRODSTestBase):
                 'path': TEST_COLL,
                 'name': TEST_KEY,
                 'value': TEST_VAL,
-                'units': TEST_UNITS})
+                'units': TEST_UNITS,
+            },
+        )
         result = self._run_flow()
 
         # Assert flow success
@@ -509,8 +532,10 @@ class TestSetCollectionMetadataTask(IRODSTestBase):
                 'path': TEST_COLL,
                 'name': TEST_KEY,
                 'value': TEST_VAL,
-                'units': TEST_UNITS},
-            force_fail=True)    # FAIL
+                'units': TEST_UNITS,
+            },
+            force_fail=True,
+        )  # FAIL
 
         result = self._run_flow()
 
@@ -519,10 +544,7 @@ class TestSetCollectionMetadataTask(IRODSTestBase):
 
         # Assert postcondition
         test_coll = self._get_test_coll()
-        self.assertRaises(
-            KeyError,
-            test_coll.metadata.get_one,
-            TEST_KEY)
+        self.assertRaises(KeyError, test_coll.metadata.get_one, TEST_KEY)
 
     def test_revert_modified(self):
         """Test metadata setting reverting after modification"""
@@ -533,7 +555,9 @@ class TestSetCollectionMetadataTask(IRODSTestBase):
                 'path': TEST_COLL,
                 'name': TEST_KEY,
                 'value': TEST_VAL,
-                'units': TEST_UNITS})
+                'units': TEST_UNITS,
+            },
+        )
 
         result = self._run_flow()
 
@@ -547,8 +571,10 @@ class TestSetCollectionMetadataTask(IRODSTestBase):
                 'path': TEST_COLL,
                 'name': TEST_KEY,
                 'value': new_val,
-                'units': TEST_UNITS},
-            force_fail=True)  # FAIL
+                'units': TEST_UNITS,
+            },
+            force_fail=True,
+        )  # FAIL
         result = self._run_flow()
 
         # Assert flow failure
@@ -558,7 +584,7 @@ class TestSetCollectionMetadataTask(IRODSTestBase):
         test_coll = self._get_test_coll()
         meta_item = test_coll.metadata.get_one(TEST_KEY)
         self.assertIsInstance(meta_item, iRODSMeta)
-        self.assertEqual(meta_item.value, TEST_VAL)    # Original value
+        self.assertEqual(meta_item.value, TEST_VAL)  # Original value
 
     def test_revert_not_modified(self):
         """Test metadata setting reverting without modification"""
@@ -569,7 +595,9 @@ class TestSetCollectionMetadataTask(IRODSTestBase):
                 'path': TEST_COLL,
                 'name': TEST_KEY,
                 'value': TEST_VAL,
-                'units': TEST_UNITS})
+                'units': TEST_UNITS,
+            },
+        )
 
         result = self._run_flow()
 
@@ -585,8 +613,10 @@ class TestSetCollectionMetadataTask(IRODSTestBase):
                 'path': TEST_COLL,
                 'name': TEST_KEY,
                 'value': TEST_VAL,
-                'units': TEST_UNITS},
-            force_fail=True)
+                'units': TEST_UNITS,
+            },
+            force_fail=True,
+        )
         result = self._run_flow()
 
         # Assert flow failure
@@ -603,13 +633,13 @@ class TestCreateUserGroupTask(IRODSTestBase):
         self._add_task(
             cls=CreateUserGroupTask,
             name='Create user group',
-            inject={'name': TEST_USER_GROUP})
+            inject={'name': TEST_USER_GROUP},
+        )
 
         # Assert precondition
         self.assertRaises(
-            UserGroupDoesNotExist,
-            self.irods.user_groups.get,
-            TEST_USER_GROUP)
+            UserGroupDoesNotExist, self.irods.user_groups.get, TEST_USER_GROUP
+        )
 
         result = self._run_flow()
 
@@ -625,7 +655,8 @@ class TestCreateUserGroupTask(IRODSTestBase):
         self._add_task(
             cls=CreateUserGroupTask,
             name='Create user group',
-            inject={'name': TEST_USER_GROUP})
+            inject={'name': TEST_USER_GROUP},
+        )
 
         result = self._run_flow()
 
@@ -637,7 +668,8 @@ class TestCreateUserGroupTask(IRODSTestBase):
         self._add_task(
             cls=CreateUserGroupTask,
             name='Create user group',
-            inject={'name': TEST_USER_GROUP})
+            inject={'name': TEST_USER_GROUP},
+        )
         result = self._run_flow()
 
         # Assert flow success
@@ -653,7 +685,8 @@ class TestCreateUserGroupTask(IRODSTestBase):
             cls=CreateUserGroupTask,
             name='Create user group',
             inject={'name': TEST_USER_GROUP},
-            force_fail=True)    # FAIL
+            force_fail=True,
+        )  # FAIL
 
         result = self._run_flow()
 
@@ -662,16 +695,16 @@ class TestCreateUserGroupTask(IRODSTestBase):
 
         # Assert postcondition
         self.assertRaises(
-            UserGroupDoesNotExist,
-            self.irods.user_groups.get,
-            TEST_USER_GROUP)
+            UserGroupDoesNotExist, self.irods.user_groups.get, TEST_USER_GROUP
+        )
 
     def test_revert_not_modified(self):
         """Test collection creation reverting without modification"""
         self._add_task(
             cls=CreateUserGroupTask,
             name='Create user group',
-            inject={'name': TEST_USER_GROUP})
+            inject={'name': TEST_USER_GROUP},
+        )
 
         result = self._run_flow()
 
@@ -684,7 +717,8 @@ class TestCreateUserGroupTask(IRODSTestBase):
             cls=CreateUserGroupTask,
             name='Create user group',
             inject={'name': TEST_USER_GROUP},
-            force_fail=True)    # FAIL
+            force_fail=True,
+        )  # FAIL
         result = self._run_flow()
 
         # Assert flow failure
@@ -704,12 +738,14 @@ class TestSetCollAccessTask(IRODSTestBase):
             inject={
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_COLL,
-                'user_name': DEFAULT_USER_GROUP})
+                'user_name': DEFAULT_USER_GROUP,
+            },
+        )
 
         # Assert precondition
         user_access = self._get_user_access(
-            target=self._get_test_coll(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_coll(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertEqual(user_access, None)
 
         result = self._run_flow()
@@ -719,8 +755,8 @@ class TestSetCollAccessTask(IRODSTestBase):
 
         # Assert postcondition
         user_access = self._get_user_access(
-            target=self._get_test_coll(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_coll(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertIsInstance(user_access, iRODSAccess)
         self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
 
@@ -732,12 +768,14 @@ class TestSetCollAccessTask(IRODSTestBase):
             inject={
                 'access_name': TEST_ACCESS_WRITE_IN,
                 'path': TEST_COLL,
-                'user_name': DEFAULT_USER_GROUP})
+                'user_name': DEFAULT_USER_GROUP,
+            },
+        )
 
         # Assert precondition
         user_access = self._get_user_access(
-            target=self._get_test_coll(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_coll(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertEqual(user_access, None)
 
         result = self._run_flow()
@@ -747,8 +785,8 @@ class TestSetCollAccessTask(IRODSTestBase):
 
         # Assert postcondition
         user_access = self._get_user_access(
-            target=self._get_test_coll(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_coll(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertIsInstance(user_access, iRODSAccess)
         self.assertEqual(user_access.access_name, TEST_ACCESS_WRITE_OUT)
 
@@ -760,7 +798,9 @@ class TestSetCollAccessTask(IRODSTestBase):
             inject={
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_COLL,
-                'user_name': DEFAULT_USER_GROUP})
+                'user_name': DEFAULT_USER_GROUP,
+            },
+        )
 
         result = self._run_flow()
 
@@ -775,7 +815,9 @@ class TestSetCollAccessTask(IRODSTestBase):
             inject={
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_COLL,
-                'user_name': DEFAULT_USER_GROUP})
+                'user_name': DEFAULT_USER_GROUP,
+            },
+        )
         result = self._run_flow()
 
         # Assert flow success
@@ -783,8 +825,8 @@ class TestSetCollAccessTask(IRODSTestBase):
 
         # Assert postcondition
         user_access = self._get_user_access(
-            target=self._get_test_coll(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_coll(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertIsInstance(user_access, iRODSAccess)
         self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
 
@@ -796,8 +838,10 @@ class TestSetCollAccessTask(IRODSTestBase):
             inject={
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_COLL,
-                'user_name': DEFAULT_USER_GROUP},
-            force_fail=True)    # FAIL
+                'user_name': DEFAULT_USER_GROUP,
+            },
+            force_fail=True,
+        )  # FAIL
 
         result = self._run_flow()
 
@@ -806,8 +850,8 @@ class TestSetCollAccessTask(IRODSTestBase):
 
         # Assert postcondition
         user_access = self._get_user_access(
-            target=self._get_test_coll(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_coll(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertIsNone(user_access)
         # self.assertEqual(user_access.access_name, TEST_ACCESS_NULL)
 
@@ -819,7 +863,9 @@ class TestSetCollAccessTask(IRODSTestBase):
             inject={
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_COLL,
-                'user_name': DEFAULT_USER_GROUP})
+                'user_name': DEFAULT_USER_GROUP,
+            },
+        )
 
         result = self._run_flow()
 
@@ -831,8 +877,10 @@ class TestSetCollAccessTask(IRODSTestBase):
             inject={
                 'access_name': TEST_ACCESS_WRITE_IN,
                 'path': TEST_COLL,
-                'user_name': DEFAULT_USER_GROUP},
-            force_fail=True)    # FAIL
+                'user_name': DEFAULT_USER_GROUP,
+            },
+            force_fail=True,
+        )  # FAIL
         result = self._run_flow()
 
         # Assert flow failure
@@ -840,8 +888,8 @@ class TestSetCollAccessTask(IRODSTestBase):
 
         # Assert postcondition
         user_access = self._get_user_access(
-            target=self._get_test_coll(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_coll(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertIsInstance(user_access, iRODSAccess)
         self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
 
@@ -853,7 +901,9 @@ class TestSetCollAccessTask(IRODSTestBase):
             inject={
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_COLL,
-                'user_name': DEFAULT_USER_GROUP})
+                'user_name': DEFAULT_USER_GROUP,
+            },
+        )
 
         result = self._run_flow()
 
@@ -868,8 +918,10 @@ class TestSetCollAccessTask(IRODSTestBase):
             inject={
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_COLL,
-                'user_name': DEFAULT_USER_GROUP},
-            force_fail=True)  # FAIL
+                'user_name': DEFAULT_USER_GROUP,
+            },
+            force_fail=True,
+        )  # FAIL
         result = self._run_flow()
 
         # Assert flow failure
@@ -877,8 +929,8 @@ class TestSetCollAccessTask(IRODSTestBase):
 
         # Assert postcondition
         user_access = self._get_user_access(
-            target=self._get_test_coll(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_coll(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertIsInstance(user_access, iRODSAccess)
         self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
 
@@ -890,7 +942,8 @@ class TestSetCollAccessTask(IRODSTestBase):
         test_user = self.irods.users.create(
             user_name=TEST_USER,
             user_type=TEST_USER_TYPE,
-            user_zone=self.irods.zone)
+            user_zone=self.irods.zone,
+        )
 
         self._add_task(
             cls=SetAccessTask,
@@ -899,17 +952,19 @@ class TestSetCollAccessTask(IRODSTestBase):
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_COLL,
                 'user_name': TEST_USER,
-                'recursive': False})
+                'recursive': False,
+            },
+        )
 
         # Assert preconditions
         user_access = self._get_user_access(
-            target=self._get_test_coll(),
-            user_name=TEST_USER)
+            target=self._get_test_coll(), user_name=TEST_USER
+        )
         self.assertEqual(user_access, None)
 
         user_access = self._get_user_access(
-            target=sub_coll,
-            user_name=TEST_USER)
+            target=sub_coll, user_name=TEST_USER
+        )
         self.assertEqual(user_access, None)
 
         # Run flow
@@ -920,14 +975,14 @@ class TestSetCollAccessTask(IRODSTestBase):
 
         # Assert postconditions
         user_access = self._get_user_access(
-            target=self._get_test_coll(),
-            user_name=TEST_USER)
+            target=self._get_test_coll(), user_name=TEST_USER
+        )
         self.assertIsInstance(user_access, iRODSAccess)
         self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
 
         user_access = self._get_user_access(
-            target=sub_coll,
-            user_name=TEST_USER)
+            target=sub_coll, user_name=TEST_USER
+        )
         self.assertEqual(user_access, None)
 
     def test_revert_no_recursion(self):
@@ -938,7 +993,8 @@ class TestSetCollAccessTask(IRODSTestBase):
         test_user = self.irods.users.create(
             user_name=TEST_USER,
             user_type=TEST_USER_TYPE,
-            user_zone=self.irods.zone)
+            user_zone=self.irods.zone,
+        )
 
         self._add_task(
             cls=SetAccessTask,
@@ -947,19 +1003,20 @@ class TestSetCollAccessTask(IRODSTestBase):
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_COLL,
                 'user_name': TEST_USER,
-                'recursive': False},
-
-            force_fail = True)  # FAIL
+                'recursive': False,
+            },
+            force_fail=True,
+        )  # FAIL
 
         # Assert preconditions
         user_access = self._get_user_access(
-            target=self._get_test_coll(),
-            user_name=TEST_USER)
+            target=self._get_test_coll(), user_name=TEST_USER
+        )
         self.assertEqual(user_access, None)
 
         user_access = self._get_user_access(
-            target=sub_coll,
-            user_name=TEST_USER)
+            target=sub_coll, user_name=TEST_USER
+        )
         self.assertEqual(user_access, None)
 
         # Run flow
@@ -970,13 +1027,13 @@ class TestSetCollAccessTask(IRODSTestBase):
 
         # Assert postconditions
         user_access = self._get_user_access(
-            target=self._get_test_coll(),
-            user_name=TEST_USER)
+            target=self._get_test_coll(), user_name=TEST_USER
+        )
         self.assertEqual(user_access, None)
 
         user_access = self._get_user_access(
-            target=sub_coll,
-            user_name=TEST_USER)
+            target=sub_coll, user_name=TEST_USER
+        )
         self.assertEqual(user_access, None)
 
 
@@ -996,12 +1053,14 @@ class TestSetDataObjAccessTask(IRODSTestBase):
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_OBJ,
                 'user_name': DEFAULT_USER_GROUP,
-                'obj_target': True})
+                'obj_target': True,
+            },
+        )
 
         # Assert precondition
         user_access = self._get_user_access(
-            target=self._get_test_obj(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_obj(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertEqual(user_access, None)
 
         result = self._run_flow()
@@ -1011,8 +1070,8 @@ class TestSetDataObjAccessTask(IRODSTestBase):
 
         # Assert postcondition
         user_access = self._get_user_access(
-            target=self._get_test_obj(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_obj(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertIsInstance(user_access, iRODSAccess)
         self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
 
@@ -1025,12 +1084,14 @@ class TestSetDataObjAccessTask(IRODSTestBase):
                 'access_name': TEST_ACCESS_WRITE_IN,
                 'path': TEST_OBJ,
                 'user_name': DEFAULT_USER_GROUP,
-                'obj_target': True})
+                'obj_target': True,
+            },
+        )
 
         # Assert precondition
         user_access = self._get_user_access(
-            target=self._get_test_obj(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_obj(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertEqual(user_access, None)
 
         result = self._run_flow()
@@ -1040,8 +1101,8 @@ class TestSetDataObjAccessTask(IRODSTestBase):
 
         # Assert postcondition
         user_access = self._get_user_access(
-            target=self._get_test_obj(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_obj(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertIsInstance(user_access, iRODSAccess)
         self.assertEqual(user_access.access_name, TEST_ACCESS_WRITE_OUT)
 
@@ -1054,7 +1115,9 @@ class TestSetDataObjAccessTask(IRODSTestBase):
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_OBJ,
                 'user_name': DEFAULT_USER_GROUP,
-                'obj_target': True})
+                'obj_target': True,
+            },
+        )
 
         result = self._run_flow()
 
@@ -1070,7 +1133,9 @@ class TestSetDataObjAccessTask(IRODSTestBase):
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_OBJ,
                 'user_name': DEFAULT_USER_GROUP,
-                'obj_target': True})
+                'obj_target': True,
+            },
+        )
         result = self._run_flow()
 
         # Assert flow success
@@ -1078,8 +1143,8 @@ class TestSetDataObjAccessTask(IRODSTestBase):
 
         # Assert postcondition
         user_access = self._get_user_access(
-            target=self._get_test_obj(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_obj(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertIsInstance(user_access, iRODSAccess)
         self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
 
@@ -1092,8 +1157,10 @@ class TestSetDataObjAccessTask(IRODSTestBase):
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_OBJ,
                 'user_name': DEFAULT_USER_GROUP,
-                'obj_target': True},
-            force_fail=True)    # FAIL
+                'obj_target': True,
+            },
+            force_fail=True,
+        )  # FAIL
 
         result = self._run_flow()
 
@@ -1102,8 +1169,8 @@ class TestSetDataObjAccessTask(IRODSTestBase):
 
         # Assert postcondition
         user_access = self._get_user_access(
-            target=self._get_test_obj(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_obj(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertIsNone(user_access)
 
     def test_revert_modified(self):
@@ -1115,7 +1182,9 @@ class TestSetDataObjAccessTask(IRODSTestBase):
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_OBJ,
                 'user_name': DEFAULT_USER_GROUP,
-                'obj_target': True})
+                'obj_target': True,
+            },
+        )
 
         result = self._run_flow()
 
@@ -1128,8 +1197,10 @@ class TestSetDataObjAccessTask(IRODSTestBase):
                 'access_name': TEST_ACCESS_WRITE_IN,
                 'path': TEST_OBJ,
                 'user_name': DEFAULT_USER_GROUP,
-                'obj_target': True},
-            force_fail=True)    # FAIL
+                'obj_target': True,
+            },
+            force_fail=True,
+        )  # FAIL
         result = self._run_flow()
 
         # Assert flow failure
@@ -1137,8 +1208,8 @@ class TestSetDataObjAccessTask(IRODSTestBase):
 
         # Assert postcondition
         user_access = self._get_user_access(
-            target=self._get_test_obj(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_obj(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertIsInstance(user_access, iRODSAccess)
         self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
 
@@ -1151,7 +1222,9 @@ class TestSetDataObjAccessTask(IRODSTestBase):
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_OBJ,
                 'user_name': DEFAULT_USER_GROUP,
-                'obj_target': True})
+                'obj_target': True,
+            },
+        )
 
         result = self._run_flow()
 
@@ -1167,8 +1240,10 @@ class TestSetDataObjAccessTask(IRODSTestBase):
                 'access_name': TEST_ACCESS_READ_IN,
                 'path': TEST_OBJ,
                 'user_name': DEFAULT_USER_GROUP,
-                'obj_target': True},
-            force_fail=True)  # FAIL
+                'obj_target': True,
+            },
+            force_fail=True,
+        )  # FAIL
         result = self._run_flow()
 
         # Assert flow failure
@@ -1176,8 +1251,8 @@ class TestSetDataObjAccessTask(IRODSTestBase):
 
         # Assert postcondition
         user_access = self._get_user_access(
-            target=self._get_test_obj(),
-            user_name=DEFAULT_USER_GROUP)
+            target=self._get_test_obj(), user_name=DEFAULT_USER_GROUP
+        )
         self.assertIsInstance(user_access, iRODSAccess)
         self.assertEqual(user_access.access_name, TEST_ACCESS_READ_OUT)
 
@@ -1188,15 +1263,11 @@ class TestCreateUserTask(IRODSTestBase):
         self._add_task(
             cls=CreateUserTask,
             name='Create user',
-            inject={
-                'user_name': TEST_USER,
-                'user_type': TEST_USER_TYPE})
+            inject={'user_name': TEST_USER, 'user_type': TEST_USER_TYPE},
+        )
 
         # Assert precondition
-        self.assertRaises(
-            UserDoesNotExist,
-            self.irods.users.get,
-            TEST_USER)
+        self.assertRaises(UserDoesNotExist, self.irods.users.get, TEST_USER)
 
         result = self._run_flow()
 
@@ -1212,9 +1283,8 @@ class TestCreateUserTask(IRODSTestBase):
         self._add_task(
             cls=CreateUserTask,
             name='Create user',
-            inject={
-                'user_name': TEST_USER,
-                'user_type': TEST_USER_TYPE})
+            inject={'user_name': TEST_USER, 'user_type': TEST_USER_TYPE},
+        )
 
         result = self._run_flow()
 
@@ -1226,9 +1296,8 @@ class TestCreateUserTask(IRODSTestBase):
         self._add_task(
             cls=CreateUserTask,
             name='Create user',
-            inject={
-                'user_name': TEST_USER,
-                'user_type': TEST_USER_TYPE})
+            inject={'user_name': TEST_USER, 'user_type': TEST_USER_TYPE},
+        )
         result = self._run_flow()
 
         # Assert postcondition
@@ -1240,10 +1309,9 @@ class TestCreateUserTask(IRODSTestBase):
         self._add_task(
             cls=CreateUserTask,
             name='Create user',
-            inject={
-                'user_name': TEST_USER,
-                'user_type': TEST_USER_TYPE},
-            force_fail=True)    # FAIL
+            inject={'user_name': TEST_USER, 'user_type': TEST_USER_TYPE},
+            force_fail=True,
+        )  # FAIL
 
         result = self._run_flow()
 
@@ -1251,19 +1319,15 @@ class TestCreateUserTask(IRODSTestBase):
         self.assertNotEqual(result, True)
 
         # Assert postcondition
-        self.assertRaises(
-            UserDoesNotExist,
-            self.irods.users.get,
-            TEST_USER)
+        self.assertRaises(UserDoesNotExist, self.irods.users.get, TEST_USER)
 
     def test_revert_not_modified(self):
         """Test user creation reverting without modification"""
         self._add_task(
             cls=CreateUserTask,
             name='Create user',
-            inject={
-                'user_name': TEST_USER,
-                'user_type': TEST_USER_TYPE})
+            inject={'user_name': TEST_USER, 'user_type': TEST_USER_TYPE},
+        )
 
         result = self._run_flow()
 
@@ -1275,10 +1339,9 @@ class TestCreateUserTask(IRODSTestBase):
         self._add_task(
             cls=CreateUserTask,
             name='Create user',
-            inject={
-                'user_name': TEST_USER,
-                'user_type': TEST_USER_TYPE},
-            force_fail=True)    # FAIL
+            inject={'user_name': TEST_USER, 'user_type': TEST_USER_TYPE},
+            force_fail=True,
+        )  # FAIL
         result = self._run_flow()
 
         # Assert flow failure
@@ -1297,7 +1360,9 @@ class TestAddUserToGroupTask(IRODSTestBase):
             name='Add user to group',
             inject={
                 'group_name': DEFAULT_USER_GROUP,
-                'user_name': GROUPLESS_USER})
+                'user_name': GROUPLESS_USER,
+            },
+        )
 
         # Assert precondition
         group = self.irods.user_groups.get(DEFAULT_USER_GROUP)
@@ -1319,7 +1384,9 @@ class TestAddUserToGroupTask(IRODSTestBase):
             name='Add user to group',
             inject={
                 'group_name': DEFAULT_USER_GROUP,
-                'user_name': GROUPLESS_USER})
+                'user_name': GROUPLESS_USER,
+            },
+        )
 
         result = self._run_flow()
 
@@ -1333,7 +1400,9 @@ class TestAddUserToGroupTask(IRODSTestBase):
             name='Add user to group',
             inject={
                 'group_name': DEFAULT_USER_GROUP,
-                'user_name': GROUPLESS_USER})
+                'user_name': GROUPLESS_USER,
+            },
+        )
         result = self._run_flow()
 
         # Assert flow success
@@ -1350,8 +1419,10 @@ class TestAddUserToGroupTask(IRODSTestBase):
             name='Add user to group',
             inject={
                 'group_name': DEFAULT_USER_GROUP,
-                'user_name': GROUPLESS_USER},
-            force_fail=True)  # FAILS
+                'user_name': GROUPLESS_USER,
+            },
+            force_fail=True,
+        )  # FAILS
         result = self._run_flow()
 
         # Assert flow failure
@@ -1368,7 +1439,9 @@ class TestAddUserToGroupTask(IRODSTestBase):
             name='Add user to group',
             inject={
                 'group_name': DEFAULT_USER_GROUP,
-                'user_name': GROUPLESS_USER})
+                'user_name': GROUPLESS_USER,
+            },
+        )
         result = self._run_flow()
 
         # Init and run new flow
@@ -1378,8 +1451,10 @@ class TestAddUserToGroupTask(IRODSTestBase):
             name='Add user to group',
             inject={
                 'group_name': DEFAULT_USER_GROUP,
-                'user_name': GROUPLESS_USER},
-            force_fail=True)    # FAILS
+                'user_name': GROUPLESS_USER,
+            },
+            force_fail=True,
+        )  # FAILS
         result = self._run_flow()
 
         # Assert flow failure
@@ -1396,9 +1471,8 @@ class TestRemoveUserFromGroupTask(IRODSTestBase):
         self._add_task(
             cls=RemoveUserFromGroupTask,
             name='Remove user from group',
-            inject={
-                'group_name': DEFAULT_USER_GROUP,
-                'user_name': GROUP_USER})
+            inject={'group_name': DEFAULT_USER_GROUP, 'user_name': GROUP_USER},
+        )
 
         # Assert precondition
         group = self.irods.user_groups.get(DEFAULT_USER_GROUP)
@@ -1418,9 +1492,8 @@ class TestRemoveUserFromGroupTask(IRODSTestBase):
         self._add_task(
             cls=RemoveUserFromGroupTask,
             name='Remove user from group',
-            inject={
-                'group_name': DEFAULT_USER_GROUP,
-                'user_name': GROUP_USER})
+            inject={'group_name': DEFAULT_USER_GROUP, 'user_name': GROUP_USER},
+        )
 
         result = self._run_flow()
 
@@ -1432,9 +1505,8 @@ class TestRemoveUserFromGroupTask(IRODSTestBase):
         self._add_task(
             cls=RemoveUserFromGroupTask,
             name='Remove user from group',
-            inject={
-                'group_name': DEFAULT_USER_GROUP,
-                'user_name': GROUP_USER})
+            inject={'group_name': DEFAULT_USER_GROUP, 'user_name': GROUP_USER},
+        )
         result = self._run_flow()
 
         # Assert flow success
@@ -1449,10 +1521,9 @@ class TestRemoveUserFromGroupTask(IRODSTestBase):
         self._add_task(
             cls=RemoveUserFromGroupTask,
             name='Remove user from group',
-            inject={
-                'group_name': DEFAULT_USER_GROUP,
-                'user_name': GROUP_USER},
-            force_fail=True)  # FAILS
+            inject={'group_name': DEFAULT_USER_GROUP, 'user_name': GROUP_USER},
+            force_fail=True,
+        )  # FAILS
         result = self._run_flow()
 
         # Assert flow failure
@@ -1467,9 +1538,8 @@ class TestRemoveUserFromGroupTask(IRODSTestBase):
         self._add_task(
             cls=RemoveUserFromGroupTask,
             name='Remove user from group',
-            inject={
-                'group_name': DEFAULT_USER_GROUP,
-                'user_name': GROUP_USER})
+            inject={'group_name': DEFAULT_USER_GROUP, 'user_name': GROUP_USER},
+        )
         result = self._run_flow()
 
         # Init and run new flow
@@ -1477,10 +1547,9 @@ class TestRemoveUserFromGroupTask(IRODSTestBase):
         self._add_task(
             cls=RemoveUserFromGroupTask,
             name='Remove user from group',
-            inject={
-                'group_name': DEFAULT_USER_GROUP,
-                'user_name': GROUP_USER},
-            force_fail=True)    # FAILS
+            inject={'group_name': DEFAULT_USER_GROUP, 'user_name': GROUP_USER},
+            force_fail=True,
+        )  # FAILS
         result = self._run_flow()
 
         # Assert flow failure
@@ -1506,9 +1575,8 @@ class TestMoveDataObjectTask(IRODSTestBase):
         self._add_task(
             cls=MoveDataObjectTask,
             name='Move data object',
-            inject={
-                'src_path': TEST_OBJ,
-                'dest_path': TEST_MOVE_COLL})
+            inject={'src_path': TEST_OBJ, 'dest_path': TEST_MOVE_COLL},
+        )
 
         # Assert precondition
         with self.assertRaises(DataObjectDoesNotExist):
@@ -1524,7 +1592,8 @@ class TestMoveDataObjectTask(IRODSTestBase):
             self.irods.data_objects.get(TEST_OBJ)
 
         move_obj = self.irods.data_objects.get(
-            '{}/move_obj'.format(TEST_MOVE_COLL))
+            '{}/move_obj'.format(TEST_MOVE_COLL)
+        )
         self.assertIsInstance(move_obj, iRODSDataObject)
 
     def test_revert(self):
@@ -1532,10 +1601,9 @@ class TestMoveDataObjectTask(IRODSTestBase):
         self._add_task(
             cls=MoveDataObjectTask,
             name='Move data object',
-            inject={
-                'src_path': TEST_OBJ,
-                'dest_path': TEST_MOVE_COLL},
-            force_fail=True)  # FAILS
+            inject={'src_path': TEST_OBJ, 'dest_path': TEST_MOVE_COLL},
+            force_fail=True,
+        )  # FAILS
 
         result = self._run_flow()
 
@@ -1559,9 +1627,8 @@ class TestMoveDataObjectTask(IRODSTestBase):
         self._add_task(
             cls=MoveDataObjectTask,
             name='Move data object',
-            inject={
-                'src_path': TEST_OBJ,
-                'dest_path': TEST_MOVE_COLL})
+            inject={'src_path': TEST_OBJ, 'dest_path': TEST_MOVE_COLL},
+        )
 
         with self.assertRaises(Exception):
             result = self._run_flow()
@@ -1585,18 +1652,17 @@ class TestBatchCreateCollectionsTask(IRODSTestBase):
         self._add_task(
             cls=BatchCreateCollectionsTask,
             name='Create collections',
-            inject={'paths': [TEST_COLL_NEW, TEST_COLL_NEW2]})
+            inject={'paths': [TEST_COLL_NEW, TEST_COLL_NEW2]},
+        )
 
         # Assert preconditions
         self.assertRaises(
-            CollectionDoesNotExist,
-            self.irods.collections.get,
-            TEST_COLL_NEW)
+            CollectionDoesNotExist, self.irods.collections.get, TEST_COLL_NEW
+        )
 
         self.assertRaises(
-            CollectionDoesNotExist,
-            self.irods.collections.get,
-            TEST_COLL_NEW2)
+            CollectionDoesNotExist, self.irods.collections.get, TEST_COLL_NEW2
+        )
 
         result = self._run_flow()
 
@@ -1605,16 +1671,19 @@ class TestBatchCreateCollectionsTask(IRODSTestBase):
 
         # Assert postconditions
         self.assertIsInstance(
-            self.irods.collections.get(TEST_COLL_NEW), iRODSCollection)
+            self.irods.collections.get(TEST_COLL_NEW), iRODSCollection
+        )
         self.assertIsInstance(
-            self.irods.collections.get(TEST_COLL_NEW2), iRODSCollection)
+            self.irods.collections.get(TEST_COLL_NEW2), iRODSCollection
+        )
 
     def test_execute_twice(self):
         """Test batch collection creation twice"""
         self._add_task(
             cls=BatchCreateCollectionsTask,
             name='Create collections',
-            inject={'paths': [TEST_COLL_NEW, TEST_COLL_NEW2]})
+            inject={'paths': [TEST_COLL_NEW, TEST_COLL_NEW2]},
+        )
 
         result = self._run_flow()
 
@@ -1623,7 +1692,8 @@ class TestBatchCreateCollectionsTask(IRODSTestBase):
         self._add_task(
             cls=BatchCreateCollectionsTask,
             name='Create collections',
-            inject={'paths': [TEST_COLL_NEW, TEST_COLL_NEW2]})
+            inject={'paths': [TEST_COLL_NEW, TEST_COLL_NEW2]},
+        )
         result = self._run_flow()
 
         # Assert flow success
@@ -1631,9 +1701,11 @@ class TestBatchCreateCollectionsTask(IRODSTestBase):
 
         # Assert postconditions
         self.assertIsInstance(
-            self.irods.collections.get(TEST_COLL_NEW), iRODSCollection)
+            self.irods.collections.get(TEST_COLL_NEW), iRODSCollection
+        )
         self.assertIsInstance(
-            self.irods.collections.get(TEST_COLL_NEW2), iRODSCollection)
+            self.irods.collections.get(TEST_COLL_NEW2), iRODSCollection
+        )
 
     def test_revert_created(self):
         """Test batch collection creation reverting after creating"""
@@ -1641,7 +1713,8 @@ class TestBatchCreateCollectionsTask(IRODSTestBase):
             cls=BatchCreateCollectionsTask,
             name='Create collections',
             inject={'paths': [TEST_COLL_NEW, TEST_COLL_NEW2]},
-            force_fail=True)    # FAIL
+            force_fail=True,
+        )  # FAIL
 
         result = self._run_flow()
 
@@ -1650,21 +1723,20 @@ class TestBatchCreateCollectionsTask(IRODSTestBase):
 
         # Assert postconditions
         self.assertRaises(
-            CollectionDoesNotExist,
-            self.irods.collections.get,
-            TEST_COLL_NEW)
+            CollectionDoesNotExist, self.irods.collections.get, TEST_COLL_NEW
+        )
 
         self.assertRaises(
-            CollectionDoesNotExist,
-            self.irods.collections.get,
-            TEST_COLL_NEW2)
+            CollectionDoesNotExist, self.irods.collections.get, TEST_COLL_NEW2
+        )
 
     def test_revert_not_modified(self):
         """Test batch collection creation reverting without modification"""
         self._add_task(
             cls=BatchCreateCollectionsTask,
             name='Create collections',
-            inject={'paths': [TEST_COLL_NEW, TEST_COLL_NEW2]})
+            inject={'paths': [TEST_COLL_NEW, TEST_COLL_NEW2]},
+        )
 
         result = self._run_flow()
 
@@ -1677,7 +1749,8 @@ class TestBatchCreateCollectionsTask(IRODSTestBase):
             cls=BatchCreateCollectionsTask,
             name='Create collections',
             inject={'paths': [TEST_COLL_NEW, TEST_COLL_NEW2]},
-            force_fail=True)    # FAIL
+            force_fail=True,
+        )  # FAIL
         result = self._run_flow()
 
         # Assert flow failure
@@ -1685,18 +1758,24 @@ class TestBatchCreateCollectionsTask(IRODSTestBase):
 
         # Assert postconditions
         self.assertIsInstance(
-            self.irods.collections.get(TEST_COLL_NEW), iRODSCollection)
+            self.irods.collections.get(TEST_COLL_NEW), iRODSCollection
+        )
         self.assertIsInstance(
-            self.irods.collections.get(TEST_COLL_NEW2), iRODSCollection)
+            self.irods.collections.get(TEST_COLL_NEW2), iRODSCollection
+        )
 
     def test_execute_nested(self):
         """Test batch collection creation with nested collections"""
         self._add_task(
             cls=BatchCreateCollectionsTask,
             name='Create collections',
-            inject={'paths': [
-                TEST_COLL_NEW + '/subcoll1/subcoll1a',
-                TEST_COLL_NEW + '/subcoll2/subcoll2a']})
+            inject={
+                'paths': [
+                    TEST_COLL_NEW + '/subcoll1/subcoll1a',
+                    TEST_COLL_NEW + '/subcoll2/subcoll2a',
+                ]
+            },
+        )
 
         result = self._run_flow()
 
@@ -1706,20 +1785,26 @@ class TestBatchCreateCollectionsTask(IRODSTestBase):
         # Assert postconditions
         self.assertIsInstance(
             self.irods.collections.get(TEST_COLL_NEW + '/subcoll1/subcoll1a'),
-            iRODSCollection)
+            iRODSCollection,
+        )
 
         self.assertIsInstance(
             self.irods.collections.get(TEST_COLL_NEW + '/subcoll2/subcoll2a'),
-            iRODSCollection)
+            iRODSCollection,
+        )
 
     def test_execute_nested_existing(self):
         """Test batch collection creation with existing collection"""
         self._add_task(
             cls=BatchCreateCollectionsTask,
             name='Create collections',
-            inject={'paths': [
-                TEST_COLL_NEW + '/subcoll1/subcoll1a',
-                TEST_COLL_NEW + '/subcoll1']})
+            inject={
+                'paths': [
+                    TEST_COLL_NEW + '/subcoll1/subcoll1a',
+                    TEST_COLL_NEW + '/subcoll1',
+                ]
+            },
+        )
 
         result = self._run_flow()
 
@@ -1729,21 +1814,27 @@ class TestBatchCreateCollectionsTask(IRODSTestBase):
         # Assert postconditions
         self.assertIsInstance(
             self.irods.collections.get(TEST_COLL_NEW + '/subcoll1/subcoll1a'),
-            iRODSCollection)
+            iRODSCollection,
+        )
 
         self.assertIsInstance(
             self.irods.collections.get(TEST_COLL_NEW + '/subcoll1'),
-            iRODSCollection)
+            iRODSCollection,
+        )
 
     def test_revert_created_nested(self):
         """Test batch creation reverting with nested collections"""
         self._add_task(
             cls=BatchCreateCollectionsTask,
             name='Create collections',
-            inject={'paths': [
-                TEST_COLL_NEW + '/subcoll1/subcoll1a',
-                TEST_COLL_NEW + '/subcoll2/subcoll2a']},
-            force_fail=True)    # FAIL
+            inject={
+                'paths': [
+                    TEST_COLL_NEW + '/subcoll1/subcoll1a',
+                    TEST_COLL_NEW + '/subcoll2/subcoll2a',
+                ]
+            },
+            force_fail=True,
+        )  # FAIL
 
         result = self._run_flow()
 
@@ -1754,22 +1845,26 @@ class TestBatchCreateCollectionsTask(IRODSTestBase):
         self.assertRaises(
             CollectionDoesNotExist,
             self.irods.collections.get,
-            TEST_COLL_NEW + '/subcoll1')
+            TEST_COLL_NEW + '/subcoll1',
+        )
 
         self.assertRaises(
             CollectionDoesNotExist,
             self.irods.collections.get,
-            TEST_COLL_NEW + '/subcoll1/subcoll1a')
+            TEST_COLL_NEW + '/subcoll1/subcoll1a',
+        )
 
         self.assertRaises(
             CollectionDoesNotExist,
             self.irods.collections.get,
-            TEST_COLL_NEW + '/subcoll2')
+            TEST_COLL_NEW + '/subcoll2',
+        )
 
         self.assertRaises(
             CollectionDoesNotExist,
             self.irods.collections.get,
-            TEST_COLL_NEW + '/subcoll2/subcoll2a')
+            TEST_COLL_NEW + '/subcoll2/subcoll2a',
+        )
 
 
 class TestBatchMoveDataObjectsTask(IRODSTestBase):
@@ -1794,7 +1889,9 @@ class TestBatchMoveDataObjectsTask(IRODSTestBase):
                 'dest_root': BATCH_DEST_PATH,
                 'src_paths': [BATCH_OBJ_PATH, BATCH_OBJ2_PATH],
                 'access_name': TEST_ACCESS_READ_IN,
-                'user_name': DEFAULT_USER_GROUP})
+                'user_name': DEFAULT_USER_GROUP,
+            },
+        )
 
         # Assert preconditions
         with self.assertRaises(DataObjectDoesNotExist):
@@ -1806,14 +1903,18 @@ class TestBatchMoveDataObjectsTask(IRODSTestBase):
         self.assertEqual(
             self._get_user_access(
                 target=self.irods.data_objects.get(BATCH_OBJ_PATH),
-                user_name=DEFAULT_USER_GROUP),
-            None)
+                user_name=DEFAULT_USER_GROUP,
+            ),
+            None,
+        )
 
         self.assertEqual(
             self._get_user_access(
                 target=self.irods.data_objects.get(BATCH_OBJ2_PATH),
-                user_name=DEFAULT_USER_GROUP),
-            None)
+                user_name=DEFAULT_USER_GROUP,
+            ),
+            None,
+        )
 
         result = self._run_flow()
 
@@ -1828,24 +1929,32 @@ class TestBatchMoveDataObjectsTask(IRODSTestBase):
             self.irods.data_objects.get(BATCH_OBJ2_PATH)
 
         self.assertIsInstance(
-            self.irods.data_objects.get(
-                '{}/batch_obj'.format(BATCH_DEST_PATH)), iRODSDataObject)
+            self.irods.data_objects.get('{}/batch_obj'.format(BATCH_DEST_PATH)),
+            iRODSDataObject,
+        )
 
         self.assertIsInstance(
             self.irods.data_objects.get(
-                '{}/batch_obj2'.format(BATCH_DEST_PATH)), iRODSDataObject)
+                '{}/batch_obj2'.format(BATCH_DEST_PATH)
+            ),
+            iRODSDataObject,
+        )
 
         obj_access = self._get_user_access(
             target=self.irods.data_objects.get(
-                '{}/batch_obj'.format(BATCH_DEST_PATH)),
-            user_name=DEFAULT_USER_GROUP)
+                '{}/batch_obj'.format(BATCH_DEST_PATH)
+            ),
+            user_name=DEFAULT_USER_GROUP,
+        )
         self.assertIsInstance(obj_access, iRODSAccess)
         self.assertEqual(obj_access.access_name, TEST_ACCESS_READ_OUT)
 
         obj_access = self._get_user_access(
             target=self.irods.data_objects.get(
-                '{}/batch_obj2'.format(BATCH_DEST_PATH)),
-            user_name=DEFAULT_USER_GROUP)
+                '{}/batch_obj2'.format(BATCH_DEST_PATH)
+            ),
+            user_name=DEFAULT_USER_GROUP,
+        )
         self.assertIsInstance(obj_access, iRODSAccess)
         self.assertEqual(obj_access.access_name, TEST_ACCESS_READ_OUT)
 
@@ -1860,8 +1969,10 @@ class TestBatchMoveDataObjectsTask(IRODSTestBase):
                 'dest_root': BATCH_DEST_PATH,
                 'src_paths': [BATCH_OBJ_PATH, BATCH_OBJ2_PATH],
                 'access_name': TEST_ACCESS_READ_IN,
-                'user_name': DEFAULT_USER_GROUP},
-            force_fail=True)  # FAILS
+                'user_name': DEFAULT_USER_GROUP,
+            },
+            force_fail=True,
+        )  # FAILS
 
         result = self._run_flow()
 
@@ -1870,31 +1981,35 @@ class TestBatchMoveDataObjectsTask(IRODSTestBase):
 
         # Assert object state after move
         self.assertIsInstance(
-            self.irods.data_objects.get(
-                '{}/batch_obj'.format(BATCH_SRC_PATH)), iRODSDataObject)
+            self.irods.data_objects.get('{}/batch_obj'.format(BATCH_SRC_PATH)),
+            iRODSDataObject,
+        )
 
         self.assertIsInstance(
-            self.irods.data_objects.get(
-                '{}/batch_obj2'.format(BATCH_SRC_PATH)), iRODSDataObject)
+            self.irods.data_objects.get('{}/batch_obj2'.format(BATCH_SRC_PATH)),
+            iRODSDataObject,
+        )
 
         with self.assertRaises(DataObjectDoesNotExist):
-            self.irods.data_objects.get(
-                '{}/batch_obj'.format(BATCH_DEST_PATH))
+            self.irods.data_objects.get('{}/batch_obj'.format(BATCH_DEST_PATH))
 
         with self.assertRaises(DataObjectDoesNotExist):
-            self.irods.data_objects.get(
-                '{}/batch_obj2'.format(BATCH_DEST_PATH))
+            self.irods.data_objects.get('{}/batch_obj2'.format(BATCH_DEST_PATH))
 
         obj_access = self._get_user_access(
             target=self.irods.data_objects.get(
-                '{}/batch_obj'.format(BATCH_SRC_PATH)),
-            user_name=DEFAULT_USER_GROUP)
+                '{}/batch_obj'.format(BATCH_SRC_PATH)
+            ),
+            user_name=DEFAULT_USER_GROUP,
+        )
         self.assertIsNone(obj_access)
 
         obj_access = self._get_user_access(
             target=self.irods.data_objects.get(
-                '{}/batch_obj2'.format(BATCH_SRC_PATH)),
-            user_name=DEFAULT_USER_GROUP)
+                '{}/batch_obj2'.format(BATCH_SRC_PATH)
+            ),
+            user_name=DEFAULT_USER_GROUP,
+        )
         self.assertIsNone(obj_access)
 
     def test_overwrite_failure(self):
@@ -1912,25 +2027,31 @@ class TestBatchMoveDataObjectsTask(IRODSTestBase):
                 'dest_root': BATCH_DEST_PATH,
                 'src_paths': [BATCH_OBJ_PATH, BATCH_OBJ2_PATH],
                 'access_name': TEST_ACCESS_READ_IN,
-                'user_name': DEFAULT_USER_GROUP})
+                'user_name': DEFAULT_USER_GROUP,
+            },
+        )
 
         with self.assertRaises(Exception):
             result = self._run_flow()
 
         # Assert state of objects after attempted move
         self.assertIsInstance(
-            self.irods.data_objects.get(
-                '{}/batch_obj'.format(BATCH_SRC_PATH)), iRODSDataObject)
+            self.irods.data_objects.get('{}/batch_obj'.format(BATCH_SRC_PATH)),
+            iRODSDataObject,
+        )
 
         self.assertIsInstance(
-            self.irods.data_objects.get(
-                '{}/batch_obj2'.format(BATCH_SRC_PATH)), iRODSDataObject)
+            self.irods.data_objects.get('{}/batch_obj2'.format(BATCH_SRC_PATH)),
+            iRODSDataObject,
+        )
 
         self.assertIsInstance(
-            self.irods.data_objects.get(new_obj_path), iRODSDataObject)
+            self.irods.data_objects.get(new_obj_path), iRODSDataObject
+        )
 
         move_obj = self.irods.data_objects.get(
-            '{}/batch_obj2'.format(BATCH_SRC_PATH))
+            '{}/batch_obj2'.format(BATCH_SRC_PATH)
+        )
         self.assertEqual(self.batch_obj.checksum, move_obj.checksum)
 
         existing_obj = self.irods.data_objects.get(new_obj_path)

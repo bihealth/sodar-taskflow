@@ -19,10 +19,18 @@ class SODARBaseTask(BaseTask):
     """Base SODAR Django web UI task"""
 
     def __init__(
-            self, name, project_uuid, sodar_api, force_fail=False,
-            inject=None, *args, **kwargs):
+        self,
+        name,
+        project_uuid,
+        sodar_api,
+        force_fail=False,
+        inject=None,
+        *args,
+        **kwargs
+    ):
         super(SODARBaseTask, self).__init__(
-            name, force_fail=force_fail, inject=inject, *args, **kwargs)
+            name, force_fail=force_fail, inject=inject, *args, **kwargs
+        )
         self.target = 'sodar'
         self.name = '<SODAR> {} ({})'.format(name, self.__class__.__name__)
         self.project_uuid = project_uuid
@@ -35,9 +43,11 @@ class SODARBaseTask(BaseTask):
             raise Exception('force_fail=True')
 
     def post_execute(self, *args, **kwargs):
-        logger.info('{}: {}'.format(
-            'force_fail' if self.force_fail else 'Executed',
-            self.name))
+        logger.info(
+            '{}: {}'.format(
+                'force_fail' if self.force_fail else 'Executed', self.name
+            )
+        )
 
     def post_revert(self, *args, **kwargs):
         logger.error('Reverted: {}'.format(self.name))
@@ -49,24 +59,25 @@ class UpdateProjectTask(SODARBaseTask):
     def execute(self, title, description, readme, *args, **kwargs):
         # Get initial data
         self.execute_data = self.sodar_api.send_request(
-            'project/taskflow/get',
-            {'project_uuid': self.project_uuid}).json()
+            'project/taskflow/get', {'project_uuid': self.project_uuid}
+        ).json()
 
         update_data = {
             'project_uuid': self.project_uuid,
             'title': title,
             'description': description,
-            'readme': readme}
+            'readme': readme,
+        }
 
-        self.sodar_api.send_request(
-            'project/taskflow/update', update_data)
+        self.sodar_api.send_request('project/taskflow/update', update_data)
 
         super(UpdateProjectTask, self).execute(*args, **kwargs)
 
     def revert(self, title, description, readme, *args, **kwargs):
         if kwargs['result'] is True:
             self.sodar_api.send_request(
-                'project/taskflow/update', self.execute_data)
+                'project/taskflow/update', self.execute_data
+            )
 
 
 class SetProjectSettingsTask(SODARBaseTask):
@@ -75,22 +86,25 @@ class SetProjectSettingsTask(SODARBaseTask):
     def execute(self, settings, *args, **kwargs):
         # Get initial data
         self.execute_data = self.sodar_api.send_request(
-            'project/taskflow/settings/get',
-            {'project_uuid': self.project_uuid}).json()
+            'project/taskflow/settings/get', {'project_uuid': self.project_uuid}
+        ).json()
 
         update_data = {
             'project_uuid': self.project_uuid,
-            'settings': json.dumps(settings)}
+            'settings': json.dumps(settings),
+        }
 
         self.sodar_api.send_request(
-            'project/taskflow/settings/set', update_data)
+            'project/taskflow/settings/set', update_data
+        )
 
         super(SetProjectSettingsTask, self).execute(*args, **kwargs)
 
     def revert(self, settings, *args, **kwargs):
         if kwargs['result'] is True:
             self.sodar_api.send_request(
-                'project/taskflow/settings/set', self.execute_data)
+                'project/taskflow/settings/set', self.execute_data
+            )
 
 
 class SetRoleTask(SODARBaseTask):
@@ -98,13 +112,12 @@ class SetRoleTask(SODARBaseTask):
 
     def execute(self, user_uuid, role_pk, *args, **kwargs):
         # Get initial data
-        query_data = {
-            'project_uuid': self.project_uuid,
-            'user_uuid': user_uuid}
+        query_data = {'project_uuid': self.project_uuid, 'user_uuid': user_uuid}
 
         try:
             self.execute_data = self.sodar_api.send_request(
-                'project/taskflow/role/get', query_data).json()
+                'project/taskflow/role/get', query_data
+            ).json()
 
         except Exception as ex:
             self.execute_data = None
@@ -112,9 +125,11 @@ class SetRoleTask(SODARBaseTask):
         set_data = {
             'project_uuid': self.project_uuid,
             'user_uuid': user_uuid,
-            'role_pk': role_pk}
+            'role_pk': role_pk,
+        }
         response = self.sodar_api.send_request(
-            'project/taskflow/role/set', set_data)
+            'project/taskflow/role/set', set_data
+        )
         self.data_modified = True
 
         super(SetRoleTask, self).execute(*args, **kwargs)
@@ -123,13 +138,16 @@ class SetRoleTask(SODARBaseTask):
         if self.data_modified:
             if self.execute_data:
                 self.sodar_api.send_request(
-                    'project/taskflow/role/set', self.execute_data)
+                    'project/taskflow/role/set', self.execute_data
+                )
             else:
                 remove_data = {
                     'project_uuid': self.project_uuid,
-                    'user_uuid': user_uuid}
+                    'user_uuid': user_uuid,
+                }
                 self.sodar_api.send_request(
-                    'project/taskflow/role/delete', remove_data)
+                    'project/taskflow/role/delete', remove_data
+                )
 
 
 class RemoveRoleTask(SODARBaseTask):
@@ -140,15 +158,18 @@ class RemoveRoleTask(SODARBaseTask):
         self.execute_data = {
             'project_uuid': self.project_uuid,
             'user_uuid': user_uuid,
-            'role_pk': role_pk}
+            'role_pk': role_pk,
+        }
 
         remove_data = {
             'project_uuid': self.project_uuid,
-            'user_uuid': user_uuid}
+            'user_uuid': user_uuid,
+        }
 
         try:
             self.sodar_api.send_request(
-                'project/taskflow/role/delete', remove_data)
+                'project/taskflow/role/delete', remove_data
+            )
             self.data_modified = True
 
         except SODARRequestException:
@@ -159,7 +180,8 @@ class RemoveRoleTask(SODARBaseTask):
     def revert(self, user_uuid, role_pk, *args, **kwargs):
         if self.data_modified:
             self.sodar_api.send_request(
-                'project/taskflow/role/set', self.execute_data)
+                'project/taskflow/role/set', self.execute_data
+            )
 
 
 class SetIrodsDirStatusTask(SODARBaseTask):
@@ -167,17 +189,19 @@ class SetIrodsDirStatusTask(SODARBaseTask):
 
     def execute(self, dir_status, *args, **kwargs):
         # Get initial data
-        query_data = {
-            'project_uuid': self.project_uuid}
+        query_data = {'project_uuid': self.project_uuid}
         self.execute_data = self.sodar_api.send_request(
-            'samplesheets/taskflow/dirs/get', query_data).json()
+            'samplesheets/taskflow/dirs/get', query_data
+        ).json()
 
         if self.execute_data['dir_status'] != dir_status:
             set_data = {
                 'project_uuid': self.project_uuid,
-                'dir_status': dir_status}
+                'dir_status': dir_status,
+            }
             self.sodar_api.send_request(
-                'samplesheets/taskflow/dirs/set', set_data)
+                'samplesheets/taskflow/dirs/set', set_data
+            )
             self.data_modified = True
 
         super(SetIrodsDirStatusTask, self).execute(*args, **kwargs)
@@ -185,7 +209,8 @@ class SetIrodsDirStatusTask(SODARBaseTask):
     def revert(self, dir_status, *args, **kwargs):
         if self.data_modified is True:
             self.sodar_api.send_request(
-                'samplesheets/taskflow/dirs/set', self.execute_data)
+                'samplesheets/taskflow/dirs/set', self.execute_data
+            )
 
 
 # TODO: Handle revert (see above), before it this must be called last in flow
@@ -193,12 +218,12 @@ class RemoveSampleSheetTask(SODARBaseTask):
     """Remove sample sheet from a project"""
 
     def execute(self, *args, **kwargs):
-        query_data = {
-            'project_uuid': self.project_uuid}
+        query_data = {'project_uuid': self.project_uuid}
 
         try:
             self.sodar_api.send_request(
-                'samplesheets/taskflow/delete', query_data)
+                'samplesheets/taskflow/delete', query_data
+            )
             self.data_modified = True
 
         except SODARRequestException:
@@ -207,56 +232,58 @@ class RemoveSampleSheetTask(SODARBaseTask):
         super(RemoveSampleSheetTask, self).execute(*args, **kwargs)
 
     def revert(self, *args, **kwargs):
-        pass    # TODO: How to handle this?
+        pass  # TODO: How to handle this?
 
 
 class CreateLandingZoneTask(SODARBaseTask):
     """Create LandingZone for a project and user in the SODAR database"""
 
     def execute(
-            self, zone_title, user_uuid, assay_uuid, description,
-            *args, **kwargs):
+        self, zone_title, user_uuid, assay_uuid, description, *args, **kwargs
+    ):
         create_data = {
             'project_uuid': self.project_uuid,
             'assay_uuid': assay_uuid,
             'title': zone_title,
             'user_uuid': user_uuid,
-            'description': description}
+            'description': description,
+        }
         response = self.sodar_api.send_request(
-            'landingzones/taskflow/create', create_data)
+            'landingzones/taskflow/create', create_data
+        )
         self.execute_data = response.json()
 
         self.data_modified = True
         super(CreateLandingZoneTask, self).execute(*args, **kwargs)
 
     def revert(
-            self, zone_title, user_uuid, assay_uuid, description,
-            *args, **kwargs):
+        self, zone_title, user_uuid, assay_uuid, description, *args, **kwargs
+    ):
         if self.data_modified:
-            remove_data = {
-                'zone_uuid': self.execute_data['zone_uuid']}
+            remove_data = {'zone_uuid': self.execute_data['zone_uuid']}
             self.sodar_api.send_request(
-                'landingzones/taskflow/create', remove_data)
+                'landingzones/taskflow/create', remove_data
+            )
 
 
 class SetLandingZoneStatusTask(SODARBaseTask):
     """Set LandingZone status"""
 
-    def execute(
-            self, status, status_info, zone_uuid=None, *args, **kwargs):
+    def execute(self, status, status_info, zone_uuid=None, *args, **kwargs):
         set_data = {
             'status': status,
             'status_info': status_info,
-            'zone_uuid': zone_uuid}
+            'zone_uuid': zone_uuid,
+        }
 
         self.sodar_api.send_request(
-            'landingzones/taskflow/status/set', set_data)
+            'landingzones/taskflow/status/set', set_data
+        )
         self.data_modified = True
         super(SetLandingZoneStatusTask, self).execute(*args, **kwargs)
 
-    def revert(
-            self, status, status_info, zone_uuid=None, *args, **kwargs):
-        pass    # Disabled, call RevertLandingZoneStatusTask to revert
+    def revert(self, status, status_info, zone_uuid=None, *args, **kwargs):
+        pass  # Disabled, call RevertLandingZoneStatusTask to revert
 
 
 class RevertLandingZoneFailTask(SODARBaseTask):
@@ -270,12 +297,13 @@ class RevertLandingZoneFailTask(SODARBaseTask):
 
         for k, v in kwargs['flow_failures'].items():
             status_info += ': '
-            status_info += str(v.exception) if \
-                v.exception else 'unknown error'
+            status_info += str(v.exception) if v.exception else 'unknown error'
 
         set_data = {
             'zone_uuid': zone_uuid,
             'status': 'FAILED',
-            'status_info': status_info}
+            'status_info': status_info,
+        }
         self.sodar_api.send_request(
-            'landingzones/taskflow/status/set', set_data)
+            'landingzones/taskflow/status/set', set_data
+        )

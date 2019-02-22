@@ -17,8 +17,7 @@ app.config['ENV'] = settings.FLASK_ENV
 
 # Set up logging
 app.logger.handlers = []
-formatter = logging.Formatter(
-    '%(asctime)s [%(levelname)s] %(message)s')
+formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
 
 # Stdout handler
 out_handler = logging.StreamHandler(stream=sys.stdout)
@@ -44,8 +43,7 @@ def submit():
 
     form_data = request.json
     app.logger.debug('Submit data: {}'.format(form_data))
-    force_fail = form_data['force_fail'] \
-        if 'force_fail' in form_data else False
+    force_fail = form_data['force_fail'] if 'force_fail' in form_data else False
     test_mode = form_data['test_mode'] if 'test_mode' in form_data else False
 
     required_keys = [
@@ -53,7 +51,8 @@ def submit():
         'request_mode',
         'flow_name',
         'targets',
-        'sodar_secret']
+        'sodar_secret',
+    ]
 
     for k in required_keys:
         if k not in form_data or form_data[k] == '':
@@ -111,7 +110,8 @@ def submit():
         flow_data=form_data['flow_data'],
         targets=form_data['targets'],
         request_mode=form_data['request_mode'],
-        timeline_uuid=form_data['timeline_uuid'])
+        timeline_uuid=form_data['timeline_uuid'],
+    )
 
     try:
         flow.validate()
@@ -131,8 +131,8 @@ def submit():
     #####################
 
     def run_flow(
-            flow, project_uuid, timeline_uuid, sodar_api, force_fail,
-            async=True):
+        flow, project_uuid, timeline_uuid, sodar_api, force_fail, async=True
+    ):
         coordinator = None
         lock = None
 
@@ -178,23 +178,26 @@ def submit():
                 # Set zone status in the Django site
                 set_data = {
                     'zone_uuid': flow.flow_data['zone_uuid'],
-                    'status': 'NOT CREATED' if
-                    flow.flow_name == 'landing_zone_create' else 'FAILED',
-                    'status_info': '{}: {}'.format(msg, ex)}
+                    'status': 'NOT CREATED'
+                    if flow.flow_name == 'landing_zone_create'
+                    else 'FAILED',
+                    'status_info': '{}: {}'.format(msg, ex),
+                }
                 sodar_api.send_request(
-                    'landingzones/taskflow/status/set', set_data)
+                    'landingzones/taskflow/status/set', set_data
+                )
 
                 # Set timeline status
                 sodar_api.set_timeline_status(
                     event_uuid=timeline_uuid,
                     status_type='FAILED',
-                    status_desc=msg)
+                    status_desc=msg,
+                )
 
                 app.logger.error('{}: {}'.format(msg, ex))
 
             else:
-                response = Response(
-                    '{}: {}'.format(msg, ex), status=500)
+                response = Response('{}: {}'.format(msg, ex), status=500)
 
         app.logger.info('--- Building flow OK ---')
 
@@ -212,7 +215,8 @@ def submit():
                 sodar_api.set_timeline_status(
                     event_uuid=timeline_uuid,
                     status_type='OK',
-                    status_desc='Async submit OK')
+                    status_desc='Async submit OK',
+                )
 
             else:
                 response = Response(str(flow_result), status=200)
@@ -223,12 +227,14 @@ def submit():
                 sodar_api.set_timeline_status(
                     event_uuid=timeline_uuid,
                     status_type='FAILED',
-                    status_desc='Error running async flow: ' +
-                                (ex_str if ex_str else 'unknown error'))
+                    status_desc='Error running async flow: '
+                    + (ex_str if ex_str else 'unknown error'),
+                )
 
             else:
-                msg = 'Error running flow: ' + (ex_str if ex_str != ''
-                    else 'unknown error')
+                msg = 'Error running flow: ' + (
+                    ex_str if ex_str != '' else 'unknown error'
+                )
                 app.logger.error(msg)
                 response = Response(msg, status=500)
 
@@ -245,16 +251,27 @@ def submit():
         p = Process(
             target=run_flow,
             args=(
-                flow, project_uuid, form_data['timeline_uuid'], sodar_tf,
-                force_fail, True))
+                flow,
+                project_uuid,
+                form_data['timeline_uuid'],
+                sodar_tf,
+                force_fail,
+                True,
+            ),
+        )
         p.start()
         return Response(str(True), status=200)
 
     # Run synchronously
     else:
         return run_flow(
-            flow, project_uuid, form_data['timeline_uuid'], sodar_tf,
-            force_fail, False)
+            flow,
+            project_uuid,
+            form_data['timeline_uuid'],
+            sodar_tf,
+            force_fail,
+            False,
+        )
 
 
 @app.route('/cleanup', methods=['POST'])

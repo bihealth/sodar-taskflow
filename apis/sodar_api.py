@@ -11,6 +11,7 @@ ZONE_URL = 'zones/taskflow/status/set'
 
 class SODARRequestException(Exception):
     """General django REST API submission exception"""
+
     pass
 
 
@@ -28,16 +29,20 @@ class SODARAPI:
         if response.status_code != 200:
             raise SODARRequestException(
                 '{}: {}'.format(
-                    response.status_code, response.text or 'Unknown'))
+                    response.status_code, response.text or 'Unknown'
+                )
+            )
 
         return response
 
     def set_timeline_status(
-            self, event_uuid, status_type, status_desc=None, extra_data=None):
+        self, event_uuid, status_type, status_desc=None, extra_data=None
+    ):
         set_data = {
             'event_uuid': event_uuid,
             'status_type': status_type,
             'status_desc': status_desc,
             'extra_data': extra_data,
-            'sodar_secret': settings.TASKFLOW_SODAR_SECRET}
+            'sodar_secret': settings.TASKFLOW_SODAR_SECRET,
+        }
         self.send_request(TL_URL, set_data)

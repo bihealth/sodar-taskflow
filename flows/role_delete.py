@@ -7,10 +7,7 @@ class Flow(BaseLinearFlow):
     """Flow for removing an user's role in project"""
 
     def validate(self):
-        self.required_fields = [
-            'username',
-            'user_uuid',
-            'role_pk']
+        self.required_fields = ['username', 'user_uuid', 'role_pk']
         return super(Flow, self).validate()
 
     def build(self, force_fail=False):
@@ -19,8 +16,7 @@ class Flow(BaseLinearFlow):
         # Setup
         ########
 
-        existing_group = get_project_group_name(
-            self.project_uuid)
+        existing_group = get_project_group_name(self.project_uuid)
 
         ##############
         # iRODS Tasks
@@ -32,7 +28,10 @@ class Flow(BaseLinearFlow):
                 irods=self.irods,
                 inject={
                     'group_name': existing_group,
-                    'user_name': self.flow_data['username']}))
+                    'user_name': self.flow_data['username'],
+                },
+            )
+        )
 
         # TODO: TBD: Also e.g. remove landing zone if created?
 
@@ -47,4 +46,7 @@ class Flow(BaseLinearFlow):
                 project_uuid=self.project_uuid,
                 inject={
                     'user_uuid': self.flow_data['user_uuid'],
-                    'role_pk': self.flow_data['role_pk']}))
+                    'role_pk': self.flow_data['role_pk'],
+                },
+            )
+        )

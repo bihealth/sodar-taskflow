@@ -14,6 +14,7 @@ Changed
 - Upgrade Python package requirements (#44)
 - Update service to work with Flask v1.0+ (#45)
 - Upgrade minimum Python version requirement to 3.6
+- Format code with Black (#41)
 
 Fixed
 -----

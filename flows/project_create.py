@@ -1,8 +1,7 @@
 from config import settings
 
 from .base_flow import BaseLinearFlow
-from apis.irods_utils import get_project_path,\
-    get_project_group_name
+from apis.irods_utils import get_project_path, get_project_group_name
 from tasks import sodar_tasks, irods_tasks
 
 
@@ -20,7 +19,8 @@ class Flow(BaseLinearFlow):
             'parent_uuid',
             'owner_username',
             'owner_uuid',
-            'owner_role_pk']
+            'owner_role_pk',
+        ]
         return super(Flow, self).validate()
 
     def build(self, force_fail=False):
@@ -40,15 +40,17 @@ class Flow(BaseLinearFlow):
             irods_tasks.CreateCollectionTask(
                 name='Create omics root collection',
                 irods=self.irods,
-                inject={
-                    'path': PROJECT_ROOT}))
+                inject={'path': PROJECT_ROOT},
+            )
+        )
 
         self.add_task(
             irods_tasks.CreateCollectionTask(
                 name='Create collection for project',
                 irods=self.irods,
-                inject={
-                    'path': project_path}))
+                inject={'path': project_path},
+            )
+        )
 
         self.add_task(
             irods_tasks.SetCollectionMetadataTask(
@@ -57,7 +59,10 @@ class Flow(BaseLinearFlow):
                 inject={
                     'path': project_path,
                     'name': 'title',
-                    'value': self.flow_data['project_title']}))
+                    'value': self.flow_data['project_title'],
+                },
+            )
+        )
 
         self.add_task(
             irods_tasks.SetCollectionMetadataTask(
@@ -66,7 +71,10 @@ class Flow(BaseLinearFlow):
                 inject={
                     'path': project_path,
                     'name': 'description',
-                    'value': self.flow_data['project_description']}))
+                    'value': self.flow_data['project_description'],
+                },
+            )
+        )
 
         self.add_task(
             irods_tasks.SetCollectionMetadataTask(
@@ -75,14 +83,18 @@ class Flow(BaseLinearFlow):
                 inject={
                     'path': project_path,
                     'name': 'parent_uuid',
-                    'value': self.flow_data['parent_uuid']}))
+                    'value': self.flow_data['parent_uuid'],
+                },
+            )
+        )
 
         self.add_task(
             irods_tasks.CreateUserGroupTask(
                 name='Create project user group',
                 irods=self.irods,
-                inject={
-                    'name': project_group}))
+                inject={'name': project_group},
+            )
+        )
 
         self.add_task(
             irods_tasks.SetAccessTask(
@@ -91,7 +103,10 @@ class Flow(BaseLinearFlow):
                 inject={
                     'access_name': 'read',
                     'path': project_path,
-                    'user_name': project_group}))
+                    'user_name': project_group,
+                },
+            )
+        )
 
         self.add_task(
             irods_tasks.CreateUserTask(
@@ -99,7 +114,10 @@ class Flow(BaseLinearFlow):
                 irods=self.irods,
                 inject={
                     'user_name': self.flow_data['owner_username'],
-                    'user_type': 'rodsuser'}))
+                    'user_type': 'rodsuser',
+                },
+            )
+        )
 
         self.add_task(
             irods_tasks.AddUserToGroupTask(
@@ -107,7 +125,10 @@ class Flow(BaseLinearFlow):
                 irods=self.irods,
                 inject={
                     'group_name': project_group,
-                    'user_name': self.flow_data['owner_username']}))
+                    'user_name': self.flow_data['owner_username'],
+                },
+            )
+        )
 
         ##############
         # SODAR Tasks
@@ -120,12 +141,16 @@ class Flow(BaseLinearFlow):
                 project_uuid=self.project_uuid,
                 inject={
                     'user_uuid': self.flow_data['owner_uuid'],
-                    'role_pk': self.flow_data['owner_role_pk']}))
+                    'role_pk': self.flow_data['owner_role_pk'],
+                },
+            )
+        )
 
         self.add_task(
             sodar_tasks.SetProjectSettingsTask(
                 name='Set project settings',
                 sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
-                inject={
-                    'settings': self.flow_data['settings']}))
+                inject={'settings': self.flow_data['settings']},
+            )
+        )

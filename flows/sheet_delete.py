@@ -35,15 +35,17 @@ class Flow(BaseLinearFlow):
             irods_tasks.RemoveCollectionTask(
                 name='Remove sample sheet landing zones',
                 irods=self.irods,
-                inject={
-                    'path': zone_path}))
+                inject={'path': zone_path},
+            )
+        )
 
         self.add_task(
             irods_tasks.RemoveCollectionTask(
                 name='Remove sample sheet collection',
                 irods=self.irods,
-                inject={
-                    'path': sample_path}))
+                inject={'path': sample_path},
+            )
+        )
 
         ##############
         # SODAR Tasks
@@ -54,4 +56,6 @@ class Flow(BaseLinearFlow):
                 name='Remove sample sheet',
                 sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
-                inject={}))
+                inject={},
+            )
+        )

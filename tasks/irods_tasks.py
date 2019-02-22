@@ -6,8 +6,12 @@ import re
 import string
 
 from irods.access import iRODSAccess
-from irods.exception import CollectionDoesNotExist, UserDoesNotExist,\
-    UserGroupDoesNotExist, NoResultFound
+from irods.exception import (
+    CollectionDoesNotExist,
+    UserDoesNotExist,
+    UserGroupDoesNotExist,
+    NoResultFound,
+)
 from irods.models import Collection
 
 from .base_task import BaseTask
@@ -22,11 +26,10 @@ ACCESS_CONVERSION = {
     'write': 'modify object',
     'modify object': 'write',
     'null': 'null',
-    'own': 'own'}
+    'own': 'own',
+}
 
-INHERIT_STRINGS = {
-    True: 'inherit',
-    False: 'noinherit'}
+INHERIT_STRINGS = {True: 'inherit', False: 'noinherit'}
 
 
 md5_re = re.compile(r'([^\w.])')
@@ -38,7 +41,8 @@ class IrodsBaseTask(BaseTask):
 
     def __init__(self, name, force_fail=False, inject=None, *args, **kwargs):
         super(IrodsBaseTask, self).__init__(
-            name, force_fail=force_fail, inject=inject, *args, **kwargs)
+            name, force_fail=force_fail, inject=inject, *args, **kwargs
+        )
         self.target = 'irods'
         self.name = '<iRODS> {} ({})'.format(name, self.__class__.__name__)
         self.irods = kwargs['irods']
@@ -46,9 +50,9 @@ class IrodsBaseTask(BaseTask):
     # For when taskflow won't catch a proper exception from the client
     def _raise_irods_execption(self, ex, info=None):
         desc = '{} failed: {}'.format(
-            self.__class__.__name__, (
-                str(ex) if str(ex) not in ['', 'None'] else
-                ex.__class__.__name__))
+            self.__class__.__name__,
+            (str(ex) if str(ex) not in ['', 'None'] else ex.__class__.__name__),
+        )
 
         if info:
             desc += ' ({})'.format(info)
@@ -93,17 +97,23 @@ class RemoveCollectionTask(IrodsBaseTask):
     #       (if collections with the same path are removed, they are collected
     #       in trash versioned with a timestamp, which we can't know for sure)
     def execute(self, path, *args, **kwargs):
-        trash_path = '/' + path.split('/')[1] + '/trash/' + ''.join(
-            random.SystemRandom().choice(
-                string.ascii_lowercase + string.digits) for x in range(16))
+        trash_path = (
+            '/'
+            + path.split('/')[1]
+            + '/trash/'
+            + ''.join(
+                random.SystemRandom().choice(
+                    string.ascii_lowercase + string.digits
+                )
+                for x in range(16)
+            )
+        )
 
         if self.irods.collections.exists(path):
-            self.irods.collections.create(trash_path)   # Must create this 1st
+            self.irods.collections.create(trash_path)  # Must create this 1st
 
             try:
-                self.irods.collections.move(
-                    src_path=path,
-                    dest_path=trash_path)
+                self.irods.collections.move(src_path=path, dest_path=trash_path)
 
             # NOTE: iRODS/client doesn't like to return a proper exception here
             except Exception as ex:
@@ -123,13 +133,12 @@ class RemoveCollectionTask(IrodsBaseTask):
 
     def revert(self, path, *args, **kwargs):
         if self.data_modified:
-            src_path = self.execute_data[
-                'trash_path'] + '/' + path.split('/')[-1]
+            src_path = (
+                self.execute_data['trash_path'] + '/' + path.split('/')[-1]
+            )
             dest_path = '/'.join(path.split('/')[:-1])
 
-            self.irods.collections.move(
-                src_path=src_path,
-                dest_path=dest_path)
+            self.irods.collections.move(src_path=src_path, dest_path=dest_path)
 
             # Delete temp trash collection
             self.irods.collections.remove(self.execute_data['trash_path'])
@@ -148,21 +157,21 @@ class SetCollectionMetadataTask(IrodsBaseTask):
         try:
             meta_item = coll.metadata.get_one(name)
 
-        except Exception:   # Can't get proper Exception here
+        except Exception:  # Can't get proper Exception here
             pass
 
         if meta_item and value != meta_item.value:
             self.execute_data['value'] = str(meta_item.value)
-            self.execute_data['units'] = str(meta_item.units)\
-                if meta_item.units else None
+            self.execute_data['units'] = (
+                str(meta_item.units) if meta_item.units else None
+            )
 
             meta_item.value = str(value)
             meta_item.units = str(units)
 
             self.irods.metadata.set(
-                model_cls=Collection,
-                path=path,
-                meta=meta_item)
+                model_cls=Collection, path=path, meta=meta_item
+            )
             self.data_modified = True
 
         elif not meta_item:
@@ -181,9 +190,8 @@ class SetCollectionMetadataTask(IrodsBaseTask):
                 meta_item.units = str(self.execute_data['units'])
 
                 self.irods.metadata.set(
-                    model_cls=Collection,
-                    path=path,
-                    meta=meta_item)
+                    model_cls=Collection, path=path, meta=meta_item
+                )
 
             else:
                 coll.metadata.remove(name, str(value), units)
@@ -197,9 +205,7 @@ class CreateUserGroupTask(IrodsBaseTask):
             self.irods.user_groups.get(name)
 
         except UserGroupDoesNotExist:
-            self.irods.user_groups.create(
-                name=name,
-                user_zone=self.irods.zone)
+            self.irods.user_groups.create(name=name, user_zone=self.irods.zone)
             self.data_modified = True
 
         super(CreateUserGroupTask, self).execute(*args, **kwargs)
@@ -221,7 +227,8 @@ class SetInheritanceTask(IrodsBaseTask):
             access_name=INHERIT_STRINGS[inherit],
             path=path,
             user_name='',
-            user_zone=self.irods.zone)
+            user_zone=self.irods.zone,
+        )
         self.irods.permissions.set(acl, recursive=True)
 
     def revert(self, path, inherit=True, *args, **kwargs):
@@ -242,8 +249,15 @@ class SetAccessTask(IrodsBaseTask):
     (obj_target=True), the recursive argument will be ignored."""
 
     def execute(
-            self, access_name, path, user_name, obj_target=False,
-            recursive=True, *args, **kwargs):
+        self,
+        access_name,
+        path,
+        user_name,
+        obj_target=False,
+        recursive=True,
+        *args,
+        **kwargs
+    ):
         modifying_data = False
 
         if obj_target:
@@ -256,12 +270,16 @@ class SetAccessTask(IrodsBaseTask):
 
         target_access = self.irods.permissions.get(target=target)
         user_access = next(
-            (x for x in target_access if x.user_name == user_name), None)
+            (x for x in target_access if x.user_name == user_name), None
+        )
 
-        if (user_access and
-                user_access.access_name != ACCESS_CONVERSION[access_name]):
+        if (
+            user_access
+            and user_access.access_name != ACCESS_CONVERSION[access_name]
+        ):
             self.execute_data['access_name'] = ACCESS_CONVERSION[
-                user_access.access_name]
+                user_access.access_name
+            ]
             modifying_data = True
 
         elif not user_access:
@@ -273,7 +291,8 @@ class SetAccessTask(IrodsBaseTask):
                 access_name=access_name,
                 path=path,
                 user_name=user_name,
-                user_zone=self.irods.zone)
+                user_zone=self.irods.zone,
+            )
 
             try:
                 self.irods.permissions.set(acl, recursive=recursive)
@@ -287,20 +306,29 @@ class SetAccessTask(IrodsBaseTask):
         super(SetAccessTask, self).execute(*args, **kwargs)
 
     def revert(
-            self, access_name, path, user_name, obj_target=False,
-            recursive=True, *args, **kwargs):
+        self,
+        access_name,
+        path,
+        user_name,
+        obj_target=False,
+        recursive=True,
+        *args,
+        **kwargs
+    ):
         if self.data_modified:
             acl = iRODSAccess(
                 access_name=self.execute_data['access_name'],
                 path=path,
                 user_name=user_name,
-                user_zone=self.irods.zone)
+                user_zone=self.irods.zone,
+            )
             recursive = False if obj_target else recursive
             self.irods.permissions.set(acl, recursive=recursive)
 
 
 class CreateUserTask(IrodsBaseTask):
     """Create user if it does not exist (iadmin mkuser)"""
+
     # NOTE: Password not needed as users log in via LDAP
 
     def execute(self, user_name, user_type, *args, **kwargs):
@@ -311,7 +339,8 @@ class CreateUserTask(IrodsBaseTask):
             self.irods.users.create(
                 user_name=user_name,
                 user_type=user_type,
-                user_zone=self.irods.zone)
+                user_zone=self.irods.zone,
+            )
             self.data_modified = True
 
         super(CreateUserTask, self).execute(*args, **kwargs)
@@ -331,29 +360,28 @@ class AddUserToGroupTask(IrodsBaseTask):
 
         except Exception as ex:
             self._raise_irods_execption(
-                ex, info='Failed to retrieve group "{}"'.format(group_name))
+                ex, info='Failed to retrieve group "{}"'.format(group_name)
+            )
 
         if not group.hasmember(user_name):
             try:
-                group.addmember(
-                    user_name=user_name,
-                    user_zone=self.irods.zone)
+                group.addmember(user_name=user_name, user_zone=self.irods.zone)
                 self.data_modified = True
 
             except Exception as ex:
                 self._raise_irods_execption(
                     ex,
                     info='Failed to add user "{}" into group "{}"'.format(
-                        user_name, group_name))
+                        user_name, group_name
+                    ),
+                )
 
         super(AddUserToGroupTask, self).execute(*args, **kwargs)
 
     def revert(self, group_name, user_name, *args, **kwargs):
         if self.data_modified:
             group = self.irods.user_groups.get(group_name)
-            group.removemember(
-                user_name=user_name,
-                user_zone=self.irods.zone)
+            group.removemember(user_name=user_name, user_zone=self.irods.zone)
 
 
 class RemoveUserFromGroupTask(IrodsBaseTask):
@@ -365,8 +393,8 @@ class RemoveUserFromGroupTask(IrodsBaseTask):
 
             if group.hasmember(user_name):
                 group.removemember(
-                    user_name=user_name,
-                    user_zone=self.irods.zone)
+                    user_name=user_name, user_zone=self.irods.zone
+                )
                 self.data_modified = True
 
         except Exception as ex:
@@ -377,9 +405,7 @@ class RemoveUserFromGroupTask(IrodsBaseTask):
     def revert(self, group_name, user_name, *args, **kwargs):
         if self.data_modified:
             group = self.irods.user_groups.get(group_name)
-            group.addmember(
-                user_name=user_name,
-                user_zone=self.irods.zone)
+            group.addmember(user_name=user_name, user_zone=self.irods.zone)
 
 
 # TODO: Improve this to accept both obj/collection for dest_path in revert
@@ -388,9 +414,7 @@ class MoveDataObjectTask(IrodsBaseTask):
 
     def execute(self, src_path, dest_path, *args, **kwargs):
         try:
-            self.irods.data_objects.move(
-                src_path=src_path,
-                dest_path=dest_path)
+            self.irods.data_objects.move(src_path=src_path, dest_path=dest_path)
             self.data_modified = True
 
         except Exception as ex:
@@ -404,14 +428,13 @@ class MoveDataObjectTask(IrodsBaseTask):
             new_src = dest_path + '/' + src_path.split('/')[-1]
             new_dest = '/'.join(src_path.split('/')[:-1])
 
-            self.irods.data_objects.move(
-                src_path=new_src,
-                dest_path=new_dest)
+            self.irods.data_objects.move(src_path=new_src, dest_path=new_dest)
 
 
 # NOTE: Don't use this anymore
 class ValidateDataObjectChecksumTask(IrodsBaseTask):
     """Validate data object checksum by accompanying .md5 file"""
+
     # NOTE: This is a temporary hack, real validation will be done elsewhere
     #       (e.g. directly in iRODS rules)
 
@@ -424,7 +447,8 @@ class ValidateDataObjectChecksumTask(IrodsBaseTask):
 
             if file_sum != file_obj.checksum:
                 msg = 'Checksums do not match for "{}"'.format(
-                    path.split('/')[-1])
+                    path.split('/')[-1]
+                )
                 logger.error(msg)
                 raise Exception(msg)
 
@@ -434,7 +458,7 @@ class ValidateDataObjectChecksumTask(IrodsBaseTask):
         super(ValidateDataObjectChecksumTask, self).execute(*args, **kwargs)
 
     def revert(self, path, *args, **kwargs):
-        pass    # Nothing is modified so no need for revert
+        pass  # Nothing is modified so no need for revert
 
 
 # Workarounds for issue #8 -----------------------------------------------
@@ -442,6 +466,7 @@ class ValidateDataObjectChecksumTask(IrodsBaseTask):
 
 class BatchValidateChecksumsTask(IrodsBaseTask):
     """Batch validate checksums of a given list of data object paths"""
+
     # NOTE: This is a temporary hack, real validation will be done elsewhere
     #       (e.g. directly in iRODS rules)
 
@@ -453,20 +478,23 @@ class BatchValidateChecksumsTask(IrodsBaseTask):
                 try:
                     md5_file = self.irods.data_objects.open(md5_path, mode='r')
                     file_sum = re.split(
-                        md5_re, md5_file.read().decode('utf-8'))[0]
+                        md5_re, md5_file.read().decode('utf-8')
+                    )[0]
 
                 except Exception as ex:
                     raise Exception(
                         'Unable to read checksum file "{}" ({})'.format(
-                            md5_path, ex))
+                            md5_path, ex
+                        )
+                    )
 
                 file_obj = self.irods.data_objects.get(path)
 
                 if file_sum != file_obj.checksum:
                     msg = 'Checksums do not match for "{}"'.format(
-                        path.split('/')[-1])
-                    msg_detail = '{} <-> {}'.format(
-                        file_sum, file_obj.checksum)
+                        path.split('/')[-1]
+                    )
+                    msg_detail = '{} <-> {}'.format(file_sum, file_obj.checksum)
                     logger.error('{} ({})'.format(msg, msg_detail))
                     raise Exception(msg)
 
@@ -476,7 +504,7 @@ class BatchValidateChecksumsTask(IrodsBaseTask):
         super(BatchValidateChecksumsTask, self).execute(*args, **kwargs)
 
     def revert(self, paths, *args, **kwargs):
-        pass    # Nothing is modified so no need for revert
+        pass  # Nothing is modified so no need for revert
 
 
 class BatchCreateCollectionsTask(IrodsBaseTask):
@@ -514,23 +542,34 @@ class BatchMoveDataObjectsTask(IrodsBaseTask):
 
     @staticmethod
     def get_dest_obj_path(src_path, dest_path):
-        return dest_path + ('/' if dest_path[-1] != '/' else '') + \
-               src_path.split('/')[-1]
+        return (
+            dest_path
+            + ('/' if dest_path[-1] != '/' else '')
+            + src_path.split('/')[-1]
+        )
 
     def execute(
-            self, src_root, dest_root, src_paths, access_name, user_name,
-            *args, **kwargs):
+        self,
+        src_root,
+        dest_root,
+        src_paths,
+        access_name,
+        user_name,
+        *args,
+        **kwargs
+    ):
         self.execute_data['moved_objects'] = []
 
         for src_path in src_paths:
             dest_coll_path = self.get_dest_coll_path(
-                src_path, src_root, dest_root)
+                src_path, src_root, dest_root
+            )
             dest_obj_path = self.get_dest_obj_path(src_path, dest_coll_path)
 
             try:
                 self.irods.data_objects.move(
-                    src_path=src_path,
-                    dest_path=dest_obj_path)
+                    src_path=src_path, dest_path=dest_obj_path
+                )
 
             except Exception as ex:
                 if ex.__class__.__name__ == 'CAT_NAME_EXISTS_AS_DATAOBJ':
@@ -538,7 +577,8 @@ class BatchMoveDataObjectsTask(IrodsBaseTask):
 
                 else:
                     msg = 'Error moving move data object "{}" to "{}"'.format(
-                        src_path, dest_obj_path)
+                        src_path, dest_obj_path
+                    )
 
                 self._raise_irods_execption(ex, msg)
 
@@ -549,25 +589,31 @@ class BatchMoveDataObjectsTask(IrodsBaseTask):
 
             except Exception as ex:
                 self._raise_irods_exception(
-                    ex, 'Error retrieving destination object "{}"'.format(
-                        dest_obj_path))
+                    ex,
+                    'Error retrieving destination object "{}"'.format(
+                        dest_obj_path
+                    ),
+                )
 
             try:
                 target_access = self.irods.permissions.get(target=target)
 
             except Exception as ex:
                 self._raise_irods_exception(
-                    ex, 'Error getting permissions of target "{}"'.format(
-                        target))
+                    ex,
+                    'Error getting permissions of target "{}"'.format(target),
+                )
 
             user_access = next(
-                (x for x in target_access if x.user_name == user_name), None)
+                (x for x in target_access if x.user_name == user_name), None
+            )
             prev_access = None
 
-            if (user_access and
-                    user_access.access_name != ACCESS_CONVERSION[access_name]):
-                prev_access = ACCESS_CONVERSION[
-                    user_access.access_name]
+            if (
+                user_access
+                and user_access.access_name != ACCESS_CONVERSION[access_name]
+            ):
+                prev_access = ACCESS_CONVERSION[user_access.access_name]
                 modifying_access = True
 
             elif not user_access:
@@ -581,40 +627,45 @@ class BatchMoveDataObjectsTask(IrodsBaseTask):
                     access_name=access_name,
                     path=dest_obj_path,
                     user_name=user_name,
-                    user_zone=self.irods.zone)
+                    user_zone=self.irods.zone,
+                )
 
                 try:
                     self.irods.permissions.set(acl, recursive=False)
 
                 except Exception as ex:
                     self._raise_irods_execption(
-                        ex, 'Error setting permission for "{}"'.format(
-                            dest_coll_path))
+                        ex,
+                        'Error setting permission for "{}"'.format(
+                            dest_coll_path
+                        ),
+                    )
 
         super(BatchMoveDataObjectsTask, self).execute(*args, **kwargs)
 
     def revert(
-            self, src_root, dest_root, access_name, user_name,
-            *args, **kwargs):
+        self, src_root, dest_root, access_name, user_name, *args, **kwargs
+    ):
         for moved_object in self.execute_data['moved_objects']:
             src_path = moved_object[0]
             prev_access = moved_object[1]
 
-            dest_path = self.get_dest_coll_path(
-                src_path, src_root, dest_root)
+            dest_path = self.get_dest_coll_path(src_path, src_root, dest_root)
 
-            new_src = dest_path + ('/' if dest_path[-1] != '/' else '') + \
-                src_path.split('/')[-1]
+            new_src = (
+                dest_path
+                + ('/' if dest_path[-1] != '/' else '')
+                + src_path.split('/')[-1]
+            )
             new_dest = '/'.join(src_path.split('/')[:-1])
             new_dest_obj = new_dest + '/' + src_path.split('/')[-1]
 
-            self.irods.data_objects.move(
-                src_path=new_src,
-                dest_path=new_dest)
+            self.irods.data_objects.move(src_path=new_src, dest_path=new_dest)
 
             acl = iRODSAccess(
                 access_name=prev_access,
                 path=new_dest_obj,
                 user_name=user_name,
-                user_zone=self.irods.zone)
+                user_zone=self.irods.zone,
+            )
             self.irods.permissions.set(acl, recursive=False)

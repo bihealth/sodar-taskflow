@@ -7,10 +7,7 @@ class Flow(BaseLinearFlow):
     """Flow for updating an user's role in project"""
 
     def validate(self):
-        self.required_fields = [
-            'username',
-            'user_uuid',
-            'role_pk']
+        self.required_fields = ['username', 'user_uuid', 'role_pk']
         return super(Flow, self).validate()
 
     def build(self, force_fail=False):
@@ -19,8 +16,7 @@ class Flow(BaseLinearFlow):
         # Setup
         ########
 
-        project_group = get_project_group_name(
-            self.project_uuid)
+        project_group = get_project_group_name(self.project_uuid)
 
         ##############
         # iRODS Tasks
@@ -32,7 +28,10 @@ class Flow(BaseLinearFlow):
                 irods=self.irods,
                 inject={
                     'user_name': self.flow_data['username'],
-                    'user_type': 'rodsuser'}))
+                    'user_type': 'rodsuser',
+                },
+            )
+        )
 
         self.add_task(
             irods_tasks.AddUserToGroupTask(
@@ -40,7 +39,10 @@ class Flow(BaseLinearFlow):
                 irods=self.irods,
                 inject={
                     'group_name': project_group,
-                    'user_name': self.flow_data['username']}))
+                    'user_name': self.flow_data['username'],
+                },
+            )
+        )
 
         ##############
         # SODAR Tasks
@@ -53,4 +55,7 @@ class Flow(BaseLinearFlow):
                 project_uuid=self.project_uuid,
                 inject={
                     'user_uuid': self.flow_data['user_uuid'],
-                    'role_pk': self.flow_data['role_pk']}))
+                    'role_pk': self.flow_data['role_pk'],
+                },
+            )
+        )

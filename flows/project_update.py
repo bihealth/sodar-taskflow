@@ -15,7 +15,8 @@ class Flow(BaseLinearFlow):
             'owner_role_pk',
             'old_owner_uuid',
             'old_owner_username',
-            'settings']
+            'settings',
+        ]
         return super(Flow, self).validate()
 
     def build(self, force_fail=False):
@@ -38,7 +39,10 @@ class Flow(BaseLinearFlow):
                 inject={
                     'path': project_path,
                     'name': 'title',
-                    'value': self.flow_data['project_title']}))
+                    'value': self.flow_data['project_title'],
+                },
+            )
+        )
 
         self.add_task(
             irods_tasks.SetCollectionMetadataTask(
@@ -47,27 +51,37 @@ class Flow(BaseLinearFlow):
                 inject={
                     'path': project_path,
                     'name': 'description',
-                    'value': self.flow_data['project_description']}))
+                    'value': self.flow_data['project_description'],
+                },
+            )
+        )
 
         # Update owner if changed
         if self.flow_data['owner_uuid'] != self.flow_data['old_owner_uuid']:
             self.add_task(
                 irods_tasks.RemoveUserFromGroupTask(
                     name='Remove old owner "{}" from project user '
-                         'group'.format(self.flow_data['old_owner_username']),
+                    'group'.format(self.flow_data['old_owner_username']),
                     irods=self.irods,
                     inject={
                         'group_name': project_group,
-                        'user_name': self.flow_data['old_owner_username']}))
+                        'user_name': self.flow_data['old_owner_username'],
+                    },
+                )
+            )
 
             self.add_task(
                 irods_tasks.AddUserToGroupTask(
                     name='Add new owner "{}" to project user group'.format(
-                        self.flow_data['owner_username']),
+                        self.flow_data['owner_username']
+                    ),
                     irods=self.irods,
                     inject={
                         'group_name': project_group,
-                        'user_name': self.flow_data['owner_username']}))
+                        'user_name': self.flow_data['owner_username'],
+                    },
+                )
+            )
 
         ##############
         # SODAR Tasks
@@ -81,35 +95,48 @@ class Flow(BaseLinearFlow):
                 inject={
                     'title': self.flow_data['project_title'],
                     'description': self.flow_data['project_description'],
-                    'readme': self.flow_data['project_readme'] if
-                    'project_readme' in self.flow_data else ''}))
+                    'readme': self.flow_data['project_readme']
+                    if 'project_readme' in self.flow_data
+                    else '',
+                },
+            )
+        )
 
         # Update owner if changed
         if self.flow_data['owner_uuid'] != self.flow_data['old_owner_uuid']:
             self.add_task(
                 sodar_tasks.RemoveRoleTask(
                     name='Remove owner role from user "{}"'.format(
-                        self.flow_data['old_owner_username']),
+                        self.flow_data['old_owner_username']
+                    ),
                     sodar_api=self.sodar_api,
                     project_uuid=self.project_uuid,
                     inject={
                         'user_uuid': self.flow_data['old_owner_uuid'],
-                        'role_pk': self.flow_data['owner_role_pk']}))
+                        'role_pk': self.flow_data['owner_role_pk'],
+                    },
+                )
+            )
 
             self.add_task(
                 sodar_tasks.SetRoleTask(
                     name='Set owner role for user "{}"'.format(
-                        self.flow_data['owner_username']),
+                        self.flow_data['owner_username']
+                    ),
                     sodar_api=self.sodar_api,
                     project_uuid=self.project_uuid,
                     inject={
                         'user_uuid': self.flow_data['owner_uuid'],
-                        'role_pk': self.flow_data['owner_role_pk']}))
+                        'role_pk': self.flow_data['owner_role_pk'],
+                    },
+                )
+            )
 
         self.add_task(
             sodar_tasks.SetProjectSettingsTask(
                 name='Set project settings',
                 sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
-                inject={
-                    'settings': self.flow_data['settings']}))
+                inject={'settings': self.flow_data['settings']},
+            )
+        )

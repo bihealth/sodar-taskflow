@@ -1,8 +1,13 @@
 from config import settings
 
 from .base_flow import BaseLinearFlow
-from apis.irods_utils import get_sample_path, get_landing_zone_path, \
-    get_subcoll_obj_paths, get_project_group_name, get_subcoll_paths
+from apis.irods_utils import (
+    get_sample_path,
+    get_landing_zone_path,
+    get_subcoll_obj_paths,
+    get_project_group_name,
+    get_subcoll_paths,
+)
 
 from tasks import sodar_tasks, irods_tasks
 
@@ -16,30 +21,35 @@ class Flow(BaseLinearFlow):
     sample data collection in iRODS"""
 
     def validate(self):
-        self.supported_modes = [
-            'sync',
-            'async']
+        self.supported_modes = ['sync', 'async']
         self.required_fields = [
             'zone_title',
             'zone_uuid',
             'assay_path_zone',
             'assay_path_samples',
-            'user_name']
+            'user_name',
+        ]
         return super(Flow, self).validate()
 
     def build(self, force_fail=False):
         validate_only = (
-            True if 'validate_only' in self.flow_data and
-            self.flow_data['validate_only'] else False)
+            True
+            if 'validate_only' in self.flow_data
+            and self.flow_data['validate_only']
+            else False
+        )
 
         # Set zone status in the Django site
         set_data = {
             'zone_uuid': self.flow_data['zone_uuid'],
             'status': 'PREPARING',
             'status_info': 'Preparing transaction for validation{}'.format(
-                ' and moving' if not validate_only else '')}
+                ' and moving' if not validate_only else ''
+            ),
+        }
         self.sodar_api.send_request(
-            'landingzones/taskflow/status/set', set_data)
+            'landingzones/taskflow/status/set', set_data
+        )
 
         ########
         # Setup
@@ -48,34 +58,48 @@ class Flow(BaseLinearFlow):
         project_group = get_project_group_name(self.project_uuid)
         sample_path = get_sample_path(
             project_uuid=self.project_uuid,
-            assay_path=self.flow_data['assay_path_samples'])
+            assay_path=self.flow_data['assay_path_samples'],
+        )
         zone_path = get_landing_zone_path(
             project_uuid=self.project_uuid,
             user_name=self.flow_data['user_name'],
             assay_path=self.flow_data['assay_path_zone'],
             zone_title=self.flow_data['zone_title'],
-            zone_config=self.flow_data['zone_config'])
+            zone_config=self.flow_data['zone_config'],
+        )
         admin_name = self.irods.username
 
         # Get landing zone file paths (without .md5 files) from iRODS
         zone_coll = self.irods.collections.get(zone_path)
         zone_objects = get_subcoll_obj_paths(zone_coll)
 
-        zone_objects_nomd5 = list(set([
-            p for p in zone_objects if p[p.rfind('.') + 1:].lower() != 'md5']))
+        zone_objects_nomd5 = list(
+            set(
+                [
+                    p
+                    for p in zone_objects
+                    if p[p.rfind('.') + 1 :].lower() != 'md5'
+                ]
+            )
+        )
 
         # Get all collections with root path
         zone_all_colls = [zone_path]
         zone_all_colls += get_subcoll_paths(zone_coll)
 
         # Get list of collections containing files (ignore empty colls)
-        zone_object_colls = list(set([
-            p[:p.rfind('/')] for p in zone_objects]))
+        zone_object_colls = list(set([p[: p.rfind('/')] for p in zone_objects]))
 
         # Convert these to collections inside sample dir
-        sample_colls = list(set([
-            sample_path + '/' + '/'.join(p.split('/')[10:]) for
-            p in zone_object_colls if len(p.split('/')) > 10]))
+        sample_colls = list(
+            set(
+                [
+                    sample_path + '/' + '/'.join(p.split('/')[10:])
+                    for p in zone_object_colls
+                    if len(p.split('/')) > 10
+                ]
+            )
+        )
 
         # print('sample_path: {}'.format(sample_path))                # DEBUG
         # print('zone_objects: {}'.format(zone_objects))              # DEBUG
@@ -97,7 +121,10 @@ class Flow(BaseLinearFlow):
                     project_uuid=self.project_uuid,
                     inject={
                         'zone_uuid': self.flow_data['zone_uuid'],
-                        'info_prefix': 'Running asynchronous job failed'}))
+                        'info_prefix': 'Running asynchronous job failed',
+                    },
+                )
+            )
 
         self.add_task(
             sodar_tasks.SetLandingZoneStatusTask(
@@ -107,9 +134,12 @@ class Flow(BaseLinearFlow):
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'VALIDATING',
-                    'status_info':
-                        'Validating {} files, write access disabled'.format(
-                            len(zone_objects_nomd5))}))
+                    'status_info': 'Validating {} files, write access disabled'.format(
+                        len(zone_objects_nomd5)
+                    ),
+                },
+            )
+        )
 
         ################
         # VALIDATE_ONLY
@@ -121,10 +151,11 @@ class Flow(BaseLinearFlow):
             self.add_task(
                 irods_tasks.BatchValidateChecksumsTask(
                     name='Batch validate MD5 checksums of {} data '
-                         'objects'.format(len(zone_objects_nomd5)),
+                    'objects'.format(len(zone_objects_nomd5)),
                     irods=self.irods,
-                    inject={
-                        'paths': zone_objects_nomd5}))
+                    inject={'paths': zone_objects_nomd5},
+                )
+            )
 
             self.add_task(
                 sodar_tasks.SetLandingZoneStatusTask(
@@ -134,10 +165,13 @@ class Flow(BaseLinearFlow):
                     inject={
                         'zone_uuid': self.flow_data['zone_uuid'],
                         'status': 'ACTIVE',
-                        'status_info':
-                            'Successfully validated {} file{}'.format(
-                                len(zone_objects_nomd5),
-                                's' if len(zone_objects_nomd5) != 1 else '')}))
+                        'status_info': 'Successfully validated {} file{}'.format(
+                            len(zone_objects_nomd5),
+                            's' if len(zone_objects_nomd5) != 1 else '',
+                        ),
+                    },
+                )
+            )
             return
 
         # Else continue with moving
@@ -145,31 +179,40 @@ class Flow(BaseLinearFlow):
         self.add_task(
             irods_tasks.SetInheritanceTask(
                 name='Set inheritance for landing zone collection {}'.format(
-                    zone_path),
+                    zone_path
+                ),
                 irods=self.irods,
-                inject={
-                    'path': zone_path,
-                    'inherit': True}))
+                inject={'path': zone_path, 'inherit': True},
+            )
+        )
 
         self.add_task(
             irods_tasks.SetAccessTask(
                 name='Set admin "{}" owner access for zone coll {}'.format(
-                    admin_name, zone_path),
+                    admin_name, zone_path
+                ),
                 irods=self.irods,
                 inject={
                     'access_name': 'own',
                     'path': zone_path,
-                    'user_name': admin_name}))
+                    'user_name': admin_name,
+                },
+            )
+        )
 
         self.add_task(
             irods_tasks.SetAccessTask(
                 name='Set user "{}" read access for zone collection {}'.format(
-                    self.flow_data['user_name'], zone_path),
+                    self.flow_data['user_name'], zone_path
+                ),
                 irods=self.irods,
                 inject={
                     'access_name': 'read',
                     'path': zone_path,
-                    'user_name': self.flow_data['user_name']}))
+                    'user_name': self.flow_data['user_name'],
+                },
+            )
+        )
 
         # Workaround for sodar#297
         # If script user is set and exists, set read access
@@ -178,10 +221,12 @@ class Flow(BaseLinearFlow):
         self.add_task(
             irods_tasks.BatchValidateChecksumsTask(
                 name='Batch validate MD5 checksums of {} data objects'.format(
-                    len(zone_objects_nomd5)),
+                    len(zone_objects_nomd5)
+                ),
                 irods=self.irods,
-                inject={
-                    'paths': zone_objects_nomd5}))
+                inject={'paths': zone_objects_nomd5},
+            )
+        )
 
         self.add_task(
             sodar_tasks.SetLandingZoneStatusTask(
@@ -191,39 +236,50 @@ class Flow(BaseLinearFlow):
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'MOVING',
-                    'status_info':
-                        'Validation OK, moving {} files into {}'.format(
-                            len(zone_objects_nomd5), SAMPLE_DIR)}))
+                    'status_info': 'Validation OK, moving {} files into {}'.format(
+                        len(zone_objects_nomd5), SAMPLE_DIR
+                    ),
+                },
+            )
+        )
 
         if sample_colls:
             self.add_task(
                 irods_tasks.BatchCreateCollectionsTask(
                     name='Create collections in {}'.format(SAMPLE_DIR),
                     irods=self.irods,
-                    inject={
-                        'paths': sample_colls}))
+                    inject={'paths': sample_colls},
+                )
+            )
 
         self.add_task(
             irods_tasks.BatchMoveDataObjectsTask(
                 name='Move {} files and set project group '
-                     'read access'.format(len(zone_objects)),
+                'read access'.format(len(zone_objects)),
                 irods=self.irods,
                 inject={
                     'src_root': zone_path,
                     'dest_root': sample_path,
                     'src_paths': zone_objects,
                     'access_name': 'read',
-                    'user_name': project_group}))
+                    'user_name': project_group,
+                },
+            )
+        )
 
         self.add_task(
             irods_tasks.SetAccessTask(
                 name='Remove user "{}" access from sample collection {}'.format(
-                    self.flow_data['user_name'], sample_path),
+                    self.flow_data['user_name'], sample_path
+                ),
                 irods=self.irods,
                 inject={
                     'access_name': 'null',
                     'path': sample_path,
-                    'user_name': self.flow_data['user_name']}))
+                    'user_name': self.flow_data['user_name'],
+                },
+            )
+        )
 
         # Workaround for sodar#297
         # If script user is set and exists, remove access
@@ -233,8 +289,9 @@ class Flow(BaseLinearFlow):
             irods_tasks.RemoveCollectionTask(
                 name='Remove the landing zone collection',
                 irods=self.irods,
-                inject={
-                    'path': zone_path}))
+                inject={'path': zone_path},
+            )
+        )
 
         self.add_task(
             sodar_tasks.SetLandingZoneStatusTask(
@@ -244,6 +301,8 @@ class Flow(BaseLinearFlow):
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'MOVED',
-                    'status_info':
-                        'Successfully moved {} files, landing zone '
-                        'removed'.format(len(zone_objects_nomd5))}))
+                    'status_info': 'Successfully moved {} files, landing zone '
+                    'removed'.format(len(zone_objects_nomd5)),
+                },
+            )
+        )

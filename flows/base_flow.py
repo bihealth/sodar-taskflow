@@ -4,7 +4,7 @@ from taskflow.patterns import linear_flow as lf
 
 from apis.irods_utils import init_irods
 from tasks.base_task import ForceFailException
-from tasks.irods_tasks import SetAccessTask     # For temporary workaround
+from tasks.irods_tasks import SetAccessTask  # For temporary workaround
 
 from config import settings
 
@@ -14,23 +14,32 @@ logger = logging.getLogger('flask.app')
 
 class BaseLinearFlow:
     """Base class for linear flows used for task queues"""
+
     def __init__(
-            self, irods, sodar_api, project_uuid, flow_name, flow_data, targets,
-            timeline_uuid=None, request_mode='sync'):
+        self,
+        irods,
+        sodar_api,
+        project_uuid,
+        flow_name,
+        flow_data,
+        targets,
+        timeline_uuid=None,
+        request_mode='sync',
+    ):
         self.irods = irods
-        self.sodar_api = sodar_api      # TODO: Dynamic support for more APIs?
+        self.sodar_api = sodar_api  # TODO: Dynamic support for more APIs?
         self.project_uuid = project_uuid
         self.flow_name = flow_name
         self.flow_data = flow_data
         self.targets = targets
-        self.required_fields = []       # For validation
+        self.required_fields = []  # For validation
         self.timeline_uuid = timeline_uuid
         self.request_mode = request_mode
         self.supported_modes = [
             'sync',
             # 'async'                   # Support only sync by default
         ]
-        self.require_lock = True        # Always require project lock by default
+        self.require_lock = True  # Always require project lock by default
         self.flow = lf.Flow(flow_name)
 
     def validate(self):
@@ -38,8 +47,9 @@ class BaseLinearFlow:
         validation success. Add required kwargs in the flow implementation and
         call this. Can be extended with further validation."""
         if self.request_mode not in self.supported_modes:
-            raise TypeError('Request mode "{}" not supported'.format(
-                self.request_mode))
+            raise TypeError(
+                'Request mode "{}" not supported'.format(self.request_mode)
+            )
 
         for k in self.required_fields:
             if k not in self.flow_data or self.flow_data[k] == '':
@@ -65,8 +75,7 @@ class BaseLinearFlow:
         the flow was rolled back. Also handle project locking and unlocking."""
 
         if verbose:
-            logger.info('--- Running flow "{}" ---'.format(
-                self.flow.name))
+            logger.info('--- Running flow "{}" ---'.format(self.flow.name))
 
         engine = engines.load(self.flow, engine='serial')
 
@@ -80,9 +89,14 @@ class BaseLinearFlow:
             logger.error('Exception: {}'.format(ex))
             raise ex
 
-        result = True if (
-            engine.statistics['incomplete'] == 0 and
-            engine.statistics['discarded_failures'] == 0) else False
+        result = (
+            True
+            if (
+                engine.statistics['incomplete'] == 0
+                and engine.statistics['discarded_failures'] == 0
+            )
+            else False
+        )
 
         if verbose:
             logger.info(
@@ -91,7 +105,9 @@ class BaseLinearFlow:
                     'OK' if result is True else 'ROLLBACK',
                     engine.statistics['completed'],
                     engine.statistics['incomplete'],
-                    engine.statistics['discarded_failures']))
+                    engine.statistics['discarded_failures'],
+                )
+            )
 
         return result
 
@@ -107,17 +123,21 @@ class BaseLinearFlow:
             except Exception:
                 raise Exception(
                     'User "{}" does not exist on the iRODS server'.format(
-                        self.flow_data['script_user']))
+                        self.flow_data['script_user']
+                    )
+                )
 
             self.add_task(
                 SetAccessTask(
                     name='Set user "{}" access for '
-                         'collection "{}" to "{}"'.format(
-                            self.flow_data['script_user'],
-                            target_path,
-                            access_name),
+                    'collection "{}" to "{}"'.format(
+                        self.flow_data['script_user'], target_path, access_name
+                    ),
                     irods=self.irods,
                     inject={
                         'access_name': access_name,
                         'path': target_path,
-                        'user_name': self.flow_data['script_user']}))
+                        'user_name': self.flow_data['script_user'],
+                    },
+                )
+            )

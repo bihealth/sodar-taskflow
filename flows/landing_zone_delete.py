@@ -13,14 +13,13 @@ class Flow(BaseLinearFlow):
 
     def validate(self):
         self.require_lock = False  # Project lock not required for this flow
-        self.supported_modes = [
-            'sync',
-            'async']
+        self.supported_modes = ['sync', 'async']
         self.required_fields = [
             'zone_title',
             'zone_uuid',
             'assay_path',
-            'user_name']
+            'user_name',
+        ]
         return super(Flow, self).validate()
 
     def build(self, force_fail=False):
@@ -34,7 +33,8 @@ class Flow(BaseLinearFlow):
             user_name=self.flow_data['user_name'],
             assay_path=self.flow_data['assay_path'],
             zone_title=self.flow_data['zone_title'],
-            zone_config=self.flow_data['zone_config'])
+            zone_config=self.flow_data['zone_config'],
+        )
 
         ########
         # Tasks
@@ -49,7 +49,10 @@ class Flow(BaseLinearFlow):
                     project_uuid=self.project_uuid,
                     inject={
                         'zone_uuid': self.flow_data['zone_uuid'],
-                        'info_prefix': 'Running asynchronous job failed'}))
+                        'info_prefix': 'Running asynchronous job failed',
+                    },
+                )
+            )
 
         # Set zone status to DELETING
         self.add_task(
@@ -60,14 +63,18 @@ class Flow(BaseLinearFlow):
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'DELETING',
-                    'status_info': 'Deleting landing zone'}))
+                    'status_info': 'Deleting landing zone',
+                },
+            )
+        )
 
         self.add_task(
             irods_tasks.RemoveCollectionTask(
                 name='Remove the landing zone collection',
                 irods=self.irods,
-                inject={
-                    'path': zone_path}))
+                inject={'path': zone_path},
+            )
+        )
 
         ##############
         # SODAR Tasks
@@ -82,4 +89,7 @@ class Flow(BaseLinearFlow):
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'DELETED',
-                    'status_info': 'Landing zone deleted'}))
+                    'status_info': 'Landing zone deleted',
+                },
+            )
+        )

@@ -1,8 +1,7 @@
 from config import settings
 
 from .base_flow import BaseLinearFlow
-from apis.irods_utils import get_project_path,\
-    get_project_group_name
+from apis.irods_utils import get_project_path, get_project_group_name
 from tasks import sodar_tasks, irods_tasks
 
 
@@ -14,8 +13,7 @@ class Flow(BaseLinearFlow):
     """Flow for creating a directory structure for a sample sheet in iRODS"""
 
     def validate(self):
-        self.required_fields = [
-            'dirs']
+        self.required_fields = ['dirs']
         return super(Flow, self).validate()
 
     def build(self, force_fail=False):
@@ -36,27 +34,32 @@ class Flow(BaseLinearFlow):
             irods_tasks.CreateCollectionTask(
                 name='Create collection for sample sheet samples',
                 irods=self.irods,
-                inject={
-                    'path': sample_path}))
+                inject={'path': sample_path},
+            )
+        )
 
         self.add_task(
             irods_tasks.SetInheritanceTask(
                 name='Set inheritance for sample sheet collection {}'.format(
-                    sample_path),
+                    sample_path
+                ),
                 irods=self.irods,
-                inject={
-                    'path': sample_path,
-                    'inherit': True}))
+                inject={'path': sample_path, 'inherit': True},
+            )
+        )
 
         self.add_task(
             irods_tasks.SetAccessTask(
                 name='Set project user group read access for sample sheet '
-                     'collection {}'.format(sample_path),
+                'collection {}'.format(sample_path),
                 irods=self.irods,
                 inject={
                     'access_name': 'read',
                     'path': sample_path,
-                    'user_name': project_group}))
+                    'user_name': project_group,
+                },
+            )
+        )
 
         for d in self.flow_data['dirs']:
             dir_path = sample_path + '/' + d
@@ -64,8 +67,9 @@ class Flow(BaseLinearFlow):
                 irods_tasks.CreateCollectionTask(
                     name='Create collection {}'.format(dir_path),
                     irods=self.irods,
-                    inject={
-                        'path': dir_path}))
+                    inject={'path': dir_path},
+                )
+            )
 
         ##############
         # SODAR Tasks
@@ -76,5 +80,6 @@ class Flow(BaseLinearFlow):
                 name='Set iRODS directory structure status to True',
                 sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
-                inject={
-                    'dir_status': True}))
+                inject={'dir_status': True},
+            )
+        )
