@@ -4,6 +4,15 @@ SODAR Taskflow Changelog
 Changelog for the SODAR Taskflow service.
 
 
+Unreleased
+==========
+
+Fixed
+-----
+
+- Checksum validation failure on tab-formatted .md5 files (#40)
+
+
 v0.3.1 (2018-12-19)
 ===================
 

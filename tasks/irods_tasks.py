@@ -2,6 +2,7 @@
 
 import logging
 import random
+import re
 import string
 
 from irods.access import iRODSAccess
@@ -28,6 +29,7 @@ INHERIT_STRINGS = {
     False: 'noinherit'}
 
 
+md5_re = re.compile(r'([^\w.])')
 logger = logging.getLogger('sodar_taskflow.tasks.irods_tasks')
 
 
@@ -417,7 +419,7 @@ class ValidateDataObjectChecksumTask(IrodsBaseTask):
         try:
             md5_path = path + '.md5'
             md5_file = self.irods.data_objects.open(md5_path, mode='r')
-            file_sum = md5_file.read().decode('utf-8').split(' ')[0]
+            file_sum = re.split(md5_re, md5_file.read().decode('utf-8'))[0]
             file_obj = self.irods.data_objects.get(path)
 
             if file_sum != file_obj.checksum:
@@ -450,7 +452,8 @@ class BatchValidateChecksumsTask(IrodsBaseTask):
 
                 try:
                     md5_file = self.irods.data_objects.open(md5_path, mode='r')
-                    file_sum = md5_file.read().decode('utf-8').split(' ')[0]
+                    file_sum = re.split(
+                        md5_re, md5_file.read().decode('utf-8'))[0]
 
                 except Exception as ex:
                     raise Exception(
