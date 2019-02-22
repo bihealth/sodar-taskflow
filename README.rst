@@ -10,7 +10,7 @@ Requirements
 ------------
 
 - Ubuntu 16.04
-- Python 3.5+
+- Python 3.6+
 - Redis
 - Access to *two* dedicated iRODS iCAT servers (one for running tests)
 

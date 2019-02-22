@@ -1,4 +1,4 @@
-image: python:3.5
+image: python:3.6
 
 # TODO: Create a simple alias for irods once GitLab implements this
 # https://docs.gitlab.com/ce/ci/docker/using_docker_images.html#accessing-the-services
