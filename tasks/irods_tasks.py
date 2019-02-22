@@ -464,7 +464,7 @@ class BatchValidateChecksumsTask(IrodsBaseTask):
                         path.split('/')[-1])
                     msg_detail = '{} <-> {}'.format(
                         file_sum, file_obj.checksum)
-                    logger.error('{} ({})').format(msg, msg_detail)
+                    logger.error('{} ({})'.format(msg, msg_detail))
                     raise Exception(msg)
 
             except Exception as ex:
