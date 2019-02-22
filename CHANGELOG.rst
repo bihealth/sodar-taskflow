@@ -11,6 +11,7 @@ Changed
 -------
 
 - Prettify Tooz lock status logging (#33)
+- Upgrade Python package requirements (#44)
 
 Fixed
 -----
