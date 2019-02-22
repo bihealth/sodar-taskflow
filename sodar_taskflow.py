@@ -12,6 +12,8 @@ import flows
 
 app = Flask('sodar_taskflow')
 app.config.from_envvar('SODAR_TASKFLOW_SETTINGS')
+# NOTE: FLASK_ENV from settings does not work automatically?
+app.config['ENV'] = settings.FLASK_ENV
 
 # Set up logging
 app.logger.handlers = []
@@ -286,7 +288,7 @@ def hello():
 if __name__ == '__main__':
     app.logger.info('settings={}'.format(os.getenv('SODAR_TASKFLOW_SETTINGS')))
     app_kwargs = {'processes': 4} if settings.DEBUG else {}
-    app.run('0.0.0.0', 5005, **app_kwargs)
+    app.run('0.0.0.0', 5005, threaded=False, **app_kwargs)
 
 
 def validate_kwargs(kwargs_dict, required_keys):

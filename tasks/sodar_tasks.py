@@ -12,7 +12,7 @@ from .base_task import BaseTask
 from apis.sodar_api import SODARRequestException
 
 
-logger = logging.getLogger('sodar_taskflow.tasks.sodar_tasks')
+logger = logging.getLogger('flask.app')
 
 
 class SODARBaseTask(BaseTask):

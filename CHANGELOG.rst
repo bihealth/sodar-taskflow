@@ -12,6 +12,7 @@ Changed
 
 - Prettify Tooz lock status logging (#33)
 - Upgrade Python package requirements (#44)
+- Update service to work with Flask v1.0+ (#45)
 
 Fixed
 -----

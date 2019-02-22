@@ -9,7 +9,7 @@ from tasks.irods_tasks import SetAccessTask     # For temporary workaround
 from config import settings
 
 
-logger = logging.getLogger('sodar_taskflow.flows.base_flow')
+logger = logging.getLogger('flask.app')
 
 
 class BaseLinearFlow:

@@ -2,6 +2,7 @@ from config.base import *
 
 # Flask
 DEBUG = False
+FLASK_ENV = 'production'
 
 # Taskflow
 TASKFLOW_LOG_TO_FILE = os.getenv('TASKFLOW_LOG_TO_FILE', True)

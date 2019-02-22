@@ -5,6 +5,7 @@ dotenv.load_dotenv()
 
 # Flask
 DEBUG = True
+FLASK_ENV = 'development'
 TESTING = False
 
 # Taskflow
