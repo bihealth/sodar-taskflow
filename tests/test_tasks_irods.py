@@ -2,21 +2,20 @@
 
 # TODO: Add tests for batch tasks
 
-import os
 import uuid
 
-from irods.access import iRODSAccess
+# from irods.access import iRODSAccess
 from irods.data_object import iRODSDataObject
 from irods.collection import iRODSCollection
 from irods.exception import (
     CollectionDoesNotExist,
     UserDoesNotExist,
     UserGroupDoesNotExist,
-    NoResultFound,
+    # NoResultFound,
     DataObjectDoesNotExist,
 )
 from irods.meta import iRODSMeta
-from irods.models import Collection
+# from irods.models import Collection
 from irods.user import iRODSUser, iRODSUserGroup
 
 from unittest import TestCase
@@ -24,7 +23,7 @@ from unittest import TestCase
 from apis.irods_utils import init_irods, cleanup_irods
 from config import settings
 from flows.base_flow import BaseLinearFlow
-from tasks.irods_tasks import *
+from tasks.irods_tasks import *  # noqa
 
 USER_PREFIX = 'omics_'
 
@@ -939,7 +938,7 @@ class TestSetCollAccessTask(IRODSTestBase):
 
         # Set up subcollection and test user
         sub_coll = self.irods.collections.create(TEST_COLL_SUB)
-        test_user = self.irods.users.create(
+        self.irods.users.create(
             user_name=TEST_USER,
             user_type=TEST_USER_TYPE,
             user_zone=self.irods.zone,
@@ -990,7 +989,7 @@ class TestSetCollAccessTask(IRODSTestBase):
 
         # Set up subcollection and test user
         sub_coll = self.irods.collections.create(TEST_COLL_SUB)
-        test_user = self.irods.users.create(
+        self.irods.users.create(
             user_name=TEST_USER,
             user_type=TEST_USER_TYPE,
             user_zone=self.irods.zone,
@@ -1631,7 +1630,7 @@ class TestMoveDataObjectTask(IRODSTestBase):
         )
 
         with self.assertRaises(Exception):
-            result = self._run_flow()
+            self._run_flow()
 
         # Assert state of both objects after attempted move
         # TODO: Better way to compare file objects than checksum?
@@ -2032,7 +2031,7 @@ class TestBatchMoveDataObjectsTask(IRODSTestBase):
         )
 
         with self.assertRaises(Exception):
-            result = self._run_flow()
+            self._run_flow()
 
         # Assert state of objects after attempted move
         self.assertIsInstance(

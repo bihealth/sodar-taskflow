@@ -7,6 +7,11 @@ Changelog for the SODAR Taskflow service.
 Unreleased
 ==========
 
+Added
+-----
+
+- Flake8 and Black configuration and CI checks (#42)
+
 Changed
 -------
 
@@ -15,6 +20,7 @@ Changed
 - Update service to work with Flask v1.0+ (#45)
 - Upgrade minimum Python version requirement to 3.6
 - Format code with Black (#41)
+- Code cleanup and refactoring (#42)
 
 Fixed
 -----

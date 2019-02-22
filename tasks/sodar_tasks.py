@@ -119,7 +119,7 @@ class SetRoleTask(SODARBaseTask):
                 'project/taskflow/role/get', query_data
             ).json()
 
-        except Exception as ex:
+        except Exception:
             self.execute_data = None
 
         set_data = {
@@ -127,7 +127,7 @@ class SetRoleTask(SODARBaseTask):
             'user_uuid': user_uuid,
             'role_pk': role_pk,
         }
-        response = self.sodar_api.send_request(
+        self.sodar_api.send_request(
             'project/taskflow/role/set', set_data
         )
         self.data_modified = True

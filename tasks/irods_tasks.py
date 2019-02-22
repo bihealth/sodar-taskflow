@@ -6,16 +6,10 @@ import re
 import string
 
 from irods.access import iRODSAccess
-from irods.exception import (
-    CollectionDoesNotExist,
-    UserDoesNotExist,
-    UserGroupDoesNotExist,
-    NoResultFound,
-)
+from irods.exception import UserDoesNotExist, UserGroupDoesNotExist
 from irods.models import Collection
 
 from .base_task import BaseTask
-from apis.irods_utils import get_trash_path
 
 
 # NOTE: Yes, we really need this for the python irods client
@@ -105,7 +99,7 @@ class RemoveCollectionTask(IrodsBaseTask):
                 random.SystemRandom().choice(
                     string.ascii_lowercase + string.digits
                 )
-                for x in range(16)
+                for _ in range(16)
             )
         )
 
@@ -116,7 +110,7 @@ class RemoveCollectionTask(IrodsBaseTask):
                 self.irods.collections.move(src_path=path, dest_path=trash_path)
 
             # NOTE: iRODS/client doesn't like to return a proper exception here
-            except Exception as ex:
+            except Exception:
                 pass
 
             # ..so let's test success manually just to be sure

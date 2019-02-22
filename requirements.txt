@@ -8,3 +8,4 @@ python-irodsclient==0.8.1
 gevent==1.4.0
 python-dotenv==0.10.1
 black==18.9b0
+flake8==3.7.6

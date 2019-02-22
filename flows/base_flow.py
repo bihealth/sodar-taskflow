@@ -2,11 +2,8 @@ import logging
 from taskflow import engines
 from taskflow.patterns import linear_flow as lf
 
-from apis.irods_utils import init_irods
 from tasks.base_task import ForceFailException
 from tasks.irods_tasks import SetAccessTask  # For temporary workaround
-
-from config import settings
 
 
 logger = logging.getLogger('flask.app')

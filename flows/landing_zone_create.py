@@ -2,7 +2,6 @@ from config import settings
 
 from .base_flow import BaseLinearFlow
 from apis.irods_utils import (
-    get_project_path,
     get_landing_zone_root,
     get_landing_zone_path,
     get_project_group_name,
@@ -35,7 +34,6 @@ class Flow(BaseLinearFlow):
         # Setup
         ########
 
-        project_path = get_project_path(self.project_uuid)
         project_group = get_project_group_name(self.project_uuid)
         zone_root = get_landing_zone_root(self.project_uuid)
         user_path = zone_root + '/' + self.flow_data['user_name']

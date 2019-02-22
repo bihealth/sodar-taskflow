@@ -35,8 +35,147 @@ if settings.TASKFLOW_LOG_TO_FILE:
 app.logger.setLevel(logging.getLevelName(settings.TASKFLOW_LOG_LEVEL))
 
 
+def run_flow(
+        flow,
+        project_uuid,
+        timeline_uuid,
+        sodar_api,
+        irods,
+        force_fail,
+        async_mode=True,
+):
+    """
+    Run a task flow, either synchronously or asynchronously.
+
+    :param flow: Flow object
+    :param project_uuid: Project UUID as string
+    :param timeline_uuid: Timeline event UUID as string
+    :param sodar_api: SODARAPI object
+    :param irods: iRODS session object
+    :param force_fail: Force failure (boolean, for testing)
+    :param async_mode: Submit in async mode (boolean, default=True)
+    :return: Response object
+    """
+    coordinator = None
+    lock = None
+
+    # Acquire lock if needed
+    if flow.require_lock:
+        # Acquire lock
+        coordinator = lock_api.get_coordinator()
+
+        if not coordinator:
+            ex_str = 'Error retrieving lock coordinator'
+
+        else:
+            lock_id = project_uuid
+            lock = coordinator.get_lock(lock_id)
+
+            try:
+                lock_api.acquire(lock)
+
+            except Exception as ex:
+                msg = 'Unable to acquire project lock'
+                app.logger.info(msg + ': ' + str(ex))
+                irods_utils.close_irods(irods)
+                return Response(msg, status=503)
+
+    else:
+        app.logger.info('Lock not required (flow.require_lock=False)')
+
+    flow_result = None
+    ex_str = None
+    response = None
+
+    # Build flow
+    app.logger.info('--- Building flow "{}" ---'.format(flow.flow_name))
+
+    try:
+        flow.build(force_fail)
+
+    except Exception as ex:
+        msg = 'Error building flow'
+
+        # TODO: HACK! generalize to report building problems in ODM!
+        if async_mode and 'zone_uuid' in flow.flow_data:
+            # Set zone status in the Django site
+            set_data = {
+                'zone_uuid': flow.flow_data['zone_uuid'],
+                'status': 'NOT CREATED'
+                if flow.flow_name == 'landing_zone_create'
+                else 'FAILED',
+                'status_info': '{}: {}'.format(msg, ex),
+            }
+            sodar_api.send_request(
+                'landingzones/taskflow/status/set', set_data
+            )
+
+            # Set timeline status
+            sodar_api.set_timeline_status(
+                event_uuid=timeline_uuid,
+                status_type='FAILED',
+                status_desc=msg,
+            )
+
+            app.logger.error('{}: {}'.format(msg, ex))
+
+        else:
+            response = Response('{}: {}'.format(msg, ex), status=500)
+
+    app.logger.info('--- Building flow OK ---')
+
+    # Run flow
+    if not ex_str:
+        try:
+            flow_result = flow.run()
+
+        except Exception as ex:
+            ex_str = str(ex)
+
+    # Flow completion
+    if flow_result:
+        if async_mode:
+            sodar_api.set_timeline_status(
+                event_uuid=timeline_uuid,
+                status_type='OK',
+                status_desc='Async submit OK',
+            )
+
+        else:
+            response = Response(str(flow_result), status=200)
+
+    # Exception/failure
+    else:
+        if async_mode:
+            sodar_api.set_timeline_status(
+                event_uuid=timeline_uuid,
+                status_type='FAILED',
+                status_desc='Error running async flow: '
+                            + (ex_str if ex_str else 'unknown error'),
+            )
+
+        else:
+            msg = 'Error running flow: ' + (
+                ex_str if ex_str != '' else 'unknown error'
+            )
+            app.logger.error(msg)
+            response = Response(msg, status=500)
+
+    # Release lock if acquired
+    if flow.require_lock and lock:
+        lock_api.release(lock)
+        coordinator.stop()
+
+    irods_utils.close_irods(irods)
+    return response
+
+
 @app.route('/submit', methods=['POST'])
 def submit():
+    """
+    Handle POST request from Flask.
+    """
+
     ###################
     # Validate request
     ###################
@@ -123,128 +262,10 @@ def submit():
         return Response(msg, status=400)
 
     project_uuid = form_data['project_uuid']
-    coordinator = None
-    lock = None
 
     #####################
     # Build and run flow
     #####################
-
-    def run_flow(
-        flow, project_uuid, timeline_uuid, sodar_api, force_fail, async=True
-    ):
-        coordinator = None
-        lock = None
-
-        # Acquire lock if needed
-        if flow.require_lock:
-            # Acquire lock
-            coordinator = lock_api.get_coordinator()
-
-            if not coordinator:
-                ex_str = 'Error retrieving lock coordinator'
-
-            else:
-                lock_id = project_uuid
-                lock = coordinator.get_lock(lock_id)
-
-                try:
-                    lock_api.acquire(lock)
-
-                except Exception as ex:
-                    msg = 'Unable to acquire project lock'
-                    app.logger.info(msg + ': ' + str(ex))
-                    irods_utils.close_irods(irods)
-                    return Response(msg, status=503)
-
-        else:
-            app.logger.info('Lock not required (flow.require_lock=False)')
-
-        flow_result = None
-        ex_str = None
-        response = None
-
-        # Build flow
-        app.logger.info('--- Building flow "{}" ---'.format(flow.flow_name))
-
-        try:
-            flow.build(force_fail)
-
-        except Exception as ex:
-            msg = 'Error building flow'
-
-            # TODO: HACK! generalize to report building problems in ODM!
-            if async and 'zone_uuid' in flow.flow_data:
-                # Set zone status in the Django site
-                set_data = {
-                    'zone_uuid': flow.flow_data['zone_uuid'],
-                    'status': 'NOT CREATED'
-                    if flow.flow_name == 'landing_zone_create'
-                    else 'FAILED',
-                    'status_info': '{}: {}'.format(msg, ex),
-                }
-                sodar_api.send_request(
-                    'landingzones/taskflow/status/set', set_data
-                )
-
-                # Set timeline status
-                sodar_api.set_timeline_status(
-                    event_uuid=timeline_uuid,
-                    status_type='FAILED',
-                    status_desc=msg,
-                )
-
-                app.logger.error('{}: {}'.format(msg, ex))
-
-            else:
-                response = Response('{}: {}'.format(msg, ex), status=500)
-
-        app.logger.info('--- Building flow OK ---')
-
-        # Run flow
-        if not ex_str:
-            try:
-                flow_result = flow.run()
-
-            except Exception as ex:
-                ex_str = str(ex)
-
-        # Flow completion
-        if flow_result:
-            if async:
-                sodar_api.set_timeline_status(
-                    event_uuid=timeline_uuid,
-                    status_type='OK',
-                    status_desc='Async submit OK',
-                )
-
-            else:
-                response = Response(str(flow_result), status=200)
-
-        # Exception/failure
-        else:
-            if async:
-                sodar_api.set_timeline_status(
-                    event_uuid=timeline_uuid,
-                    status_type='FAILED',
-                    status_desc='Error running async flow: '
-                    + (ex_str if ex_str else 'unknown error'),
-                )
-
-            else:
-                msg = 'Error running flow: ' + (
-                    ex_str if ex_str != '' else 'unknown error'
-                )
-                app.logger.error(msg)
-                response = Response(msg, status=500)
-
-        # Release lock if acquired
-        if flow.require_lock and lock:
-            lock_api.release(lock)
-            coordinator.stop()
-
-        irods_utils.close_irods(irods)
-        return response
 
     # Run asynchronously
     if form_data['request_mode'] == 'async':
@@ -255,6 +276,7 @@ def submit():
                 project_uuid,
                 form_data['timeline_uuid'],
                 sodar_tf,
+                irods,
                 force_fail,
                 True,
             ),
@@ -269,6 +291,7 @@ def submit():
             project_uuid,
             form_data['timeline_uuid'],
             sodar_tf,
+            irods,
             force_fail,
             False,
         )
