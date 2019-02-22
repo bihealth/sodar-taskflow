@@ -23,4 +23,5 @@ before_script:
 all_tests:
   script:
     - ./utility/test.sh
+    - ./utility/black.sh --check
   when: on_success
