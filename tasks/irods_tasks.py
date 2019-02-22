@@ -462,7 +462,9 @@ class BatchValidateChecksumsTask(IrodsBaseTask):
                 if file_sum != file_obj.checksum:
                     msg = 'Checksums do not match for "{}"'.format(
                         path.split('/')[-1])
-                    logger.error(msg)
+                    msg_detail = '{} <-> {}'.format(
+                        file_sum, file_obj.checksum)
+                    logger.error('{} ({})').format(msg, msg_detail)
                     raise Exception(msg)
 
             except Exception as ex:
