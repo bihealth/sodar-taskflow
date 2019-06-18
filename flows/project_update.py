@@ -71,6 +71,17 @@ class Flow(BaseLinearFlow):
             )
 
             self.add_task(
+                irods_tasks.CreateUserTask(
+                    name='Create user for project owner',
+                    irods=self.irods,
+                    inject={
+                        'user_name': self.flow_data['owner_username'],
+                        'user_type': 'rodsuser',
+                    },
+                )
+            )
+
+            self.add_task(
                 irods_tasks.AddUserToGroupTask(
                     name='Add new owner "{}" to project user group'.format(
                         self.flow_data['owner_username']

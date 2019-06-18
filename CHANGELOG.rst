@@ -4,6 +4,15 @@ SODAR Taskflow Changelog
 Changelog for the SODAR Taskflow service.
 
 
+Unreleased
+==========
+
+Fixed
+-----
+
+- Modified owner not created at iRODS in ``project_update`` (#49)
+
+
 v0.3.2 (2019-02-25)
 ===================
 
