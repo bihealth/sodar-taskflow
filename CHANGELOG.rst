@@ -12,6 +12,11 @@ Fixed
 
 - Modified owner not created at iRODS in ``project_update`` (#49)
 
+Removed
+-------
+
+- Unused ``ValidateDataObjectChecksumTask``
+
 
 v0.3.2 (2019-02-25)
 ===================

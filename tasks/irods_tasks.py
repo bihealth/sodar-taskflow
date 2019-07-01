@@ -425,36 +425,6 @@ class MoveDataObjectTask(IrodsBaseTask):
             self.irods.data_objects.move(src_path=new_src, dest_path=new_dest)
 
 
-# NOTE: Don't use this anymore
-class ValidateDataObjectChecksumTask(IrodsBaseTask):
-    """Validate data object checksum by accompanying .md5 file"""
-
-    # NOTE: This is a temporary hack, real validation will be done elsewhere
-    #       (e.g. directly in iRODS rules)
-
-    def execute(self, path, *args, **kwargs):
-        try:
-            md5_path = path + '.md5'
-            md5_file = self.irods.data_objects.open(md5_path, mode='r')
-            file_sum = re.split(md5_re, md5_file.read().decode('utf-8'))[0]
-            file_obj = self.irods.data_objects.get(path)
-
-            if file_sum != file_obj.checksum:
-                msg = 'Checksums do not match for "{}"'.format(
-                    path.split('/')[-1]
-                )
-                logger.error(msg)
-                raise Exception(msg)
-
-        except Exception as ex:
-            self._raise_irods_execption(ex)
-
-        super(ValidateDataObjectChecksumTask, self).execute(*args, **kwargs)
-
-    def revert(self, path, *args, **kwargs):
-        pass  # Nothing is modified so no need for revert
-
-
 # Workarounds for issue #8 -----------------------------------------------
 
 
