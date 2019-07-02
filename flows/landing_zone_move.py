@@ -134,9 +134,8 @@ class Flow(BaseLinearFlow):
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'VALIDATING',
-                    'status_info': 'Validating {} files, write access disabled'.format(
-                        len(zone_objects_nomd5)
-                    ),
+                    'status_info': 'Validating {} files, '
+                    'write access disabled'.format(len(zone_objects_nomd5)),
                 },
             )
         )
@@ -153,7 +152,10 @@ class Flow(BaseLinearFlow):
                     name='Batch validate MD5 checksums of {} data '
                     'objects'.format(len(zone_objects_nomd5)),
                     irods=self.irods,
-                    inject={'paths': zone_objects_nomd5},
+                    inject={
+                        'paths': zone_objects_nomd5,
+                        'zone_path': zone_path,
+                    },
                 )
             )
 
@@ -165,7 +167,8 @@ class Flow(BaseLinearFlow):
                     inject={
                         'zone_uuid': self.flow_data['zone_uuid'],
                         'status': 'ACTIVE',
-                        'status_info': 'Successfully validated {} file{}'.format(
+                        'status_info': 'Successfully validated '
+                        '{} file{}'.format(
                             len(zone_objects_nomd5),
                             's' if len(zone_objects_nomd5) != 1 else '',
                         ),
@@ -224,7 +227,7 @@ class Flow(BaseLinearFlow):
                     len(zone_objects_nomd5)
                 ),
                 irods=self.irods,
-                inject={'paths': zone_objects_nomd5},
+                inject={'paths': zone_objects_nomd5, 'zone_path': zone_path},
             )
         )
 
@@ -236,7 +239,8 @@ class Flow(BaseLinearFlow):
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'MOVING',
-                    'status_info': 'Validation OK, moving {} files into {}'.format(
+                    'status_info': 'Validation OK, '
+                    'moving {} files into {}'.format(
                         len(zone_objects_nomd5), SAMPLE_DIR
                     ),
                 },

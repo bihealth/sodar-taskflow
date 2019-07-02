@@ -7,6 +7,11 @@ Changelog for the SODAR Taskflow service.
 Unreleased
 ==========
 
+Changed
+-------
+
+- Improve ``BatchValidateChecksumsTask`` status messages (#50)
+
 Fixed
 -----
 

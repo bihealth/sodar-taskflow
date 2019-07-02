@@ -434,7 +434,9 @@ class BatchValidateChecksumsTask(IrodsBaseTask):
     # NOTE: This is a temporary hack, real validation will be done elsewhere
     #       (e.g. directly in iRODS rules)
 
-    def execute(self, paths, *args, **kwargs):
+    def execute(self, paths, zone_path, *args, **kwargs):
+        zone_path_len = len(zone_path.split('/'))
+
         for path in paths:
             try:
                 md5_path = path + '.md5'
@@ -445,18 +447,23 @@ class BatchValidateChecksumsTask(IrodsBaseTask):
                         md5_re, md5_file.read().decode('utf-8')
                     )[0]
 
-                except Exception as ex:
+                except Exception:
                     raise Exception(
-                        'Unable to read checksum file "{}" ({})'.format(
-                            md5_path, ex
+                        'Unable to read checksum file "{}"'.format(
+                            '/'.join(md5_path.split('/')[zone_path_len:])
                         )
                     )
 
                 file_obj = self.irods.data_objects.get(path)
 
                 if file_sum != file_obj.checksum:
-                    msg = 'Checksums do not match for "{}"'.format(
-                        path.split('/')[-1]
+                    msg = (
+                        'Checksums do not match for "{}" '
+                        '(File: {}; iRODS: {})'.format(
+                            '/'.join(path.split('/')[zone_path_len:]),
+                            file_sum,
+                            file_obj.checksum,
+                        )
                     )
                     msg_detail = '{} <-> {}'.format(file_sum, file_obj.checksum)
                     logger.error('{} ({})'.format(msg, msg_detail))
@@ -467,7 +474,7 @@ class BatchValidateChecksumsTask(IrodsBaseTask):
 
         super(BatchValidateChecksumsTask, self).execute(*args, **kwargs)
 
-    def revert(self, paths, *args, **kwargs):
+    def revert(self, paths, zone_path, *args, **kwargs):
         pass  # Nothing is modified so no need for revert
 
 
