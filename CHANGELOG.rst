@@ -4,6 +4,15 @@ SODAR Taskflow Changelog
 Changelog for the SODAR Taskflow service.
 
 
+Unreleased
+==========
+
+Fixed
+-----
+
+- Crash caused by ``networkx==2.4`` installed by ``taskflow`` (#52)
+
+
 v0.3.3 (2019-07-05)
 ===================
 
