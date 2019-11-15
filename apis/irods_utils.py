@@ -1,3 +1,4 @@
+import json
 import logging
 import random
 import string
@@ -10,6 +11,7 @@ from config import settings
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
 PERMANENT_USERS = settings.TASKFLOW_TEST_PERMANENT_USERS
+IRODS_ENV_PATH = settings.TASKFLOW_IRODS_ENV_PATH
 
 
 logger = logging.getLogger('flask.app')
@@ -18,25 +20,52 @@ logger = logging.getLogger('flask.app')
 def init_irods(test_mode=False):
     """Initialize iRODS session. Returns an iRODSSession object."""
 
+    # Get optional environment file
+    irods_env = {}
+
+    if IRODS_ENV_PATH:
+        try:
+            with open(IRODS_ENV_PATH) as env_file:
+                irods_env = json.load(env_file)
+
+            logger.debug('Loaded iRODS env from file: {}'.format(irods_env))
+
+        except FileNotFoundError:
+            logger.warning(
+                'iRODS env file not found: connecting with default '
+                'parameters (path={})'.format(IRODS_ENV_PATH)
+            )
+            irods_env = {}
+
+        except Exception as ex:
+            logger.error(
+                'Unable to read iRODS env file (path={}): {}'.format(
+                    IRODS_ENV_PATH, ex
+                )
+            )
+            raise ex
+
     # Default server
     if not test_mode:
-        irods = iRODSSession(
-            host=settings.TASKFLOW_IRODS_HOST,
-            port=settings.TASKFLOW_IRODS_PORT,
-            user=settings.TASKFLOW_IRODS_USER,
-            password=settings.TASKFLOW_IRODS_PASS,
-            zone=settings.TASKFLOW_IRODS_ZONE,
-        )
+        irods_kwargs = {
+            'host': settings.TASKFLOW_IRODS_HOST,
+            'port': settings.TASKFLOW_IRODS_PORT,
+            'user': settings.TASKFLOW_IRODS_USER,
+            'password': settings.TASKFLOW_IRODS_PASS,
+            'zone': settings.TASKFLOW_IRODS_ZONE,
+        }
 
-    # Test server
     else:
-        irods = iRODSSession(
-            host=settings.TASKFLOW_IRODS_TEST_HOST,
-            port=settings.TASKFLOW_IRODS_TEST_PORT,
-            user=settings.TASKFLOW_IRODS_TEST_USER,
-            password=settings.TASKFLOW_IRODS_TEST_PASS,
-            zone=settings.TASKFLOW_IRODS_ZONE,
-        )
+        irods_kwargs = {
+            'host': settings.TASKFLOW_IRODS_TEST_HOST,
+            'port': settings.TASKFLOW_IRODS_TEST_PORT,
+            'user': settings.TASKFLOW_IRODS_TEST_USER,
+            'password': settings.TASKFLOW_IRODS_TEST_PASS,
+            'zone': settings.TASKFLOW_IRODS_ZONE,
+        }
+
+    irods_kwargs.update(irods_env)
+    irods = iRODSSession(**irods_kwargs)
 
     # Ensure we have a connection
     irods.collections.exists('/{}/home/{}'.format(irods.zone, irods.username))

@@ -77,3 +77,6 @@ ENV/
 
 # Logs
 *.log
+
+# iRODS files
+irods_environment.json

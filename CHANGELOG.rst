@@ -7,6 +7,12 @@ Changelog for the SODAR Taskflow service.
 Unreleased
 ==========
 
+Added
+-----
+
+- Supply optional iRODS options in environment file (#56)
+- ``IRODS_ENV_PATH`` settings variable (#56)
+
 Fixed
 -----
 
