@@ -11,7 +11,7 @@ Added
 -----
 
 - Supply optional iRODS options in environment file (#56)
-- ``IRODS_ENV_PATH`` settings variable (#56)
+- ``TASKFLOW_IRODS_ENV_PATH`` settings variable (#56)
 
 Changed
 -------
@@ -22,6 +22,7 @@ Fixed
 -----
 
 - Crash caused by ``networkx==2.4`` installed by ``taskflow`` (#52)
+- Unhandled Tooz connection exception (#46)
 
 
 v0.3.3 (2019-07-05)

@@ -30,13 +30,16 @@ def get_coordinator():
     """Return a Tooz coordinator object"""
     host_id = 'sodar_taskflow_{}'.format(uuid.uuid4())
 
-    coordinator = coordination.get_coordinator(
-        backend_url=REDIS_URL, member_id=host_id, socket_keepalive=True
-    )
+    try:
+        coordinator = coordination.get_coordinator(
+            backend_url=REDIS_URL, member_id=host_id, socket_keepalive=True
+        )
+        if coordinator:
+            coordinator.start(start_heart=True)
+            return coordinator
 
-    if coordinator:
-        coordinator.start(start_heart=True)
-        return coordinator
+    except coordination.ToozConnectionError as ex:
+        logger.error('Tooz connection error: {}'.format(ex))
 
     return None
 
