@@ -13,6 +13,11 @@ Added
 - Supply optional iRODS options in environment file (#56)
 - ``IRODS_ENV_PATH`` settings variable (#56)
 
+Changed
+-------
+
+- Refactor Python2-style ``super()`` calls (#53)
+
 Fixed
 -----
 

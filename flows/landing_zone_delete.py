@@ -20,7 +20,7 @@ class Flow(BaseLinearFlow):
             'assay_path',
             'user_name',
         ]
-        return super(Flow, self).validate()
+        return super().validate()
 
     def build(self, force_fail=False):
 

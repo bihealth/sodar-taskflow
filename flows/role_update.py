@@ -8,7 +8,7 @@ class Flow(BaseLinearFlow):
 
     def validate(self):
         self.required_fields = ['username', 'user_uuid', 'role_pk']
-        return super(Flow, self).validate()
+        return super().validate()
 
     def build(self, force_fail=False):
 

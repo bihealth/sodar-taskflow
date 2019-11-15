@@ -34,7 +34,7 @@ class IrodsBaseTask(BaseTask):
     """Base iRODS task"""
 
     def __init__(self, name, force_fail=False, inject=None, *args, **kwargs):
-        super(IrodsBaseTask, self).__init__(
+        super().__init__(
             name, force_fail=force_fail, inject=inject, *args, **kwargs
         )
         self.target = 'irods'
@@ -71,7 +71,7 @@ class CreateCollectionTask(IrodsBaseTask):
                 self.execute_data['created_colls'].append(sub_path)
                 self.data_modified = True
 
-        super(CreateCollectionTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, path, *args, **kwargs):
         if self.data_modified:
@@ -123,7 +123,7 @@ class RemoveCollectionTask(IrodsBaseTask):
             else:
                 raise Exception('Failed to remove collection')
 
-        super(RemoveCollectionTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, path, *args, **kwargs):
         if self.data_modified:
@@ -172,7 +172,7 @@ class SetCollectionMetadataTask(IrodsBaseTask):
             coll.metadata.add(str(name), str(value), str(units))
             self.data_modified = True
 
-        super(SetCollectionMetadataTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, path, name, value, units=None, *args, **kwargs):
         if self.data_modified:
@@ -202,7 +202,7 @@ class CreateUserGroupTask(IrodsBaseTask):
             self.irods.user_groups.create(name=name, user_zone=self.irods.zone)
             self.data_modified = True
 
-        super(CreateUserGroupTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, name, *args, **kwargs):
         if self.data_modified:
@@ -297,7 +297,7 @@ class SetAccessTask(IrodsBaseTask):
 
             self.data_modified = True
 
-        super(SetAccessTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(
         self,
@@ -337,7 +337,7 @@ class CreateUserTask(IrodsBaseTask):
             )
             self.data_modified = True
 
-        super(CreateUserTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, user_name, user_type, *args, **kwargs):
         # Remove user only if it was added in this run
@@ -370,7 +370,7 @@ class AddUserToGroupTask(IrodsBaseTask):
                     ),
                 )
 
-        super(AddUserToGroupTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, group_name, user_name, *args, **kwargs):
         if self.data_modified:
@@ -394,7 +394,7 @@ class RemoveUserFromGroupTask(IrodsBaseTask):
         except Exception as ex:
             self._raise_irods_execption(ex)
 
-        super(RemoveUserFromGroupTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, group_name, user_name, *args, **kwargs):
         if self.data_modified:
@@ -414,7 +414,7 @@ class MoveDataObjectTask(IrodsBaseTask):
         except Exception as ex:
             self._raise_irods_execption(ex)
 
-        super(MoveDataObjectTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, src_path, dest_path, *args, **kwargs):
         if self.data_modified:
@@ -472,7 +472,7 @@ class BatchValidateChecksumsTask(IrodsBaseTask):
             except Exception as ex:
                 self._raise_irods_execption(ex)
 
-        super(BatchValidateChecksumsTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, paths, zone_path, *args, **kwargs):
         pass  # Nothing is modified so no need for revert
@@ -494,7 +494,7 @@ class BatchCreateCollectionsTask(IrodsBaseTask):
                     self.execute_data['created_colls'].append(sub_path)
                     self.data_modified = True
 
-        super(BatchCreateCollectionsTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, paths, *args, **kwargs):
         if self.data_modified:
@@ -612,7 +612,7 @@ class BatchMoveDataObjectsTask(IrodsBaseTask):
                         ),
                     )
 
-        super(BatchMoveDataObjectsTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(
         self, src_root, dest_root, access_name, user_name, *args, **kwargs

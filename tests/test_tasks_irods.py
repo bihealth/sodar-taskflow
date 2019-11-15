@@ -1039,7 +1039,7 @@ class TestSetCollAccessTask(IRODSTestBase):
 
 class TestSetDataObjAccessTask(IRODSTestBase):
     def setUp(self):
-        super(TestSetDataObjAccessTask, self).setUp()
+        super().setUp()
 
         # Init object to be copied
         self.access_obj = self.irods.data_objects.create(TEST_OBJ)
@@ -1562,7 +1562,7 @@ class TestRemoveUserFromGroupTask(IRODSTestBase):
 
 class TestMoveDataObjectTask(IRODSTestBase):
     def setUp(self):
-        super(TestMoveDataObjectTask, self).setUp()
+        super().setUp()
 
         # Init object to be copied
         self.move_obj = self.irods.data_objects.create(TEST_OBJ)
@@ -1869,7 +1869,7 @@ class TestBatchCreateCollectionsTask(IRODSTestBase):
 
 class TestBatchMoveDataObjectsTask(IRODSTestBase):
     def setUp(self):
-        super(TestBatchMoveDataObjectsTask, self).setUp()
+        super().setUp()
 
         # Init batch collections
         self.src_coll = self.irods.collections.create(BATCH_SRC_PATH)

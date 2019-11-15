@@ -17,7 +17,7 @@ class Flow(BaseLinearFlow):
             'old_owner_username',
             'settings',
         ]
-        return super(Flow, self).validate()
+        return super().validate()
 
     def build(self, force_fail=False):
 

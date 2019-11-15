@@ -26,7 +26,7 @@ class Flow(BaseLinearFlow):
             'assay_path',
             'dirs',
         ]
-        return super(Flow, self).validate()
+        return super().validate()
 
     def build(self, force_fail=False):
 

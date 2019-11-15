@@ -28,7 +28,7 @@ class SODARBaseTask(BaseTask):
         *args,
         **kwargs
     ):
-        super(SODARBaseTask, self).__init__(
+        super().__init__(
             name, force_fail=force_fail, inject=inject, *args, **kwargs
         )
         self.target = 'sodar'
@@ -71,7 +71,7 @@ class UpdateProjectTask(SODARBaseTask):
 
         self.sodar_api.send_request('project/taskflow/update', update_data)
 
-        super(UpdateProjectTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, title, description, readme, *args, **kwargs):
         if kwargs['result'] is True:
@@ -98,7 +98,7 @@ class SetProjectSettingsTask(SODARBaseTask):
             'project/taskflow/settings/set', update_data
         )
 
-        super(SetProjectSettingsTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, settings, *args, **kwargs):
         if kwargs['result'] is True:
@@ -130,7 +130,7 @@ class SetRoleTask(SODARBaseTask):
         self.sodar_api.send_request('project/taskflow/role/set', set_data)
         self.data_modified = True
 
-        super(SetRoleTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, user_uuid, role_pk, *args, **kwargs):
         if self.data_modified:
@@ -173,7 +173,7 @@ class RemoveRoleTask(SODARBaseTask):
         except SODARRequestException:
             pass
 
-        super(RemoveRoleTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, user_uuid, role_pk, *args, **kwargs):
         if self.data_modified:
@@ -202,7 +202,7 @@ class SetIrodsDirStatusTask(SODARBaseTask):
             )
             self.data_modified = True
 
-        super(SetIrodsDirStatusTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, dir_status, *args, **kwargs):
         if self.data_modified is True:
@@ -227,7 +227,7 @@ class RemoveSampleSheetTask(SODARBaseTask):
         except SODARRequestException:
             pass
 
-        super(RemoveSampleSheetTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, *args, **kwargs):
         pass  # TODO: How to handle this?
@@ -252,7 +252,7 @@ class CreateLandingZoneTask(SODARBaseTask):
         self.execute_data = response.json()
 
         self.data_modified = True
-        super(CreateLandingZoneTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(
         self, zone_title, user_uuid, assay_uuid, description, *args, **kwargs
@@ -278,7 +278,7 @@ class SetLandingZoneStatusTask(SODARBaseTask):
             'landingzones/taskflow/status/set', set_data
         )
         self.data_modified = True
-        super(SetLandingZoneStatusTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, status, status_info, zone_uuid=None, *args, **kwargs):
         pass  # Disabled, call RevertLandingZoneStatusTask to revert
@@ -288,7 +288,7 @@ class RevertLandingZoneFailTask(SODARBaseTask):
     """Set LandingZone status in case of failure"""
 
     def execute(self, zone_uuid, info_prefix, *args, **kwargs):
-        super(RevertLandingZoneFailTask, self).execute(*args, **kwargs)
+        super().execute(*args, **kwargs)
 
     def revert(self, zone_uuid, info_prefix, *args, **kwargs):
         status_info = info_prefix
