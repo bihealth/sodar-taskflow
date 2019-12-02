@@ -5,7 +5,7 @@ requests==2.21.0
 tooz==1.64.1
 networkx==2.2  # Temp fix for issue #52
 taskflow==3.4.0
-python-irodsclient==0.8.1
+python-irodsclient==0.8.2
 gevent==1.4.0
 python-dotenv==0.10.1
 black==18.9b0

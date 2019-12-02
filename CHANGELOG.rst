@@ -17,6 +17,7 @@ Changed
 -------
 
 - Refactor Python2-style ``super()`` calls (#53)
+- Upgrade to python-irodsclient v0.8.2 (#57)
 
 Fixed
 -----
