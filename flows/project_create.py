@@ -130,6 +130,27 @@ class Flow(BaseLinearFlow):
             )
         )
 
+        # Add inherited owners (list of usernames)
+        for i_owner in self.flow_data.get('inherited_owners') or []:
+            self.add_task(
+                irods_tasks.CreateUserTask(
+                    name='Create user for inherited category owner "{}"'.format(
+                        i_owner
+                    ),
+                    irods=self.irods,
+                    inject={'user_name': i_owner, 'user_type': 'rodsuser'},
+                )
+            )
+
+            self.add_task(
+                irods_tasks.AddUserToGroupTask(
+                    name='Add inherited owner "{}" to project user '
+                    'group'.format(i_owner),
+                    irods=self.irods,
+                    inject={'group_name': project_group, 'user_name': i_owner},
+                )
+            )
+
         ##############
         # SODAR Tasks
         ##############

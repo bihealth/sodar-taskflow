@@ -4,6 +4,15 @@ SODAR Taskflow Changelog
 Changelog for the SODAR Taskflow service.
 
 
+Unreleased
+==========
+
+Added
+-----
+
+- Add inherited category owners into iRODS user groups in ``project_create`` (#59)
+
+
 v0.3.4 (2020-01-06)
 ===================
 
