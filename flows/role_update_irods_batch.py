@@ -10,6 +10,7 @@ class Flow(BaseLinearFlow):
     """
 
     def validate(self):
+        self.require_lock = False  # Project lock not required for this flow
         self.required_fields = ['roles_add', 'roles_delete']
         return super().validate()
 
@@ -26,21 +27,19 @@ class Flow(BaseLinearFlow):
         ##############
 
         # Add roles
-        for role_add in self.flow_data['roles_add']:
-            project_group = get_project_group_name(role_add['project_uuid'])
-
+        for username in set(
+            [r['username'] for r in self.flow_data['roles_add']]
+        ):
             self.add_task(
                 irods_tasks.CreateUserTask(
-                    name='Create user "{}" in irods'.format(
-                        role_add['username']
-                    ),
+                    name='Create user "{}" in irods'.format(username),
                     irods=self.irods,
-                    inject={
-                        'user_name': role_add['username'],
-                        'user_type': 'rodsuser',
-                    },
+                    inject={'user_name': username, 'user_type': 'rodsuser'},
                 )
             )
+
+        for role_add in self.flow_data['roles_add']:
+            project_group = get_project_group_name(role_add['project_uuid'])
 
             self.add_task(
                 irods_tasks.AddUserToGroupTask(
