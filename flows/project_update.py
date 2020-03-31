@@ -10,6 +10,7 @@ class Flow(BaseLinearFlow):
         self.required_fields = [
             'project_title',
             'project_description',
+            'parent_uuid',
             'owner_uuid',
             'owner_username',
             'owner_role_pk',
@@ -94,6 +95,51 @@ class Flow(BaseLinearFlow):
                 )
             )
 
+        # Add new inherited roles
+        for username in set(
+            [r['username'] for r in self.flow_data.get('roles_add', [])]
+        ):
+            self.add_task(
+                irods_tasks.CreateUserTask(
+                    name='Create user "{}" in irods'.format(username),
+                    irods=self.irods,
+                    inject={'user_name': username, 'user_type': 'rodsuser'},
+                )
+            )
+
+        for role_add in self.flow_data.get('roles_add', []):
+            project_group = get_project_group_name(role_add['project_uuid'])
+
+            self.add_task(
+                irods_tasks.AddUserToGroupTask(
+                    name='Add user "{}" to project user group "{}"'.format(
+                        role_add['username'], project_group
+                    ),
+                    irods=self.irods,
+                    inject={
+                        'group_name': project_group,
+                        'user_name': role_add['username'],
+                    },
+                )
+            )
+
+        # Delete old inherited roles
+        for role_delete in self.flow_data.get('roles_delete', []):
+            project_group = get_project_group_name(role_delete['project_uuid'])
+
+            self.add_task(
+                irods_tasks.RemoveUserFromGroupTask(
+                    name='Remove user "{}" from project user group "{}"'.format(
+                        role_delete['username'], project_group
+                    ),
+                    irods=self.irods,
+                    inject={
+                        'group_name': project_group,
+                        'user_name': role_delete['username'],
+                    },
+                )
+            )
+
         ##############
         # SODAR Tasks
         ##############
@@ -106,6 +152,7 @@ class Flow(BaseLinearFlow):
                 inject={
                     'title': self.flow_data['project_title'],
                     'description': self.flow_data['project_description'],
+                    'parent_uuid': self.flow_data['parent_uuid'],
                     'readme': self.flow_data['project_readme']
                     if 'project_readme' in self.flow_data
                     else '',

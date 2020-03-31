@@ -56,7 +56,7 @@ class SODARBaseTask(BaseTask):
 class UpdateProjectTask(SODARBaseTask):
     """Update project title and description"""
 
-    def execute(self, title, description, readme, *args, **kwargs):
+    def execute(self, title, description, readme, parent_uuid, *args, **kwargs):
         # Get initial data
         self.execute_data = self.sodar_api.send_request(
             'project/taskflow/get', {'project_uuid': self.project_uuid}
@@ -65,6 +65,7 @@ class UpdateProjectTask(SODARBaseTask):
         update_data = {
             'project_uuid': self.project_uuid,
             'title': title,
+            'parent_uuid': parent_uuid,
             'description': description,
             'readme': readme,
         }
@@ -73,7 +74,7 @@ class UpdateProjectTask(SODARBaseTask):
 
         super().execute(*args, **kwargs)
 
-    def revert(self, title, description, readme, *args, **kwargs):
+    def revert(self, title, description, readme, parent_uuid, *args, **kwargs):
         if kwargs['result'] is True:
             self.sodar_api.send_request(
                 'project/taskflow/update', self.execute_data

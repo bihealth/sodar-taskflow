@@ -10,8 +10,9 @@ Unreleased
 Added
 -----
 
-- Flow `role_update_irods_batch` for updating user roles in iRODS (#60)
+- Flow ``role_update_irods_batch`` for updating user roles in iRODS (#60)
 - Inherited category owners into iRODS user groups in ``project_create`` (#59)
+- Bulk updating of user roles in ``project_update`` (#61)
 
 
 v0.3.4 (2020-01-06)
