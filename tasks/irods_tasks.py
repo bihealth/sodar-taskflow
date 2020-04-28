@@ -164,7 +164,7 @@ class RemoveDataObjectTask(IrodsBaseTask):
                 )
 
             # NOTE: iRODS/client doesn't like to return a proper exception here
-            except Exception as ex:
+            except Exception:
                 pass
 
             # ..so let's test success manually just to be sure

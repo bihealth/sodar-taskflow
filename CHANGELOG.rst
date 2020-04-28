@@ -4,8 +4,8 @@ SODAR Taskflow Changelog
 Changelog for the SODAR Taskflow service.
 
 
-Unreleased
-==========
+v0.4.0 (2020-04-28)
+===================
 
 Added
 -----
