@@ -6,7 +6,7 @@ from tasks.base_task import ForceFailException
 from tasks.irods_tasks import SetAccessTask  # For temporary workaround
 
 
-logger = logging.getLogger('flask.app')
+logger = logging.getLogger('sodar_taskflow')
 
 
 class BaseLinearFlow:

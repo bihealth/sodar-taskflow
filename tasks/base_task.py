@@ -2,7 +2,7 @@ import logging
 from taskflow import task
 
 
-logger = logging.getLogger('flask.app')
+logger = logging.getLogger('sodar_taskflow')
 
 
 class ForceFailException(Exception):

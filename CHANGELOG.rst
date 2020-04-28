@@ -14,6 +14,17 @@ Added
 - Inherited category owners into iRODS user groups in ``project_create`` (#59)
 - Bulk updating of user roles in ``project_update`` (#61)
 
+Changed
+-------
+
+- Upgrade project requirements (#54)
+
+Fixed
+-----
+
+- Crash with Networkx > v2.2 (#52)
+- Logging on Flask v1.1+ (#62)
+
 
 v0.3.4 (2020-01-06)
 ===================

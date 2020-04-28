@@ -14,7 +14,7 @@ LOCK_RETRY_INTERVAL = settings.TASKFLOW_LOCK_RETRY_INTERVAL
 REDIS_URL = settings.TASKFLOW_REDIS_URL
 
 
-logger = logging.getLogger('flask.app')
+logger = logging.getLogger('sodar_taskflow')
 
 
 def log_status(lock, unlock=False, failed=False):

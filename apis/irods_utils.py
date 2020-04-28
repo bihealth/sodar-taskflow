@@ -14,7 +14,7 @@ PERMANENT_USERS = settings.TASKFLOW_TEST_PERMANENT_USERS
 IRODS_ENV_PATH = settings.TASKFLOW_IRODS_ENV_PATH
 
 
-logger = logging.getLogger('flask.app')
+logger = logging.getLogger('sodar_taskflow')
 
 
 def init_irods(test_mode=False):

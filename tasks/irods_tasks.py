@@ -27,7 +27,7 @@ INHERIT_STRINGS = {True: 'inherit', False: 'noinherit'}
 
 
 md5_re = re.compile(r'([^\w.])')
-logger = logging.getLogger('flask.app')
+logger = logging.getLogger('sodar_taskflow')
 
 
 class IrodsBaseTask(BaseTask):
