@@ -138,6 +138,58 @@ class RemoveCollectionTask(IrodsBaseTask):
             self.irods.collections.remove(self.execute_data['trash_path'])
 
 
+# TODO: Also refactor using the metadata trick, once time allows
+class RemoveDataObjectTask(IrodsBaseTask):
+    """Remove a data object if it exists (irm)"""
+
+    def execute(self, path, *args, **kwargs):
+        trash_path = (
+            '/'
+            + path.split('/')[1]
+            + '/trash/'
+            + ''.join(
+                random.SystemRandom().choice(
+                    string.ascii_lowercase + string.digits
+                )
+                for _ in range(16)
+            )
+        )
+
+        if self.irods.data_objects.exists(path):
+            self.irods.collections.create(trash_path)  # Must create this 1st
+
+            try:
+                self.irods.data_objects.move(
+                    src_path=path, dest_path=trash_path
+                )
+
+            # NOTE: iRODS/client doesn't like to return a proper exception here
+            except Exception as ex:
+                pass
+
+            # ..so let's test success manually just to be sure
+            new_path = trash_path + '/' + path.split('/')[-1]
+
+            if self.irods.data_objects.exists(new_path):
+                self.data_modified = True
+                self.execute_data['trash_path'] = trash_path
+
+            else:
+                raise Exception('Failed to remove data object')
+
+        super().execute(*args, **kwargs)
+
+    def revert(self, path, *args, **kwargs):
+        if self.data_modified:
+            src_path = (
+                self.execute_data['trash_path'] + '/' + path.split('/')[-1]
+            )
+            self.irods.data_objects.move(src_path=src_path, dest_path=path)
+
+            # Delete temp trash collection
+            self.irods.collections.remove(self.execute_data['trash_path'])
+
+
 # TODO: Do we need to add several metadata items until the same key? If so,
 # TODO:     A separate task should be created
 class SetCollectionMetadataTask(IrodsBaseTask):

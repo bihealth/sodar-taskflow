@@ -453,6 +453,101 @@ class TestRemoveCollectionTask(IRODSTestBase):
         )
 
 
+class TestRemoveDataObjectTask(IRODSTestBase):
+    def setUp(self):
+        super().setUp()
+
+        # Init object to be removed
+        self.access_obj = self.irods.data_objects.create(TEST_OBJ)
+
+    def test_execute(self):
+        """Test data object removal"""
+        self._add_task(
+            cls=RemoveDataObjectTask,
+            name='Remove data object',
+            inject={'path': TEST_OBJ},
+        )
+
+        # Assert precondition
+        obj = self.irods.data_objects.get(TEST_OBJ)
+        self.assertIsInstance(obj, iRODSDataObject)
+
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, True)
+
+        # Assert postcondition
+        with self.assertRaises(DataObjectDoesNotExist):
+            self.irods.data_objects.get(TEST_OBJ)
+
+    def test_execute_twice(self):
+        """Test data object removal twice"""
+        self._add_task(
+            cls=RemoveDataObjectTask,
+            name='Remove data object',
+            inject={'path': TEST_OBJ},
+        )
+        self._run_flow()
+
+        # Init and run new flow
+        self.flow = self._init_flow()
+        self._add_task(
+            cls=RemoveDataObjectTask,
+            name='Remove data_object',
+            inject={'path': TEST_OBJ},
+        )
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, True)
+
+        # Assert postcondition
+        with self.assertRaises(DataObjectDoesNotExist):
+            self.irods.data_objects.get(TEST_OBJ)
+
+    def test_revert_removed(self):
+        """Test data object removal reverting after removing"""
+        self._add_task(
+            cls=RemoveDataObjectTask,
+            name='Remove data_object',
+            inject={'path': TEST_OBJ},
+            force_fail=True,
+        )  # FAIL
+        result = self._run_flow()
+
+        # Assert flow failure
+        self.assertNotEqual(result, True)
+
+        # Assert postcondition
+        obj = self.irods.data_objects.get(TEST_OBJ)
+        self.assertIsInstance(obj, iRODSDataObject)
+
+    def test_revert_not_modified(self):
+        """Test data object removal reverting without modification"""
+
+        # Assert precondition
+        with self.assertRaises(DataObjectDoesNotExist):
+            self.irods.data_objects.get(TEST_OBJ2)
+
+        # Init and run flow
+        self.flow = self._init_flow()
+        self._add_task(
+            cls=RemoveDataObjectTask,
+            name='Remove data object',
+            inject={'path': TEST_OBJ2},
+            force_fail=True,
+        )  # FAIL
+        result = self._run_flow()
+
+        # Assert flow failure
+        self.assertNotEqual(result, True)
+
+        # Assert postcondition
+        with self.assertRaises(DataObjectDoesNotExist):
+            self.irods.data_objects.get(TEST_OBJ2)
+
+
 class TestSetCollectionMetadataTask(IRODSTestBase):
     def test_execute(self):
         """Test setting metadata"""
