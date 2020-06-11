@@ -9,7 +9,6 @@ class Flow(BaseLinearFlow):
     def validate(self):
         self.required_fields = [
             'project_title',
-            'project_description',
             'parent_uuid',
             'owner_uuid',
             'owner_username',
@@ -52,7 +51,7 @@ class Flow(BaseLinearFlow):
                 inject={
                     'path': project_path,
                     'name': 'description',
-                    'value': self.flow_data['project_description'],
+                    'value': self.flow_data.get('project_description', ''),
                 },
             )
         )
@@ -151,11 +150,11 @@ class Flow(BaseLinearFlow):
                 sodar_api=self.sodar_api,
                 inject={
                     'title': self.flow_data['project_title'],
-                    'description': self.flow_data['project_description'],
+                    'description': self.flow_data.get(
+                        'project_description', ''
+                    ),
                     'parent_uuid': self.flow_data['parent_uuid'],
-                    'readme': self.flow_data['project_readme']
-                    if 'project_readme' in self.flow_data
-                    else '',
+                    'readme': self.flow_data.get('project_readme', ''),
                 },
             )
         )

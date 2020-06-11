@@ -721,6 +721,38 @@ class TestSetCollectionMetadataTask(IRODSTestBase):
         test_coll = self._get_test_coll()
         self.assertIsInstance(test_coll, iRODSCollection)
 
+    def test_execute_empty(self):
+        """Test setting an empty value for metadata"""
+        self._add_task(
+            cls=SetCollectionMetadataTask,
+            name='Set metadata',
+            inject={
+                'path': TEST_COLL,
+                'name': TEST_KEY,
+                'value': '',
+                'units': TEST_UNITS,
+            },
+        )
+
+        test_coll = self._get_test_coll()
+
+        # Assert precondition
+        self.assertRaises(Exception, test_coll.metadata.get_one, TEST_KEY)
+
+        result = self._run_flow()
+
+        # Assert flow success
+        self.assertEqual(result, True)
+
+        # Assert postcondition
+        # NOTE: We must retrieve collection again to refresh its metadata
+        test_coll = self._get_test_coll()
+        meta_item = test_coll.metadata.get_one(TEST_KEY)
+        self.assertIsInstance(meta_item, iRODSMeta)
+        self.assertEqual(meta_item.name, TEST_KEY)
+        self.assertEqual(meta_item.value, META_EMPTY_VALUE)
+        self.assertEqual(meta_item.units, TEST_UNITS)
+
 
 class TestCreateUserGroupTask(IRODSTestBase):
     def test_execute(self):

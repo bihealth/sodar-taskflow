@@ -22,9 +22,8 @@ ACCESS_CONVERSION = {
     'null': 'null',
     'own': 'own',
 }
-
 INHERIT_STRINGS = {True: 'inherit', False: 'noinherit'}
-
+META_EMPTY_VALUE = 'N/A'
 
 md5_re = re.compile(r'([^\w.])')
 logger = logging.getLogger('sodar_taskflow')
@@ -205,6 +204,10 @@ class SetCollectionMetadataTask(IrodsBaseTask):
 
         except Exception:  # Can't get proper Exception here
             pass
+
+        # HACK: Can not set empty value in imeta
+        if not value:
+            value = META_EMPTY_VALUE
 
         if meta_item and value != meta_item.value:
             self.execute_data['value'] = str(meta_item.value)

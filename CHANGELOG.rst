@@ -4,6 +4,16 @@ SODAR Taskflow Changelog
 Changelog for the SODAR Taskflow service.
 
 
+Unreleased
+==========
+
+Fixed
+-----
+
+- ``project_description`` field required in ``project_update`` (#64)
+- Disallowed empty values not sanitized in ``SetCollectionMetadataTask`` (#64)
+
+
 v0.4.0 (2020-04-28)
 ===================
 
