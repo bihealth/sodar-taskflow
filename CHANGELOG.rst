@@ -7,6 +7,11 @@ Changelog for the SODAR Taskflow service.
 Unreleased
 ==========
 
+Changed
+-------
+
+- Upgrade to python-irodsclient v0.8.5 (#66)
+
 Fixed
 -----
 
