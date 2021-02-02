@@ -11,6 +11,7 @@ Added
 -----
 
 - Support for ``TASKFLOW_IRODS_PROJECT_ROOT`` setting (#69)
+- ``data_delete`` flow for deleting data (#67)
 
 Changed
 -------
