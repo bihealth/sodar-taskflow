@@ -7,6 +7,11 @@ Changelog for the SODAR Taskflow service.
 Unreleased
 ==========
 
+Added
+-----
+
+- Support for ``TASKFLOW_IRODS_PROJECT_ROOT`` setting (#69)
+
 Changed
 -------
 

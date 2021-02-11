@@ -36,7 +36,7 @@ DEFAULT_USER_GROUP = USER_PREFIX + 'group1'
 GROUP_USER = USER_PREFIX + 'user1'
 GROUPLESS_USER = USER_PREFIX + 'user2'
 
-ROOT_COLL = '/{}/projects'.format(IRODS_ZONE)
+ROOT_COLL = settings.TASKFLOW_IRODS_PROJECT_ROOT
 TEST_COLL = '{}/test'.format(ROOT_COLL)
 TEST_COLL_NEW = '{}/test_new'.format(ROOT_COLL)
 TEST_COLL_NEW2 = '{}/test_new2'.format(ROOT_COLL)
