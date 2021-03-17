@@ -95,6 +95,8 @@ class Flow(BaseLinearFlow):
             )
         )
 
+        # TODO: Set public access according to public_guest_access (#71)
+
         self.add_task(
             irods_tasks.SetAccessTask(
                 name='Set project user group access',

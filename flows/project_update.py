@@ -56,6 +56,8 @@ class Flow(BaseLinearFlow):
             )
         )
 
+        # TODO: Set public access according to public_guest_access (#71)
+
         # Update owner if changed
         if self.flow_data['owner_uuid'] != self.flow_data['old_owner_uuid']:
             self.add_task(
@@ -155,6 +157,9 @@ class Flow(BaseLinearFlow):
                     ),
                     'parent_uuid': self.flow_data['parent_uuid'],
                     'readme': self.flow_data.get('project_readme', ''),
+                    'public_guest_access': self.flow_data.get(
+                        'public_guest_access', False
+                    ),
                 },
             )
         )
