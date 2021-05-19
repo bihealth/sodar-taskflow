@@ -28,8 +28,8 @@ TASKFLOW_IRODS_PROJECT_ROOT = '/{}{}/projects'.format(
     TASKFLOW_IRODS_ZONE,
     ('/' + TASKFLOW_IRODS_ROOT_PATH) if TASKFLOW_IRODS_ROOT_PATH else '',
 )
-TASKFLOW_SAMPLE_DIR = 'sample_data'
-TASKFLOW_LANDING_ZONE_DIR = 'landing_zones'
+TASKFLOW_SAMPLE_COLL = 'sample_data'
+TASKFLOW_LANDING_ZONE_COLL = 'landing_zones'
 
 TASKFLOW_SODAR_URL = os.getenv('TASKFLOW_SODAR_URL', 'http://0.0.0.0:8000')
 TASKFLOW_REDIS_URL = os.getenv('TASKFLOW_REDIS_URL', 'redis://0.0.0.0:6633')

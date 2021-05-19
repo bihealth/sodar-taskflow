@@ -6,8 +6,8 @@ from tasks import sodar_tasks, irods_tasks
 
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
-TASKFLOW_SAMPLE_DIR = settings.TASKFLOW_SAMPLE_DIR
-TASKFLOW_LANDING_ZONE_DIR = settings.TASKFLOW_LANDING_ZONE_DIR
+TASKFLOW_SAMPLE_COLL = settings.TASKFLOW_SAMPLE_COLL
+TASKFLOW_LANDING_ZONE_COLL = settings.TASKFLOW_LANDING_ZONE_COLL
 
 
 class Flow(BaseLinearFlow):
@@ -24,8 +24,8 @@ class Flow(BaseLinearFlow):
         ########
 
         project_path = get_project_path(self.project_uuid)
-        sample_path = project_path + '/' + TASKFLOW_SAMPLE_DIR
-        zone_path = project_path + '/' + TASKFLOW_LANDING_ZONE_DIR
+        sample_path = project_path + '/' + TASKFLOW_SAMPLE_COLL
+        zone_path = project_path + '/' + TASKFLOW_LANDING_ZONE_COLL
 
         ##############
         # iRODS Tasks

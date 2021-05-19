@@ -13,7 +13,7 @@ from tasks import sodar_tasks, irods_tasks
 
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
-SAMPLE_DIR = settings.TASKFLOW_SAMPLE_DIR
+SAMPLE_COLL = settings.TASKFLOW_SAMPLE_COLL
 
 
 class Flow(BaseLinearFlow):
@@ -90,7 +90,7 @@ class Flow(BaseLinearFlow):
         # Get list of collections containing files (ignore empty colls)
         zone_object_colls = list(set([p[: p.rfind('/')] for p in zone_objects]))
 
-        # Convert these to collections inside sample dir
+        # Convert these to collections inside sample collection
         sample_colls = list(
             set(
                 [
@@ -241,7 +241,7 @@ class Flow(BaseLinearFlow):
                     'status': 'MOVING',
                     'status_info': 'Validation OK, '
                     'moving {} files into {}'.format(
-                        len(zone_objects_nomd5), SAMPLE_DIR
+                        len(zone_objects_nomd5), SAMPLE_COLL
                     ),
                 },
             )
@@ -250,7 +250,7 @@ class Flow(BaseLinearFlow):
         if sample_colls:
             self.add_task(
                 irods_tasks.BatchCreateCollectionsTask(
-                    name='Create collections in {}'.format(SAMPLE_DIR),
+                    name='Create collections in {}'.format(SAMPLE_COLL),
                     irods=self.irods,
                     inject={'paths': sample_colls},
                 )

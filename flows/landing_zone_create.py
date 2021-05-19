@@ -24,7 +24,7 @@ class Flow(BaseLinearFlow):
             'user_name',
             'user_uuid',
             'assay_path',
-            'dirs',
+            'colls',
         ]
         return super().validate()
 
@@ -170,13 +170,13 @@ class Flow(BaseLinearFlow):
                 )
             )
 
-        for d in self.flow_data['dirs']:
-            dir_path = zone_path + '/' + d
+        for d in self.flow_data['colls']:
+            coll_path = zone_path + '/' + d
             self.add_task(
                 irods_tasks.CreateCollectionTask(
-                    name='Create collection {}'.format(dir_path),
+                    name='Create collection {}'.format(coll_path),
                     irods=self.irods,
-                    inject={'path': dir_path},
+                    inject={'path': coll_path},
                 )
             )
 

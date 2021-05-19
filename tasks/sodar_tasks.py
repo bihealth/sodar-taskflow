@@ -193,8 +193,8 @@ class RemoveRoleTask(SODARBaseTask):
             )
 
 
-class SetIrodsDirStatusTask(SODARBaseTask):
-    """Set iRODS dir creation status (True/False) for a sample sheet"""
+class SetIrodsCollStatusTask(SODARBaseTask):
+    """Set iRODS collection creation status (True/False) for a sample sheet"""
 
     def execute(self, dir_status, *args, **kwargs):
         # Get initial data

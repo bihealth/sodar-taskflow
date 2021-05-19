@@ -13,11 +13,13 @@ Added
 - Support for ``TASKFLOW_IRODS_PROJECT_ROOT`` setting (#69)
 - ``data_delete`` flow for deleting data (#67)
 - Support for ``public_guest_access`` field in project updates (#70)
+- ``public_access_update`` for setting public read access to collections (#71)
 
 Changed
 -------
 
 - Upgrade to python-irodsclient v0.8.5 (#66)
+- Unify collection naming (#58)
 
 Fixed
 -----

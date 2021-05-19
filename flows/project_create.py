@@ -9,7 +9,7 @@ PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
 
 
 class Flow(BaseLinearFlow):
-    """Flow for creating a new project: creates related directories and user
+    """Flow for creating a new project: creates related collections and user
     groups for access, also assigning membership in owner group to owner"""
 
     def validate(self):
@@ -94,8 +94,6 @@ class Flow(BaseLinearFlow):
                 inject={'name': project_group},
             )
         )
-
-        # TODO: Set public access according to public_guest_access (#71)
 
         self.add_task(
             irods_tasks.SetAccessTask(
