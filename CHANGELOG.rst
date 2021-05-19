@@ -18,7 +18,7 @@ Added
 Changed
 -------
 
-- Upgrade to python-irodsclient v0.8.5 (#66)
+- Upgrade project requirements(#66, #68, #72)
 - Unify collection naming (#58)
 
 Fixed
