@@ -4,24 +4,16 @@ set -euo pipefail
 
 # Commands:
 #
-#   wsgi            -- run gunicorn with Django WSGI
-#   celeryd         -- run celery worker
-#   celerybeat      -- run celerybeat daemon
+#   wsgi            -- run SODAR Taskflow with GUnicorn WSGI
 #
 # Environment Variables:
 #
 #   APP_DIR         -- path to application directory
 #                      default: "/usr/src/app"
-#   CELERY_QUEUES   -- argument for Celery queues
-#                      default: "default,query,import" (all)
-#   CELERY_WORKERS  -- celery concurrency/process count
-#                      default: "8"
-#
 #   NO_WAIT         -- skip waiting for servers
 #                      default: "0"
 #   WAIT_HOSTS      -- hosts to wait for with `wait`
-#                      default: "postgres:5432, redis:6379"
-#
+#                      default: "redis:6379"
 #   HTTP_HOST       -- host to listen on
 #                      default: 0.0.0.0
 #   HTTP_PORT       -- port
@@ -32,10 +24,8 @@ set -euo pipefail
 #                       default: 600
 
 APP_DIR=${APP_DIR-/usr/src/app}
-CELERY_QUEUES=${CELERY_QUEUES-default,query,import}
-CELERY_WORKERS=${CELERY_WORKERS-8}
 NO_WAIT=${NO_WAIT-0}
-export WAIT_HOSTS=${WAIT_HOSTS-postgres:5432, redis:6379}
+# export WAIT_HOSTS=${WAIT_HOSTS-redis:6379}
 export PYTHONUNBUFFERED=${PYTHONUNBUFFERED-1}
 HTTP_HOST=${HTTP_HOST-0.0.0.0}
 HTTP_PORT=${HTTP_PORT-5005}
@@ -48,18 +38,14 @@ fi
 
 if [[ "$1" == wsgi ]]; then
   cd $APP_DIR
-
-  >&2 echo "SODAR MIGRATIONS BEGIN"
-  python manage.py makemigrations
-  python manage.py migrate
-  >&2 echo "SODAR MIGRATIONS END"
-
+  export SODAR_TASKFLOW_SETTINGS=${APP_DIR}/config/production.py
   exec gunicorn \
     --access-logfile - \
     --log-level "$LOG_LEVEL" \
     --bind "$HTTP_HOST:$HTTP_PORT" \
     --timeout "$GUNICORN_TIMEOUT" \
-    config.wsgi
+    --workers 4 \
+    sodar_taskflow:app
 else
   cd $APP_DIR
   exec "$@"

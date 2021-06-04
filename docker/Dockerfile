@@ -26,4 +26,4 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
     ln -s /usr/local/bin/docker-entrypoint.sh / # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["wsgi"]
-EXPOSE 8080/tcp
+EXPOSE 5005/tcp

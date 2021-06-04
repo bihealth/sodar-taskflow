@@ -20,6 +20,7 @@ Changed
 
 - Upgrade project requirements(#66, #68, #72)
 - Unify collection naming (#58)
+- Update Docker setup
 
 Fixed
 -----
