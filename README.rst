@@ -4,6 +4,9 @@ SODAR Taskflow
 .. image:: https://github.com/bihealth/sodar-taskflow/workflows/build/badge.svg
     :target: https://github.com/bihealth/sodar-taskflow/actions?query=workflow%3Abuild
 
+.. image:: https://img.shields.io/badge/License-MIT-green.svg
+    :target: https://opensource.org/licenses/MIT
+
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/ambv/black
 
