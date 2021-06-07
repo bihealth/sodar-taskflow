@@ -14,6 +14,7 @@ Added
 - ``data_delete`` flow for deleting data (#67)
 - Support for ``public_guest_access`` field in project updates (#70)
 - ``public_access_update`` for setting public read access to collections (#71)
+- GitHub CI using GitHub Actions (#74)
 
 Changed
 -------
@@ -21,12 +22,14 @@ Changed
 - Upgrade project requirements(#66, #68, #72)
 - Unify collection naming (#58)
 - Update Docker setup
+- Update test cleanup
 
 Fixed
 -----
 
 - ``project_description`` field required in ``project_update`` (#64)
 - Disallowed empty values not sanitized in ``SetCollectionMetadataTask`` (#64)
+- Invalid env variable ``OMICS_TASKFLOW_SETTINGS`` in GitLab CI (#76)
 
 
 v0.4.0 (2020-04-28)

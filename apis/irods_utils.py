@@ -85,20 +85,15 @@ def close_irods(irods):
         irods.cleanup()
 
 
-# TODO: Naming? (clashes with iRODSSession.cleanup())
-def cleanup_irods(irods, verbose=True):
+def cleanup_irods_data(irods, verbose=True):
     """Cleanup data from iRODS. Used in debugging/testing."""
-
     # TODO: Remove stuff from user folders
     # TODO: Remove stuff from trash
-
     # Remove project folders
     try:
         irods.collections.remove(PROJECT_ROOT, recurse=True, force=True)
-
         if verbose:
             logger.info('Removed project root: {}'.format(PROJECT_ROOT))
-
     except Exception:
         pass  # This is OK, the root just wasn't there
 
@@ -107,7 +102,6 @@ def cleanup_irods(irods, verbose=True):
     for g in irods.query(UserGroup).all():
         if g[UserGroup.name] not in PERMANENT_USERS:
             irods.user_groups.remove(user_name=g[UserGroup.name])
-
             if verbose:
                 logger.info('Removed user: {}'.format(g[UserGroup.name]))
 

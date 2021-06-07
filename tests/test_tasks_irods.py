@@ -21,7 +21,7 @@ from irods.user import iRODSUser, iRODSUserGroup
 
 from unittest import TestCase
 
-from apis.irods_utils import init_irods, cleanup_irods
+from apis.irods_utils import init_irods, cleanup_irods_data
 from config import settings
 from flows.base_flow import BaseLinearFlow
 from tasks.irods_tasks import *  # noqa
@@ -109,12 +109,9 @@ class IRODSTestBase(TestCase):
         self.flow = self._init_flow()
 
     def tearDown(self):
-        # Remove leftover data from iRODS (if allowed)
-        if settings.TASKFLOW_ALLOW_IRODS_CLEANUP:
-            cleanup_irods(self.irods, verbose=False)
-
-        else:
-            raise Exception('iRODS cleanup not allowed')
+        # Remove leftover data from iRODS
+        cleanup_irods_data(self.irods, verbose=False)
+        self.irods.cleanup()  # Clean shutdown
 
     def _run_flow(self):
         return self.flow.run(verbose=False)

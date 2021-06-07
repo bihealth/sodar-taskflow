@@ -302,7 +302,7 @@ def cleanup():
         try:
             app.logger.info('--- Cleanup started ---')
             irods = irods_utils.init_irods(test_mode=test_mode)
-            irods_utils.cleanup_irods(irods)
+            irods_utils.cleanup_irods_data(irods)
             app.logger.info('--- Cleanup done ---')
             irods_utils.close_irods(irods)
 

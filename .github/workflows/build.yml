@@ -1,0 +1,44 @@
+name: build
+on: push
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-version:
+          - 3.6
+          - 3.7
+          - 3.8
+          - 3.9
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+      irods:
+        image: mjstealey/irods-provider-postgres
+        ports:
+          - 1247:1247
+    env:
+      TASKFLOW_REDIS_URL: http://127.0.0.1:6379
+      TASKFLOW_IRODS_TEST_HOST: 127.0.0.1
+      TASKFLOW_IRODS_TEST_PORT: 1247
+      TASKFLOW_IRODS_ZONE: tempZone
+    steps:
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install project Python dependencies
+        run: |
+          pip install wheel==0.36.2
+          pip install -r requirements.txt
+      - name: Run tests
+        run: ./utility/test.sh
+      - name: Check linting
+        run: flake8 .
+      - name: Check formatting
+        run: ./utility/black.sh --check

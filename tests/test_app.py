@@ -2,7 +2,7 @@
 from unittest import TestCase
 
 import sodar_taskflow
-from apis.irods_utils import init_irods, cleanup_irods
+from apis.irods_utils import init_irods, cleanup_irods_data
 
 
 class AppTestBase(TestCase):
@@ -16,7 +16,7 @@ class AppTestBase(TestCase):
 
     def tearDown(self):
         # Remove leftover data from iRODS
-        cleanup_irods(self.irods, verbose=False)
+        cleanup_irods_data(self.irods, verbose=False)
         pass
 
 
