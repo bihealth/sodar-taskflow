@@ -1,5 +1,8 @@
 FROM python:3.6-buster
 
+MAINTAINER Mikko Nieminen <mikko.nieminen@bih-charite.de>
+LABEL org.opencontainers.image.source https://github.com/bihealth/sodar-taskflow
+
 ARG app_git_url=https://github.com/bihealth/sodar-taskflow.git
 ARG app_git_tag
 ARG app_git_depth=1

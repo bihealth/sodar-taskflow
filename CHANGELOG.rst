@@ -7,6 +7,11 @@ Changelog for the SODAR Taskflow service.
 Unreleased
 ==========
 
+Added
+-----
+
+- ``LABEL`` AND ``MAINTAINER`` in ``Dockerfile`` (#77)
+
 Changed
 -------
 
