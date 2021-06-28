@@ -4,6 +4,15 @@ SODAR Taskflow Changelog
 Changelog for the SODAR Taskflow service.
 
 
+Unreleased
+==========
+
+Changed
+-------
+
+- Improve iRODS exception logging (#34)
+
+
 v0.5.0 (2020-06-07)
 ===================
 

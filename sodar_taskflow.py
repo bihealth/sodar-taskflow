@@ -63,23 +63,18 @@ def run_flow(
     if flow.require_lock:
         # Acquire lock
         coordinator = lock_api.get_coordinator()
-
         if not coordinator:
             ex_str = 'Error retrieving lock coordinator'
-
         else:
             lock_id = project_uuid
             lock = coordinator.get_lock(lock_id)
-
             try:
                 lock_api.acquire(lock)
-
             except Exception as ex:
                 msg = 'Unable to acquire project lock'
                 app.logger.info(msg + ': ' + str(ex))
                 irods_utils.close_irods(irods)
                 return Response(msg, status=503)
-
     else:
         app.logger.info('Lock not required (flow.require_lock=False)')
 
@@ -92,10 +87,8 @@ def run_flow(
 
     try:
         flow.build(force_fail)
-
     except Exception as ex:
         msg = 'Error building flow'
-
         # TODO: HACK! generalize to report building problems in ODM!
         if async_mode and 'zone_uuid' in flow.flow_data:
             # Set zone status in the Django site
@@ -107,14 +100,11 @@ def run_flow(
                 'status_info': '{}: {}'.format(msg, ex),
             }
             sodar_api.send_request('landingzones/taskflow/status/set', set_data)
-
             # Set timeline status
             sodar_api.set_timeline_status(
                 event_uuid=timeline_uuid, status_type='FAILED', status_desc=msg
             )
-
             app.logger.error('{}: {}'.format(msg, ex))
-
         else:
             response = Response('{}: {}'.format(msg, ex), status=500)
 
@@ -124,7 +114,6 @@ def run_flow(
     if not ex_str:
         try:
             flow_result = flow.run()
-
         except Exception as ex:
             ex_str = str(ex)
 
@@ -136,7 +125,6 @@ def run_flow(
                 status_type='OK',
                 status_desc='Async submit OK',
             )
-
         else:
             response = Response(str(flow_result), status=200)
 
@@ -149,7 +137,6 @@ def run_flow(
                 status_desc='Error running async flow: '
                 + (ex_str if ex_str else 'unknown error'),
             )
-
         else:
             msg = 'Error running flow: ' + (
                 ex_str if ex_str != '' else 'unknown error'
@@ -180,7 +167,6 @@ def submit():
     app.logger.debug('Submit data: {}'.format(form_data))
     force_fail = form_data['force_fail'] if 'force_fail' in form_data else False
     test_mode = form_data['test_mode'] if 'test_mode' in form_data else False
-
     required_keys = [
         'project_uuid',
         'request_mode',
@@ -215,9 +201,10 @@ def submit():
 
     try:
         irods = irods_utils.init_irods(test_mode=test_mode)
-
     except Exception as ex:
-        msg = 'Error initializing iRODS: {}'.format(ex)
+        msg = 'Error initializing iRODS: {} ({})'.format(
+            ex.__class__.__name__, ex
+        )
         app.logger.error(msg)
         return Response(msg, status=500)
 
@@ -227,7 +214,6 @@ def submit():
 
     if 'sodar_url' in form_data:
         sodar_url = form_data['sodar_url']
-
     else:
         sodar_url = settings.TASKFLOW_SODAR_URL
 
@@ -247,10 +233,8 @@ def submit():
         request_mode=form_data['request_mode'],
         timeline_uuid=form_data['timeline_uuid'],
     )
-
     try:
         flow.validate()
-
     except TypeError as ex:
         msg = 'Error validating flow: {}'.format(ex)
         app.logger.error(msg)
@@ -305,10 +289,13 @@ def cleanup():
             irods_utils.cleanup_irods_data(irods)
             app.logger.info('--- Cleanup done ---')
             irods_utils.close_irods(irods)
-
         except Exception as ex:
-            return Response('Error during cleanup: {}'.format(ex), status=500)
-
+            return Response(
+                'Error during cleanup: {} ({})'.format(
+                    ex.__class__.__name__, ex
+                ),
+                status=500,
+            )
         return Response('OK', status=200)
 
     return Response('iRODS cleanup not allowed', status=403)
