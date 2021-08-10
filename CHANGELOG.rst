@@ -17,6 +17,7 @@ Changed
 
 - Improve iRODS exception logging (#34)
 - Upgrade to python-irodsclient v1.0.0 (#79)
+- Update docker build for ``ghcr.io``
 
 
 v0.5.0 (2020-06-07)
