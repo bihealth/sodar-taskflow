@@ -11,6 +11,7 @@ Added
 -----
 
 - ``LABEL`` AND ``MAINTAINER`` in ``Dockerfile`` (#77)
+- Replica checksum validation in ``BatchValidateChecksumsTask`` (#78)
 
 Changed
 -------

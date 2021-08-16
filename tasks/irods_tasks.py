@@ -1,6 +1,7 @@
 """iRODS tasks for Taskflow"""
 
 import logging
+import os
 import random
 import re
 import string
@@ -486,8 +487,30 @@ class MoveDataObjectTask(IrodsBaseTask):
 class BatchValidateChecksumsTask(IrodsBaseTask):
     """Batch validate checksums of a given list of data object paths"""
 
-    # NOTE: This is a temporary hack, real validation will be done elsewhere
-    #       (e.g. directly in iRODS rules)
+    @classmethod
+    def _compare_checksums(cls, data_obj, checksum):
+        """
+        Compares object replicate checksums to expected sum. Raises exception if
+        checksums do not match.
+
+        :param data_obj: Data object
+        :param checksum: Expected checksum (string)
+        :raises: Exception if checksums do not match
+        """
+        for replica in data_obj.replicas:
+            if checksum != replica.checksum:
+                msg = (
+                    'Checksums do not match for "{}" in resource "{}" '
+                    '(File: {}; iRODS: {})'.format(
+                        '/'.join(os.path.basename(data_obj.path)),
+                        replica.resource_name,
+                        checksum,
+                        replica.checksum,
+                    )
+                )
+                msg_detail = '{} <-> {}'.format(checksum, replica.checksum)
+                logger.error('{} ({})'.format(msg, msg_detail))
+                raise Exception(msg)
 
     def execute(self, paths, zone_path, *args, **kwargs):
         zone_path_len = len(zone_path.split('/'))
@@ -495,35 +518,20 @@ class BatchValidateChecksumsTask(IrodsBaseTask):
         for path in paths:
             try:
                 md5_path = path + '.md5'
-
                 try:
                     md5_file = self.irods.data_objects.open(md5_path, mode='r')
                     file_sum = re.split(
                         md5_re, md5_file.read().decode('utf-8')
                     )[0]
-
                 except Exception:
                     raise Exception(
                         'Unable to read checksum file "{}"'.format(
                             '/'.join(md5_path.split('/')[zone_path_len:])
                         )
                     )
-
-                file_obj = self.irods.data_objects.get(path)
-
-                if file_sum != file_obj.checksum:
-                    msg = (
-                        'Checksums do not match for "{}" '
-                        '(File: {}; iRODS: {})'.format(
-                            '/'.join(path.split('/')[zone_path_len:]),
-                            file_sum,
-                            file_obj.checksum,
-                        )
-                    )
-                    msg_detail = '{} <-> {}'.format(file_sum, file_obj.checksum)
-                    logger.error('{} ({})'.format(msg, msg_detail))
-                    raise Exception(msg)
-
+                self._compare_checksums(
+                    self.irods.data_objects.get(path), file_sum
+                )
             except Exception as ex:
                 self._raise_irods_execption(ex)
 
