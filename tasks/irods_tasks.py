@@ -502,14 +502,13 @@ class BatchValidateChecksumsTask(IrodsBaseTask):
                 msg = (
                     'Checksums do not match for "{}" in resource "{}" '
                     '(File: {}; iRODS: {})'.format(
-                        '/'.join(os.path.basename(data_obj.path)),
+                        os.path.basename(data_obj.path),
                         replica.resource_name,
                         checksum,
                         replica.checksum,
                     )
                 )
-                msg_detail = '{} <-> {}'.format(checksum, replica.checksum)
-                logger.error('{} ({})'.format(msg, msg_detail))
+                logger.error(msg)
                 raise Exception(msg)
 
     def execute(self, paths, zone_path, *args, **kwargs):

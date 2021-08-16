@@ -20,6 +20,11 @@ Changed
 - Upgrade to python-irodsclient v1.0.0 (#79)
 - Update docker build for ``ghcr.io``
 
+Fixed
+-----
+
+- Redundant info in ``BatchValidateChecksumsTask`` error logging (#80)
+
 
 v0.5.0 (2020-06-07)
 ===================
