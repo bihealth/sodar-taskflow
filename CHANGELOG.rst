@@ -12,6 +12,7 @@ Added
 
 - ``LABEL`` AND ``MAINTAINER`` in ``Dockerfile`` (#77)
 - Replica checksum validation in ``BatchValidateChecksumsTask`` (#78)
+- Support for extra data in ``SetLandingZoneStatusTask`` (#81)
 
 Changed
 -------
@@ -24,6 +25,7 @@ Fixed
 -----
 
 - Redundant info in ``BatchValidateChecksumsTask`` error logging (#80)
+- Errors in ``landing_zone_move`` zone status messages (#82)
 
 
 v0.5.0 (2020-06-07)

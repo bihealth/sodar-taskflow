@@ -17,8 +17,10 @@ SAMPLE_COLL = settings.TASKFLOW_SAMPLE_COLL
 
 
 class Flow(BaseLinearFlow):
-    """Flow for validating and moving files from a landing zone to the
-    sample data collection in iRODS"""
+    """
+    Flow for validating and moving files from a landing zone to the
+    sample data collection in iRODS.
+    """
 
     def validate(self):
         self.supported_modes = ['sync', 'async']
@@ -82,6 +84,7 @@ class Flow(BaseLinearFlow):
                 ]
             )
         )
+        file_count = len(zone_objects_nomd5)
 
         # Get all collections with root path
         zone_all_colls = [zone_path]
@@ -134,8 +137,10 @@ class Flow(BaseLinearFlow):
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'VALIDATING',
-                    'status_info': 'Validating {} files, '
-                    'write access disabled'.format(len(zone_objects_nomd5)),
+                    'status_info': 'Validating {} file{}, '
+                    'write access disabled'.format(
+                        file_count, 's' if file_count != 1 else ''
+                    ),
                 },
             )
         )
@@ -150,7 +155,7 @@ class Flow(BaseLinearFlow):
             self.add_task(
                 irods_tasks.BatchValidateChecksumsTask(
                     name='Batch validate MD5 checksums of {} data '
-                    'objects'.format(len(zone_objects_nomd5)),
+                    'objects'.format(file_count),
                     irods=self.irods,
                     inject={
                         'paths': zone_objects_nomd5,
@@ -169,9 +174,10 @@ class Flow(BaseLinearFlow):
                         'status': 'ACTIVE',
                         'status_info': 'Successfully validated '
                         '{} file{}'.format(
-                            len(zone_objects_nomd5),
-                            's' if len(zone_objects_nomd5) != 1 else '',
+                            file_count,
+                            's' if file_count != 1 else '',
                         ),
+                        'extra_data': {'validate_only': validate_only},
                     },
                 )
             )
@@ -224,7 +230,7 @@ class Flow(BaseLinearFlow):
         self.add_task(
             irods_tasks.BatchValidateChecksumsTask(
                 name='Batch validate MD5 checksums of {} data objects'.format(
-                    len(zone_objects_nomd5)
+                    file_count
                 ),
                 irods=self.irods,
                 inject={'paths': zone_objects_nomd5, 'zone_path': zone_path},
@@ -240,9 +246,7 @@ class Flow(BaseLinearFlow):
                     'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'MOVING',
                     'status_info': 'Validation OK, '
-                    'moving {} files into {}'.format(
-                        len(zone_objects_nomd5), SAMPLE_COLL
-                    ),
+                    'moving {} files into {}'.format(file_count, SAMPLE_COLL),
                 },
             )
         )
@@ -305,8 +309,11 @@ class Flow(BaseLinearFlow):
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'MOVED',
-                    'status_info': 'Successfully moved {} files, landing zone '
-                    'removed'.format(len(zone_objects_nomd5)),
+                    'status_info': 'Successfully moved {} file{}, landing zone '
+                    'removed'.format(
+                        file_count, 's' if file_count != 1 else ''
+                    ),
+                    'extra_data': {'file_count': file_count},
                 },
             )
         )

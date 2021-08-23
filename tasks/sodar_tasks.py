@@ -278,20 +278,37 @@ class CreateLandingZoneTask(SODARBaseTask):
 class SetLandingZoneStatusTask(SODARBaseTask):
     """Set LandingZone status"""
 
-    def execute(self, status, status_info, zone_uuid=None, *args, **kwargs):
+    def execute(
+        self,
+        status,
+        status_info,
+        zone_uuid=None,
+        extra_data=None,
+        *args,
+        **kwargs
+    ):
         set_data = {
             'status': status,
             'status_info': status_info,
             'zone_uuid': zone_uuid,
         }
-
+        if extra_data:
+            set_data.update(extra_data)
         self.sodar_api.send_request(
             'landingzones/taskflow/status/set', set_data
         )
         self.data_modified = True
         super().execute(*args, **kwargs)
 
-    def revert(self, status, status_info, zone_uuid=None, *args, **kwargs):
+    def revert(
+        self,
+        status,
+        status_info,
+        zone_uuid=None,
+        extra_data=None,
+        *args,
+        **kwargs
+    ):
         pass  # Disabled, call RevertLandingZoneStatusTask to revert
 
 
