@@ -315,10 +315,10 @@ class SetLandingZoneStatusTask(SODARBaseTask):
 class RevertLandingZoneFailTask(SODARBaseTask):
     """Set LandingZone status in case of failure"""
 
-    def execute(self, zone_uuid, info_prefix, *args, **kwargs):
+    def execute(self, zone_uuid, info_prefix, extra_data=None, *args, **kwargs):
         super().execute(*args, **kwargs)
 
-    def revert(self, zone_uuid, info_prefix, *args, **kwargs):
+    def revert(self, zone_uuid, info_prefix, extra_data=None, *args, **kwargs):
         status_info = info_prefix
 
         for k, v in kwargs['flow_failures'].items():
@@ -330,6 +330,8 @@ class RevertLandingZoneFailTask(SODARBaseTask):
             'status': 'FAILED',
             'status_info': status_info,
         }
+        if extra_data:
+            set_data.update(extra_data)
         self.sodar_api.send_request(
             'landingzones/taskflow/status/set', set_data
         )

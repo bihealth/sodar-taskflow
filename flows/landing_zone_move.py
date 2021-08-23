@@ -34,13 +34,7 @@ class Flow(BaseLinearFlow):
         return super().validate()
 
     def build(self, force_fail=False):
-        validate_only = (
-            True
-            if 'validate_only' in self.flow_data
-            and self.flow_data['validate_only']
-            else False
-        )
-
+        validate_only = self.flow_data.get('validate_only', False)
         # Set zone status in the Django site
         set_data = {
             'zone_uuid': self.flow_data['zone_uuid'],
@@ -125,6 +119,7 @@ class Flow(BaseLinearFlow):
                     inject={
                         'zone_uuid': self.flow_data['zone_uuid'],
                         'info_prefix': 'Running asynchronous job failed',
+                        'extra_data': {'validate_only': int(validate_only)}
                     },
                 )
             )
@@ -177,7 +172,7 @@ class Flow(BaseLinearFlow):
                             file_count,
                             's' if file_count != 1 else '',
                         ),
-                        'extra_data': {'validate_only': validate_only},
+                        'extra_data': {'validate_only': int(validate_only)},
                     },
                 )
             )
