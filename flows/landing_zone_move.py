@@ -119,7 +119,7 @@ class Flow(BaseLinearFlow):
                     inject={
                         'zone_uuid': self.flow_data['zone_uuid'],
                         'info_prefix': 'Running asynchronous job failed',
-                        'extra_data': {'validate_only': int(validate_only)}
+                        'extra_data': {'validate_only': int(validate_only)},
                     },
                 )
             )
