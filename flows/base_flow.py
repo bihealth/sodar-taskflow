@@ -107,34 +107,3 @@ class BaseLinearFlow:
             )
 
         return result
-
-    # Temporary workaround for sodar#297
-    def set_script_user_access(self, access_name, target_path):
-        # If script user is set and exists, add write access
-        if 'script_user' in self.flow_data:
-            # Raise an exception if the user doesn't exist
-            # NOTE: User is NOT created here
-            try:
-                self.irods.users.get(self.flow_data['script_user'])
-
-            except Exception:
-                raise Exception(
-                    'User "{}" does not exist on the iRODS server'.format(
-                        self.flow_data['script_user']
-                    )
-                )
-
-            self.add_task(
-                SetAccessTask(
-                    name='Set user "{}" access for '
-                    'collection "{}" to "{}"'.format(
-                        self.flow_data['script_user'], target_path, access_name
-                    ),
-                    irods=self.irods,
-                    inject={
-                        'access_name': access_name,
-                        'path': target_path,
-                        'user_name': self.flow_data['script_user'],
-                    },
-                )
-            )

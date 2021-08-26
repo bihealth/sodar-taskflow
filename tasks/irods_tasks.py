@@ -348,7 +348,7 @@ class SetAccessTask(IrodsBaseTask):
                 self.irods.permissions.set(acl, recursive=recursive)
 
             except Exception as ex:
-                ex_info = path
+                ex_info = user_name
                 self._raise_irods_execption(ex, ex_info)
 
             self.data_modified = True

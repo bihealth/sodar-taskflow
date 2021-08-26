@@ -219,8 +219,20 @@ class Flow(BaseLinearFlow):
         )
 
         # Workaround for sodar#297
-        # If script user is set and exists, set read access
-        self.set_script_user_access('read', zone_path)
+        # If script user is set, set read access
+        if self.flow_data.get('script_user'):
+            self.add_task(
+                irods_tasks.SetAccessTask(
+                    name='Set script user "{}" read access to landing '
+                    'zone'.format(self.flow_data['script_user']),
+                    irods=self.irods,
+                    inject={
+                        'access_name': 'read',
+                        'path': zone_path,
+                        'user_name': self.flow_data['script_user'],
+                    },
+                )
+            )
 
         self.add_task(
             irods_tasks.BatchValidateChecksumsTask(
@@ -284,9 +296,20 @@ class Flow(BaseLinearFlow):
             )
         )
 
-        # Workaround for sodar#297
-        # If script user is set and exists, remove access
-        self.set_script_user_access('null', sample_path)
+        # If script user is set, remove access
+        if self.flow_data.get('script_user'):
+            self.add_task(
+                irods_tasks.SetAccessTask(
+                    name='Remove script user "{}" access to sample path '
+                    'zone'.format(self.flow_data['script_user']),
+                    irods=self.irods,
+                    inject={
+                        'access_name': 'null',
+                        'path': sample_path,
+                        'user_name': self.flow_data['script_user'],
+                    },
+                )
+            )
 
         self.add_task(
             irods_tasks.RemoveCollectionTask(

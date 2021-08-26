@@ -20,12 +20,19 @@ Changed
 - Improve iRODS exception logging (#34)
 - Upgrade to python-irodsclient v1.0.0 (#79)
 - Update docker build for ``ghcr.io``
+- Display user name instead of path in ``SetAccessTask`` revert
 
 Fixed
 -----
 
 - Redundant info in ``BatchValidateChecksumsTask`` error logging (#80)
 - Errors in ``landing_zone_move`` zone status messages (#82)
+- ``landing_zone_create`` script user access task exception not resulting in revert (#85)
+
+Removed
+-------
+
+- ``set_script_user_access()`` helper, use ``SetAccessTask`` instead (#85)
 
 
 v0.5.0 (2020-06-07)

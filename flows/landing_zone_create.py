@@ -108,7 +108,7 @@ class Flow(BaseLinearFlow):
 
         self.add_task(
             irods_tasks.SetAccessTask(
-                name='Set user read access for user collection inside project '
+                name='Set user read access to user collection inside project '
                 'landing zones',
                 irods=self.irods,
                 inject={
@@ -140,7 +140,7 @@ class Flow(BaseLinearFlow):
 
         self.add_task(
             irods_tasks.SetAccessTask(
-                name='Set user owner access for landing zone',
+                name='Set user owner access to landing zone',
                 irods=self.irods,
                 inject={
                     'access_name': 'own',
@@ -150,9 +150,21 @@ class Flow(BaseLinearFlow):
             )
         )
 
-        # Workaround for sodar#297
-        # If script user is set and exists, add write access
-        self.set_script_user_access('write', zone_path)
+        # If script user is set, add write access
+        # NOTE: This will intentionally fail if user has not been created!
+        if self.flow_data.get('script_user'):
+            self.add_task(
+                irods_tasks.SetAccessTask(
+                    name='Set script user "{}" write access to landing '
+                    'zone'.format(self.flow_data['script_user']),
+                    irods=self.irods,
+                    inject={
+                        'access_name': 'write',
+                        'path': zone_path,
+                        'user_name': self.flow_data['script_user'],
+                    },
+                )
+            )
 
         if (
             'description' in self.flow_data
