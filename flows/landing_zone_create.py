@@ -51,12 +51,13 @@ class Flow(BaseLinearFlow):
 
         self.add_task(
             sodar_tasks.RevertLandingZoneFailTask(
-                name='Set landing zone status to FAILED on revert',
+                name='Set landing zone status to NOT CREATED on revert',
                 sodar_api=self.sodar_api,
                 project_uuid=self.project_uuid,
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
                     'info_prefix': 'Creation failed',
+                    'status': 'NOT CREATED',
                 },
             )
         )

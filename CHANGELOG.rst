@@ -13,6 +13,7 @@ Added
 - ``LABEL`` AND ``MAINTAINER`` in ``Dockerfile`` (#77)
 - Replica checksum validation in ``BatchValidateChecksumsTask`` (#78)
 - Support for extra data in ``SetLandingZoneStatusTask`` (#81)
+- ``status`` argument for ``RevertLandingZoneFailTask`` (#86)
 
 Changed
 -------
@@ -21,6 +22,7 @@ Changed
 - Upgrade to python-irodsclient v1.0.0 (#79)
 - Update docker build for ``ghcr.io``
 - Display user name instead of path in ``SetAccessTask`` revert
+- Set zone status to ``NOT CREATED`` on ``landing_zone_create`` failure (#86)
 
 Fixed
 -----
