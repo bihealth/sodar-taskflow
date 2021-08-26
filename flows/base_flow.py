@@ -3,7 +3,6 @@ from taskflow import engines
 from taskflow.patterns import linear_flow as lf
 
 from tasks.base_task import ForceFailException
-from tasks.irods_tasks import SetAccessTask  # For temporary workaround
 
 
 logger = logging.getLogger('sodar_taskflow')
