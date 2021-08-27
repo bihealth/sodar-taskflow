@@ -56,7 +56,7 @@ class Flow(BaseLinearFlow):
                 project_uuid=self.project_uuid,
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
-                    'flow_name': __name__,
+                    'flow_name': self.flow_name,
                     'info_prefix': 'Failed to create landing zone',
                     'status': 'NOT CREATED',
                 },
@@ -206,6 +206,7 @@ class Flow(BaseLinearFlow):
                 project_uuid=self.project_uuid,
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
+                    'flow_name': self.flow_name,
                     'user_uuid': self.flow_data['user_uuid'],
                     'status': 'ACTIVE',
                     'status_info': 'Available with write access for user',

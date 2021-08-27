@@ -39,14 +39,15 @@ class BaseLinearFlow:
         self.flow = lf.Flow(flow_name)
 
     def validate(self):
-        """Function for validating flow parameters. Returns True/False based on
+        """
+        Function for validating flow parameters. Returns True/False based on
         validation success. Add required kwargs in the flow implementation and
-        call this. Can be extended with further validation."""
+        call this. Can be extended with further validation.
+        """
         if self.request_mode not in self.supported_modes:
             raise TypeError(
                 'Request mode "{}" not supported'.format(self.request_mode)
             )
-
         for k in self.required_fields:
             if k not in self.flow_data or self.flow_data[k] == '':
                 raise TypeError('Missing or invalid argument: "{}"'.format(k))
@@ -58,8 +59,10 @@ class BaseLinearFlow:
             self.flow.add(task)
 
     def build(self, force_fail=False):
-        """Build linear flow to be executed for one project. Override this in
-        the flow implementation."""
+        """
+        Build linear flow to be executed for one project. Override this in
+        the flow implementation.
+        """
         # TODO: Add tasks to self.flow here with self.flow.add()
         # TODO: Add force_fail=force_fail to last add() for testing rollback
         msg = 'Function build() not implemented!'
@@ -67,24 +70,20 @@ class BaseLinearFlow:
         raise NotImplementedError(msg)
 
     def run(self, verbose=True):
-        """Run the flow. Returns True or False depending on success. If False,
-        the flow was rolled back. Also handle project locking and unlocking."""
-
+        """
+        Run the flow. Returns True or False depending on success. If False,
+        the flow was rolled back. Also handle project locking and unlocking.
+        """
         if verbose:
             logger.info('--- Running flow "{}" ---'.format(self.flow.name))
-
         engine = engines.load(self.flow, engine='serial')
-
         try:
             engine.run()
-
         except ForceFailException:
             return False
-
         except Exception as ex:
             logger.error('Exception: {}'.format(ex))
             raise ex
-
         result = (
             True
             if (
@@ -93,7 +92,6 @@ class BaseLinearFlow:
             )
             else False
         )
-
         if verbose:
             logger.info(
                 '--- Flow finished: {} ({} completed, {} incomplete, '
@@ -104,5 +102,4 @@ class BaseLinearFlow:
                     engine.statistics['discarded_failures'],
                 )
             )
-
         return result

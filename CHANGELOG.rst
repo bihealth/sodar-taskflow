@@ -14,6 +14,7 @@ Added
 - Replica checksum validation in ``BatchValidateChecksumsTask`` (#78)
 - Support for extra data in ``SetLandingZoneStatusTask`` (#81)
 - ``status`` and ``flow_name`` arguments for ``RevertLandingZoneFailTask`` (#86)
+- ``flow_name`` argument for ``SetLandingZoneStatusTask``
 
 Changed
 -------

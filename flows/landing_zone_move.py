@@ -118,7 +118,7 @@ class Flow(BaseLinearFlow):
                     project_uuid=self.project_uuid,
                     inject={
                         'zone_uuid': self.flow_data['zone_uuid'],
-                        'flow_name': __name__,
+                        'flow_name': self.flow_name,
                         'info_prefix': 'Failed to move landing zone files',
                         'extra_data': {'validate_only': int(validate_only)},
                     },
@@ -137,6 +137,7 @@ class Flow(BaseLinearFlow):
                     'write access disabled'.format(
                         file_count, 's' if file_count != 1 else ''
                     ),
+                    'flow_name': self.flow_name,
                 },
             )
         )
@@ -173,6 +174,7 @@ class Flow(BaseLinearFlow):
                             file_count,
                             's' if file_count != 1 else '',
                         ),
+                        'flow_name': self.flow_name,
                         'extra_data': {'validate_only': int(validate_only)},
                     },
                 )
@@ -255,6 +257,7 @@ class Flow(BaseLinearFlow):
                     'status': 'MOVING',
                     'status_info': 'Validation OK, '
                     'moving {} files into {}'.format(file_count, SAMPLE_COLL),
+                    'flow_name': self.flow_name,
                 },
             )
         )
@@ -332,6 +335,7 @@ class Flow(BaseLinearFlow):
                     'removed'.format(
                         file_count, 's' if file_count != 1 else ''
                     ),
+                    'flow_name': self.flow_name,
                     'extra_data': {'file_count': file_count},
                 },
             )

@@ -49,7 +49,7 @@ class Flow(BaseLinearFlow):
                     project_uuid=self.project_uuid,
                     inject={
                         'zone_uuid': self.flow_data['zone_uuid'],
-                        'flow_name': __name__,
+                        'flow_name': self.flow_name,
                         'info_prefix': 'Failed to delete landing zone',
                     },
                 )
@@ -65,6 +65,7 @@ class Flow(BaseLinearFlow):
                     'zone_uuid': self.flow_data['zone_uuid'],
                     'status': 'DELETING',
                     'status_info': 'Deleting landing zone',
+                    'flow_name': self.flow_name,
                 },
             )
         )
@@ -89,6 +90,7 @@ class Flow(BaseLinearFlow):
                 project_uuid=self.project_uuid,
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
+                    'flow_name': self.flow_name,
                     'status': 'DELETED',
                     'status_info': 'Landing zone deleted',
                 },

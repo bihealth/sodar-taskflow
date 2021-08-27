@@ -282,6 +282,7 @@ class SetLandingZoneStatusTask(SODARBaseTask):
         self,
         status,
         status_info,
+        flow_name=None,
         zone_uuid=None,
         extra_data=None,
         *args,
@@ -291,6 +292,7 @@ class SetLandingZoneStatusTask(SODARBaseTask):
             'status': status,
             'status_info': status_info,
             'zone_uuid': zone_uuid,
+            'flow_name': flow_name,
         }
         if extra_data:
             set_data.update(extra_data)
@@ -304,6 +306,7 @@ class SetLandingZoneStatusTask(SODARBaseTask):
         self,
         status,
         status_info,
+        flow_name,
         zone_uuid=None,
         extra_data=None,
         *args,
