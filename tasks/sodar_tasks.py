@@ -318,6 +318,7 @@ class RevertLandingZoneFailTask(SODARBaseTask):
     def execute(
         self,
         zone_uuid,
+        flow_name,
         info_prefix,
         status='FAILED',
         extra_data=None,
@@ -329,6 +330,7 @@ class RevertLandingZoneFailTask(SODARBaseTask):
     def revert(
         self,
         zone_uuid,
+        flow_name,
         info_prefix,
         status='FAILED',
         extra_data=None,
@@ -345,6 +347,7 @@ class RevertLandingZoneFailTask(SODARBaseTask):
             'zone_uuid': zone_uuid,
             'status': status,
             'status_info': status_info,
+            'flow_name': flow_name,
         }
         if extra_data:
             set_data.update(extra_data)

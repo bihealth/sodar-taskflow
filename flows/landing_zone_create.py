@@ -56,7 +56,8 @@ class Flow(BaseLinearFlow):
                 project_uuid=self.project_uuid,
                 inject={
                     'zone_uuid': self.flow_data['zone_uuid'],
-                    'info_prefix': 'Creation failed',
+                    'flow_name': __name__,
+                    'info_prefix': 'Failed to create landing zone',
                     'status': 'NOT CREATED',
                 },
             )

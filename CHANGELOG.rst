@@ -13,7 +13,7 @@ Added
 - ``LABEL`` AND ``MAINTAINER`` in ``Dockerfile`` (#77)
 - Replica checksum validation in ``BatchValidateChecksumsTask`` (#78)
 - Support for extra data in ``SetLandingZoneStatusTask`` (#81)
-- ``status`` argument for ``RevertLandingZoneFailTask`` (#86)
+- ``status`` and ``flow_name`` arguments for ``RevertLandingZoneFailTask`` (#86)
 
 Changed
 -------
@@ -23,6 +23,7 @@ Changed
 - Update docker build for ``ghcr.io``
 - Display user name instead of path in ``SetAccessTask`` revert
 - Set zone status to ``NOT CREATED`` on ``landing_zone_create`` failure (#86)
+- Improve ``RevertLandingZoneFailTask`` info messages
 
 Fixed
 -----

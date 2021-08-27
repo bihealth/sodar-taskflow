@@ -118,7 +118,8 @@ class Flow(BaseLinearFlow):
                     project_uuid=self.project_uuid,
                     inject={
                         'zone_uuid': self.flow_data['zone_uuid'],
-                        'info_prefix': 'Running asynchronous job failed',
+                        'flow_name': __name__,
+                        'info_prefix': 'Failed to move landing zone files',
                         'extra_data': {'validate_only': int(validate_only)},
                     },
                 )
