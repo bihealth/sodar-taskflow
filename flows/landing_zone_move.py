@@ -78,6 +78,9 @@ class Flow(BaseLinearFlow):
                 ]
             )
         )
+        zone_objects_md5 = list(
+            set([p for p in zone_objects if p not in zone_objects_nomd5])
+        )
         file_count = len(zone_objects_nomd5)
 
         # Get all collections with root path
@@ -119,7 +122,9 @@ class Flow(BaseLinearFlow):
                     inject={
                         'zone_uuid': self.flow_data['zone_uuid'],
                         'flow_name': self.flow_name,
-                        'info_prefix': 'Failed to move landing zone files',
+                        'info_prefix': 'Failed to {} landing zone files'.format(
+                            'validate' if validate_only else 'move'
+                        ),
                         'extra_data': {'validate_only': int(validate_only)},
                     },
                 )
@@ -149,6 +154,19 @@ class Flow(BaseLinearFlow):
         # If "validate_only" is set, return without moving and set status
 
         if validate_only:
+            self.add_task(
+                irods_tasks.BatchCheckFilesTask(
+                    name='Batch check file and MD5 checksum file existence for '
+                    'zone data objects',
+                    irods=self.irods,
+                    inject={
+                        'file_paths': zone_objects_nomd5,
+                        'md5_paths': zone_objects_md5,
+                        'zone_path': zone_path,
+                    },
+                )
+            )
+
             self.add_task(
                 irods_tasks.BatchValidateChecksumsTask(
                     name='Batch validate MD5 checksums of {} data '
@@ -236,6 +254,19 @@ class Flow(BaseLinearFlow):
                     },
                 )
             )
+
+        self.add_task(
+            irods_tasks.BatchCheckFilesTask(
+                name='Batch check file and MD5 checksum file existence for '
+                'zone data objects',
+                irods=self.irods,
+                inject={
+                    'file_paths': zone_objects_nomd5,
+                    'md5_paths': zone_objects_md5,
+                    'zone_path': zone_path,
+                },
+            )
+        )
 
         self.add_task(
             irods_tasks.BatchValidateChecksumsTask(

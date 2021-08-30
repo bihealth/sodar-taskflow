@@ -15,6 +15,7 @@ Added
 - Support for extra data in ``SetLandingZoneStatusTask`` (#81)
 - ``status`` and ``flow_name`` arguments for ``RevertLandingZoneFailTask`` (#86)
 - ``flow_name`` argument for ``SetLandingZoneStatusTask``
+- ``BatchCheckFilesTask`` for checking file and MD5 checksum presence (#63)
 
 Changed
 -------
@@ -25,6 +26,7 @@ Changed
 - Display user name instead of path in ``SetAccessTask`` revert
 - Set zone status to ``NOT CREATED`` on ``landing_zone_create`` failure (#86)
 - Improve ``RevertLandingZoneFailTask`` info messages
+- Improve iRODS task exception messages
 
 Fixed
 -----
@@ -32,6 +34,7 @@ Fixed
 - Redundant info in ``BatchValidateChecksumsTask`` error logging (#80)
 - Errors in ``landing_zone_move`` zone status messages (#82)
 - ``landing_zone_create`` script user access task exception not resulting in revert (#85)
+- ``_raise_irods_exception()`` helper
 
 Removed
 -------
