@@ -12,6 +12,7 @@ from config import settings
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
 PERMANENT_USERS = settings.TASKFLOW_TEST_PERMANENT_USERS
 IRODS_ENV_PATH = settings.TASKFLOW_IRODS_ENV_PATH
+USE_DEFAULT_ENV = settings.TASKFLOW_USE_DEFAULT_ENV
 
 
 logger = logging.getLogger('sodar_taskflow')
@@ -23,20 +24,30 @@ def init_irods(test_mode=False):
     # Get optional environment file
     irods_env = {}
 
-    if IRODS_ENV_PATH:
+    # Temporary default env HACK (see issue #90)
+    if bool(int(USE_DEFAULT_ENV)):
+        irods_env = {
+            'irods_client_server_negotiation': 'request_server_negotiation',
+            'irods_client_server_policy': 'CS_NEG_REQUIRE',
+            'irods_encryption_algorithm': 'AES-256-CBC',
+            'irods_encryption_key_size': 32,
+            'irods_encryption_num_hash_rounds': 16,
+            'irods_encryption_salt_size': 8,
+            'irods_ssl_ca_certificate_file': '/etc/sodar/irods_server.crt',
+        }
+        logger.debug('Using default iRODS env: {}'.format(irods_env))
+
+    elif IRODS_ENV_PATH:
         try:
             with open(IRODS_ENV_PATH) as env_file:
                 irods_env = json.load(env_file)
-
             logger.debug('Loaded iRODS env from file: {}'.format(irods_env))
-
         except FileNotFoundError:
             logger.warning(
                 'iRODS env file not found: connecting with default '
                 'parameters (path={})'.format(IRODS_ENV_PATH)
             )
             irods_env = {}
-
         except Exception as ex:
             logger.error(
                 'Unable to read iRODS env file (path={}): {}'.format(

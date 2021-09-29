@@ -23,6 +23,9 @@ TASKFLOW_IRODS_ROOT_PATH = os.getenv('TASKFLOW_IRODS_ROOT_PATH', None)
 TASKFLOW_IRODS_ENV_PATH = os.getenv('TASKFLOW_IRODS_ENV_PATH', None)
 TASKFLOW_ALLOW_IRODS_CLEANUP = os.getenv('TASKFLOW_ALLOW_IRODS_CLEANUP', False)
 
+# Temporary default environment hack
+TASKFLOW_USE_DEFAULT_ENV = os.getenv('TASKFLOW_USE_DEFAULT_ENV', 1)
+
 # iRODS server test settings
 TASKFLOW_IRODS_PROJECT_ROOT = '/{}{}/projects'.format(
     TASKFLOW_IRODS_ZONE,
