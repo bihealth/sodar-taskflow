@@ -29,7 +29,9 @@ TASKFLOW_USE_DEFAULT_ENV = os.getenv('TASKFLOW_USE_DEFAULT_ENV', 1)
 # iRODS server test settings
 TASKFLOW_IRODS_PROJECT_ROOT = '/{}{}/projects'.format(
     TASKFLOW_IRODS_ZONE,
-    ('/' + TASKFLOW_IRODS_ROOT_PATH) if TASKFLOW_IRODS_ROOT_PATH else '',
+    ('/' + TASKFLOW_IRODS_ROOT_PATH)
+    if TASKFLOW_IRODS_ROOT_PATH and len(TASKFLOW_IRODS_ROOT_PATH) > 0
+    else '',
 )
 TASKFLOW_SAMPLE_COLL = 'sample_data'
 TASKFLOW_LANDING_ZONE_COLL = 'landing_zones'
