@@ -11,50 +11,28 @@ from config import settings
 
 PROJECT_ROOT = settings.TASKFLOW_IRODS_PROJECT_ROOT
 PERMANENT_USERS = settings.TASKFLOW_TEST_PERMANENT_USERS
-IRODS_ENV_PATH = settings.TASKFLOW_IRODS_ENV_PATH
-USE_DEFAULT_ENV = settings.TASKFLOW_USE_DEFAULT_ENV
 
 
 logger = logging.getLogger('sodar_taskflow')
 
 
 def init_irods(test_mode=False):
-    """Initialize iRODS session. Returns an iRODSSession object."""
+    """Initialize iRODS session, return an iRODSSession object"""
 
-    # Get optional environment file
-    irods_env = {}
-
-    # Temporary default env HACK (see issue #90)
-    if bool(int(USE_DEFAULT_ENV)):
-        irods_env = {
-            'irods_client_server_negotiation': 'request_server_negotiation',
-            'irods_client_server_policy': 'CS_NEG_REQUIRE',
-            'irods_encryption_algorithm': 'AES-256-CBC',
-            'irods_encryption_key_size': 32,
-            'irods_encryption_num_hash_rounds': 16,
-            'irods_encryption_salt_size': 8,
-            'irods_ssl_ca_certificate_file': '/etc/sodar/irods_server.crt',
-        }
-        logger.debug('Using default iRODS env: {}'.format(irods_env))
-
-    elif IRODS_ENV_PATH:
-        try:
-            with open(IRODS_ENV_PATH) as env_file:
-                irods_env = json.load(env_file)
-            logger.debug('Loaded iRODS env from file: {}'.format(irods_env))
-        except FileNotFoundError:
-            logger.warning(
-                'iRODS env file not found: connecting with default '
-                'parameters (path={})'.format(IRODS_ENV_PATH)
-            )
-            irods_env = {}
-        except Exception as ex:
-            logger.error(
-                'Unable to read iRODS env file (path={}): {}'.format(
-                    IRODS_ENV_PATH, ex
-                )
-            )
-            raise ex
+    # iRODS environment
+    irods_env = dict(settings.TASKFLOW_IRODS_ENV)
+    irods_override = settings.TASKFLOW_IRODS_ENV_OVERRIDE
+    if irods_override:
+        irods_env.update(
+            {
+                v[0]: v[1]
+                for v in [v.split('=') for v in irods_override.split(',')]
+            }
+        )
+    cert_path = settings.TASKFLOW_IRODS_CERT_PATH
+    if cert_path:
+        irods_env.update({'irods_ssl_ca_certificate_file': cert_path})
+    logger.debug('iRODS env: {}'.format(irods_env))
 
     # Default server
     if not test_mode:
@@ -65,7 +43,6 @@ def init_irods(test_mode=False):
             'password': settings.TASKFLOW_IRODS_PASS,
             'zone': settings.TASKFLOW_IRODS_ZONE,
         }
-
     else:
         irods_kwargs = {
             'host': settings.TASKFLOW_IRODS_TEST_HOST,

@@ -16,6 +16,7 @@ Added
 - ``status`` and ``flow_name`` arguments for ``RevertLandingZoneFailTask`` (#86)
 - ``flow_name`` argument for ``SetLandingZoneStatusTask``
 - ``BatchCheckFilesTask`` for checking file and MD5 checksum presence (#63)
+- iRODS environment setup via ``TASKFLOW_IRODS_ENV_OVERRIDE`` (#90)
 
 Changed
 -------
@@ -27,6 +28,7 @@ Changed
 - Set zone status to ``NOT CREATED`` on ``landing_zone_create`` failure (#86)
 - Improve ``RevertLandingZoneFailTask`` info messages
 - Improve iRODS task exception messages
+- Change test config log level to ``CRITICAL``
 
 Fixed
 -----
@@ -40,6 +42,7 @@ Removed
 -------
 
 - ``set_script_user_access()`` helper, use ``SetAccessTask`` instead (#85)
+- ``IRODS_ENV_PATH`` support (#90)
 
 
 v0.5.0 (2020-06-07)

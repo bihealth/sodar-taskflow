@@ -20,11 +20,16 @@ TASKFLOW_IRODS_ZONE = os.getenv('TASKFLOW_IRODS_ZONE', 'omicsZone')
 TASKFLOW_IRODS_USER = os.getenv('TASKFLOW_IRODS_USER', 'rods')
 TASKFLOW_IRODS_PASS = os.getenv('TASKFLOW_IRODS_PASS', 'rods')
 TASKFLOW_IRODS_ROOT_PATH = os.getenv('TASKFLOW_IRODS_ROOT_PATH', None)
-TASKFLOW_IRODS_ENV_PATH = os.getenv('TASKFLOW_IRODS_ENV_PATH', None)
 TASKFLOW_ALLOW_IRODS_CLEANUP = os.getenv('TASKFLOW_ALLOW_IRODS_CLEANUP', False)
 
-# Temporary default environment hack
-TASKFLOW_USE_DEFAULT_ENV = os.getenv('TASKFLOW_USE_DEFAULT_ENV', 1)
+TASKFLOW_IRODS_ENV = {
+    'irods_encryption_algorithm': 'AES-256-CBC',
+    'irods_encryption_key_size': 32,
+    'irods_encryption_num_hash_rounds': 16,
+    'irods_encryption_salt_size': 8,
+}
+TASKFLOW_IRODS_ENV_OVERRIDE = os.getenv('TASKFLOW_IRODS_ENV_OVERRIDE', None)
+TASKFLOW_IRODS_CERT_PATH = os.getenv('TASKFLOW_IRODS_CERT_PATH', None)
 
 # iRODS server test settings
 TASKFLOW_IRODS_PROJECT_ROOT = '/{}{}/projects'.format(
