@@ -1,7 +1,7 @@
 from config.base import *
 
 # Flask
-DEBUG = False
+DEBUG = os.getenv('DEBUG', False)
 FLASK_ENV = 'production'
 
 # Taskflow

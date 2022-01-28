@@ -11,6 +11,8 @@ Changed
 -------
 
 - Upgrade to python-irodsclient v1.1.0 (#91)
+- Allow setting ``DEBUG`` in production config (#92)
+
 
 v0.6.0 (2021-12-14)
 ===================
