@@ -4,6 +4,15 @@ SODAR Taskflow Changelog
 Changelog for the SODAR Taskflow service.
 
 
+Unreleased
+==========
+
+Changed
+-------
+
+- Upgrade to python-irodsclient v1.1.2 (#93)
+
+
 v0.6.1 (2022-02-02)
 ===================
 
