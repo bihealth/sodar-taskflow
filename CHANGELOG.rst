@@ -11,6 +11,7 @@ Changed
 -------
 
 - Upgrade to python-irodsclient v1.1.2 (#93)
+- Upgrade general dependencies (#94)
 
 
 v0.6.1 (2022-02-02)
