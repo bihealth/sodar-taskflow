@@ -1,4 +1,4 @@
-FROM python:3.6-buster
+FROM python:3.8-buster
 
 MAINTAINER Mikko Nieminen <mikko.nieminen@bih-charite.de>
 LABEL org.opencontainers.image.source https://github.com/bihealth/sodar-taskflow

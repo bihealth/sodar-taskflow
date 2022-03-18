@@ -19,7 +19,7 @@ Requirements
 ------------
 
 - Linux (Ubuntu 20.04 recommended)
-- Python 3.6+
+- Python 3.8+
 - Redis
 - Access to *two* dedicated iRODS iCAT servers (one for running tests)
 
