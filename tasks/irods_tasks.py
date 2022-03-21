@@ -177,22 +177,27 @@ class RemoveDataObjectTask(IrodsBaseTask):
 
 
 # TODO: Do we need to add several metadata items until the same key? If so,
-# TODO:     A separate task should be created
+# TODO: A separate task should be created
 class SetCollectionMetadataTask(IrodsBaseTask):
-    """Set new value to existing metadata item (imeta set). NOTE: will replace
-    existing value with the same name"""
+    """
+    Set new value to existing metadata item (imeta set). NOTE: will replace
+    existing value with the same name.
+    """
 
     def execute(self, path, name, value, units=None, *args, **kwargs):
-        coll = self.irods.collections.get(path)
+        coll = None
+        try:
+            coll = self.irods.collections.get(path)
+        except Exception as ex:
+            self._raise_irods_exception(ex)
         meta_item = None
         try:
             meta_item = coll.metadata.get_one(name)
-        except Exception:  # Can't get proper Exception here
+        except Exception:
             pass
-        # HACK: Can not set empty value in imeta
-        if not value:
-            value = META_EMPTY_VALUE
 
+        if not value:  # HACK: Can not set empty value in imeta
+            value = META_EMPTY_VALUE
         if meta_item and value != meta_item.value:
             self.execute_data['value'] = str(meta_item.value)
             self.execute_data['units'] = (
@@ -200,7 +205,6 @@ class SetCollectionMetadataTask(IrodsBaseTask):
             )
             meta_item.value = str(value)
             meta_item.units = str(units)
-
             self.irods.metadata.set(
                 model_cls=Collection, path=path, meta=meta_item
             )

@@ -14,6 +14,7 @@ Changed
 - Upgrade general dependencies (#94)
 - Drop support for Python <3.8, add support for v3.10 (#95)
 - Upgrade to Python v3.8 in Docker build (#95)
+- Fix uncaught exception in ``SetCollectionMetadataTask`` (#96)
 
 
 v0.6.1 (2022-02-02)
