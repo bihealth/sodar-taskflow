@@ -14,11 +14,9 @@ The SODAR Taskflow component executes taskflows on the iRODS and SODAR
 databases. It also handles project locking and unlocking using tooz and
 Redis.
 
-.. note::
-
-    From SODAR v0.11.0 onwards this functionality will be merged into the
-    `sodar-server <https://github.com/bihealth/sodar-server/>`_ repository. This
-    separate service will be archived and no longer developed.
+**PLEASE NOTE:** From SODAR v0.11.0 onwards this functionality will be merged
+into the `sodar-server <https://github.com/bihealth/sodar-server/>`_ repository.
+This separate service will be archived and no longer developed.
 
 
 Requirements
