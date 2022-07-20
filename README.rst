@@ -14,6 +14,12 @@ The SODAR Taskflow component executes taskflows on the iRODS and SODAR
 databases. It also handles project locking and unlocking using tooz and
 Redis.
 
+.. note::
+
+    From SODAR v0.11.0 onwards this functionality will be merged into the
+    `sodar-server <https://github.com/bihealth/sodar-server/>`_ repository. This
+    separate service will be archived and no longer developed.
+
 
 Requirements
 ------------
@@ -39,7 +45,7 @@ Installation
 Local Development Environment
 -----------------------------
 
-The `sodar-docker-env <https://github.com/bihealth/sodar-docker-env>`_
+The `sodar-docker-compose <https://github.com/bihealth/sodar-docker-compose>`_
 setup runs a redis-server and two iRODS servers as Docker containers. It is the
 easiest way to get the required servers running. See the repository for
 installation instructions.
@@ -49,7 +55,7 @@ and admin user login data, both for the default and test iRODS servers.
 See ``config/base.py`` for the variables and their default values.
 
 The default configuration assumes a local DEFAULT iRODS server, while the TEST
-iRODS server and Redis are accessed from ``sodar-docker-env``.
+iRODS server and Redis are accessed from ``sodar-docker-compose``.
 
 **WARNING:** Never set a production server as the TEST server in your
 configuration, as this may result in data loss!
@@ -59,7 +65,6 @@ Production Deployment
 ---------------------
 
 SODAR Taskflow can be deployed together with the main SODAR Server using
-`Ansible <https://github.com/bihealth/ansible-role-sodar-server>`_ or
 `Docker Compose <https://github.com/bihealth/sodar-docker-compose>`_.
 
 **NOTE:** Due to the ``TASKFLOW_SODAR_SECRET`` variable having to match between
