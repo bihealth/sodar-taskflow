@@ -10,7 +10,7 @@ Unreleased
 Changed
 -------
 
-- Upgrade to python-irodsclient v1.1.2 (#93)
+- Upgrade to python-irodsclient v1.1.3 (#93, #97)
 - Upgrade general dependencies (#94)
 - Drop support for Python <3.8, add support for v3.10 (#95)
 - Upgrade to Python v3.8 in Docker build (#95)
